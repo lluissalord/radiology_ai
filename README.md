@@ -8,4 +8,4 @@ Install fastai:
 `conda install -n radiology_ai -c fastai -c pytorch -c anaconda fastai gh anaconda`
 
 In order to use fastai for medical imaging, which here is the case:
-`conda install pydicom kornia`
+`conda install -n radiology_ai pydicom kornia`
