@@ -2,6 +2,9 @@ from glob import glob
 import os
 import shutil
 
+import pydicom
+
+
 def check_DICOM(dcm):
     """ Check the DICOM file if it is has the feature required """
 
@@ -19,7 +22,7 @@ def move_file(src_filepath, src_folder, dst_folder):
     # Move file to the destination folder 
     _, filename = os.path.split(src_filepath)
     dst_filepath = os.path.join(dst_folder, filename)
-    shutil.copyfile(filepath, dst_filepath)
+    shutil.copyfile(src_filepath, dst_filepath)
 
     # Rename the file with the name of the folder (patient ID)
     _, foldername = os.path.split(src_folder)
