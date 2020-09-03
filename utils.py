@@ -39,7 +39,8 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # Clean destination folder
-    shutil.rmtree(dst_folder)
+    if os.path.isdir(dst_folder):
+        shutil.rmtree(dst_folder)
 
     # Look at all the DICOM files in the source folder, check them and move them appropiatly
     folders = glob(os.path.join(src_folder, '*'))
@@ -103,6 +104,5 @@ def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
         for folder in folders:
             current_group = folders_group[folder]
             relative_folder = current_group
-            relative_folder = os.path.join(current_group, str(current_subgroup))
             folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
     return folders_dst_folders
