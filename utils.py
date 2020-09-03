@@ -106,3 +106,78 @@ def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
             relative_folder = current_group
             folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
     return folders_dst_folders
+
+
+from glob import glob
+
+import pandas as pd
+
+def generate_csv(dst_folder, subgroup_length, sep=';'):
+    """ Generates CSV files for each group of DICOM files using the filename as ID """
+    
+    # Extract the length of the path from the destination folder
+    dst_folder_length = os.path.normpath(dst_folder).split(os.sep)
+
+    # Take into account if there are or not subgroups
+    prefix = ''
+    if subgroup_length is not None:
+        prefix = '*/'
+     
+    # Look for CSV files in the folders and remove them
+    csv_files = glob(
+        os.path.join(
+            dst_folder,
+            prefix + '*/*.csv'
+        )
+    )
+    if len(csv_files) > 0:
+        # Remove CSV files
+        for csv_file in csv_files:
+            os.remove(csv_file)
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(
+        os.path.join(
+            dst_folder,
+            prefix + '*'
+        )
+    )
+
+    # Loop on across the folders to generate de CSV file
+    for folderpath in folderpaths:
+        # Get all the DICOM files
+        filepaths = glob(
+            os.path.join(
+                folderpath,
+                '*'
+            )
+        )
+
+        data = {}
+        # Extract file IDs from each filepath
+        data['ID'] = list(
+            map(
+                lambda x: os.path.normpath(x).split(os.sep)[-1],
+                filepaths
+            )
+        )
+
+
+        df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect image', 'Not enough quality'])
+
+        # Split the path on all the folders
+        path_split = os.path.normpath(filepaths[0]).split(os.sep)
+
+        # Set CSV filename as the name of the folder just after the destination folder
+        csv_name = path_split[dst_folder_length]
+
+        # If there are subgroups then it is added also the subfolder on the filename
+        if subgroup_length is not None:
+            csv_name = csv_name + '_' + path_split[-2]
+
+        # Transform to CSV on the corresponding folder
+        df.to_csv(
+            os.sep.join(path_split[:-1] + [csv_name + '.csv']),
+            index=False,
+            sep=sep,
+        )
