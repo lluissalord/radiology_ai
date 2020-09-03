@@ -1,6 +1,7 @@
 from glob import glob
 import os
 import shutil
+import random
 
 import pydicom
 
@@ -18,30 +19,90 @@ def check_DICOM(dcm):
 
 
 def move_file(src_filepath, src_folder, dst_folder):
-    """ Move and rename file to the destination folder with folder name """
-    # Move file to the destination folder 
-    _, filename = os.path.split(src_filepath)
-    dst_filepath = os.path.join(dst_folder, filename)
-    shutil.copyfile(src_filepath, dst_filepath)
+    """ Copy file to the destination folder with folder name """
 
     # Rename the file with the name of the folder (patient ID)
     _, foldername = os.path.split(src_folder)
-    final_filepath = os.path.join(dst_folder, foldername)
-    shutil.move(dst_filepath, final_filepath)
 
-
-def organize_folders(src_folder, dst_folder):
-    """ Organize folders and files to set all the desired DICOM files into the correct folder """
+    # Define the destination path
+    dst_filepath = os.path.join(dst_folder, foldername)
 
     # Create the destination folder if not exists
     if not os.path.exists(dst_folder):
         os.makedirs(dst_folder)
 
+    # Copy file with folder name
+    shutil.copyfile(src_filepath, dst_filepath)
+
+
+def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None):
+    """ Organize folders and files to set all the desired DICOM files into the correct folder """
+
+    # Clean destination folder
+    shutil.rmtree(dst_folder)
+
     # Look at all the DICOM files in the source folder, check them and move them appropiatly
     folders = glob(os.path.join(src_folder, '*'))
+    correct_filepaths = []
+    correct_folders = []
     for folder in folders:
         filepaths = glob(os.path.join(folder, '*'))
         for filepath in filepaths:
             dcm = pydicom.dcmread(filepath)
             if check_DICOM(dcm):
-                move_file(filepath, folder, dst_folder)
+                correct_filepaths.append(filepath)
+                correct_folders.append(folder)
+
+    folders_dst_folders = get_final_dst_folder(dst_folder, correct_folders, groups, subgroup_length)
+    for filepath in correct_filepaths:
+        path, filename = os.path.split(filepath)
+        final_dst_folder = folders_dst_folders[path]
+        move_file(filepath, path, final_dst_folder)
+
+
+def expand_list(l, n):
+    """ Expand a list `l` to repeat its elements till reaching length of `n` """
+    return (l*(n // len(l) + 1))[:n]
+
+
+def shuffle_group_folders(folders, groups, subgroup_length=None):
+    """ Generate dictionaries of the shuffled groups and subgroups related to folders """
+    if subgroup_length is not None:
+        subgroups = list(range(len(folders) // subgroup_length + 1))[:len(folders)]
+        expanded_subgroups = expand_list(subgroups, len(folders))
+        random.shuffle(folders)
+        folders_subgroup = dict(zip(folders, expanded_subgroups))
+
+        random.shuffle(groups)
+        expanded_groups = expand_list(groups, len(subgroups))
+        subgroup_group = dict(zip(subgroups, expanded_groups))
+        
+        return folders_subgroup, subgroup_group
+    else:
+        random.shuffle(groups)
+        random.shuffle(folders)
+        expanded_groups = expand_list(groups, len(folders))
+        folders_group = dict(zip(folders, expanded_groups))
+
+        return folders_group
+
+
+def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
+    """ Relates source folders with destination folder paths depending on shuffle groups and subgroup length """
+    
+    folders_dst_folders = {}
+    if subgroup_length is not None:
+        folders_subgroup, subgroup_group = shuffle_group_folders(folders, groups, subgroup_length)
+        for folder in folders:
+            current_subgroup = folders_subgroup[folder]
+            current_group = subgroup_group[current_subgroup]
+            relative_folder = os.path.join(current_group, str(current_subgroup))
+            folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
+    else:
+        folders_group = shuffle_group_folders(folders, groups, subgroup_length)
+        for folder in folders:
+            current_group = folders_group[folder]
+            relative_folder = current_group
+            relative_folder = os.path.join(current_group, str(current_subgroup))
+            folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
+    return folders_dst_folders
