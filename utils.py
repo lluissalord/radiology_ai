@@ -3,6 +3,8 @@ import os
 import shutil
 import random
 
+import pandas as pd
+
 import pydicom
 
 
@@ -56,7 +58,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None):
 
     folders_dst_folders = get_final_dst_folder(dst_folder, correct_folders, groups, subgroup_length)
     for filepath in correct_filepaths:
-        path, filename = os.path.split(filepath)
+        path, _ = os.path.split(filepath)
         final_dst_folder = folders_dst_folders[path]
         move_file(filepath, path, final_dst_folder)
 
@@ -92,14 +94,21 @@ def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
     """ Relates source folders with destination folder paths depending on shuffle groups and subgroup length """
     
     folders_dst_folders = {}
-    if subgroup_length is not None:
+    if groups is not None and subgroup_length is not None:
         folders_subgroup, subgroup_group = shuffle_group_folders(folders, groups, subgroup_length)
         for folder in folders:
             current_subgroup = folders_subgroup[folder]
             current_group = subgroup_group[current_subgroup]
             relative_folder = os.path.join(current_group, str(current_subgroup))
             folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
+    elif groups is None and subgroup_length is None:
+        for folder in folders:
+            folders_dst_folders[folder] = dst_folder
     else:
+        if groups is None:
+            n_groups = len(folders) // subgroup_length + (len(folders) % subgroup_length != 0)
+            groups = [str(i) for i in range(n_groups)]
+            subgroup_length = None
         folders_group = shuffle_group_folders(folders, groups, subgroup_length)
         for folder in folders:
             current_group = folders_group[folder]
@@ -108,26 +117,27 @@ def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
     return folders_dst_folders
 
 
-from glob import glob
-
-import pandas as pd
-
-def generate_csv(dst_folder, subgroup_length, sep=';'):
+def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
     """ Generates CSV files for each group of DICOM files using the filename as ID """
     
     # Extract the length of the path from the destination folder
-    dst_folder_length = os.path.normpath(dst_folder).split(os.sep)
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
 
     # Take into account if there are or not subgroups
     prefix = ''
     if subgroup_length is not None:
-        prefix = '*/'
+        prefix += '*/'
+        if groups is None:
+            subgroup_length = None
+        
+    if groups is not None:
+        prefix += '*/'
      
     # Look for CSV files in the folders and remove them
     csv_files = glob(
         os.path.join(
             dst_folder,
-            prefix + '*/*.csv'
+            prefix + '*.csv'
         )
     )
     if len(csv_files) > 0:
@@ -139,7 +149,7 @@ def generate_csv(dst_folder, subgroup_length, sep=';'):
     folderpaths = glob(
         os.path.join(
             dst_folder,
-            prefix + '*'
+            prefix
         )
     )
 
@@ -168,8 +178,12 @@ def generate_csv(dst_folder, subgroup_length, sep=';'):
         # Split the path on all the folders
         path_split = os.path.normpath(filepaths[0]).split(os.sep)
 
-        # Set CSV filename as the name of the folder just after the destination folder
-        csv_name = path_split[dst_folder_length]
+        if subgroup_length is not None or groups is not None:
+            # Set CSV filename as the name of the folder just after the destination folder
+            csv_name = path_split[dst_folder_length]
+        else:
+            # Set CSV filename as 'labels'
+            csv_name = 'labels'
 
         # If there are subgroups then it is added also the subfolder on the filename
         if subgroup_length is not None:
