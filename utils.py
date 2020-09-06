@@ -20,14 +20,19 @@ def check_DICOM(dcm):
     return True
 
 
-def move_file(src_filepath, src_folder, dst_folder):
+def move_file(src_filepath, src_folder, dst_folder, force_extension=None):
     """ Copy file to the destination folder with folder name """
 
     # Rename the file with the name of the folder (patient ID)
     _, foldername = os.path.split(src_folder)
 
+    # Get extension of source file
+    _, extension = os.path.splitext(src_filepath)
+    if force_extension is not None:
+        extension = force_extension
+
     # Define the destination path
-    dst_filepath = os.path.join(dst_folder, foldername)
+    dst_filepath = os.path.join(dst_folder, foldername + extension)
 
     # Create the destination folder if not exists
     if not os.path.exists(dst_folder):
@@ -37,7 +42,7 @@ def move_file(src_filepath, src_folder, dst_folder):
     shutil.copyfile(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None):
+def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, force_extension=None):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # Clean destination folder
@@ -60,7 +65,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None):
     for filepath in correct_filepaths:
         path, _ = os.path.split(filepath)
         final_dst_folder = folders_dst_folders[path]
-        move_file(filepath, path, final_dst_folder)
+        move_file(filepath, path, final_dst_folder, force_extension=force_extension)
 
 
 def expand_list(l, n):
@@ -159,7 +164,7 @@ def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
         filepaths = glob(
             os.path.join(
                 folderpath,
-                '*'
+                '*.dcm'
             )
         )
 
@@ -167,12 +172,15 @@ def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
         # Extract file IDs from each filepath
         data['ID'] = list(
             map(
-                lambda x: os.path.normpath(x).split(os.sep)[-1],
+                lambda x: os.path.splitext(
+                    os.path.normpath(x) \
+                        .split(os.sep)[-1]
+                )[0],
                 filepaths
             )
         )
 
-
+        # Create DataFrame from the data with the proposed structure
         df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect image', 'Not enough quality'])
 
         # Split the path on all the folders
