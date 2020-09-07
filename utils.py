@@ -8,23 +8,22 @@ import pandas as pd
 import pydicom
 
 
-def check_DICOM(dcm):
+def check_DICOM(dcm, debug=False):
     """ Check the DICOM file if it is has the feature required """
 
     if dcm.BodyPartExamined != 'LOWER LIMB':
-        print('BodyPartExamined: ', dcm.BodyPartExamined)
+        if debug:
+            print('BodyPartExamined: ', dcm.BodyPartExamined, 'on Accession Number:', dcm.AccessionNumber)
         return False
     if dcm.SeriesDescription != 'RODILLA AP':
-        print('SeriesDescription: ', dcm.SeriesDescription)
+        if debug:
+            print('SeriesDescription: ', dcm.SeriesDescription, 'on Accession Number:', dcm.AccessionNumber)
         return False
     return True
 
 
-def move_file(src_filepath, src_folder, dst_folder, force_extension=None):
+def move_file(src_filepath, filename, dst_folder, force_extension=None):
     """ Copy file to the destination folder with folder name """
-
-    # Rename the file with the name of the folder (patient ID)
-    _, foldername = os.path.split(src_folder)
 
     # Get extension of source file
     _, extension = os.path.splitext(src_filepath)
@@ -32,7 +31,7 @@ def move_file(src_filepath, src_folder, dst_folder, force_extension=None):
         extension = force_extension
 
     # Define the destination path
-    dst_filepath = os.path.join(dst_folder, foldername + extension)
+    dst_filepath = os.path.join(dst_folder, filename + extension)
 
     # Create the destination folder if not exists
     if not os.path.exists(dst_folder):
@@ -42,7 +41,7 @@ def move_file(src_filepath, src_folder, dst_folder, force_extension=None):
     shutil.copyfile(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, force_extension=None):
+def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, force_extension=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # Clean destination folder
@@ -57,7 +56,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, 
         filepaths = glob(os.path.join(folder, '*'))
         for filepath in filepaths:
             dcm = pydicom.dcmread(filepath)
-            if check_DICOM(dcm):
+            if check_DICOM(dcm, debug):
                 correct_filepaths.append(filepath)
                 correct_folders.append(folder)
 
@@ -65,7 +64,11 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, 
     for filepath in correct_filepaths:
         path, _ = os.path.split(filepath)
         final_dst_folder = folders_dst_folders[path]
-        move_file(filepath, path, final_dst_folder, force_extension=force_extension)
+
+        # Rename the file with the name of the folder (patient ID)
+        _, filename = os.path.split(path)
+
+        move_file(filepath, filename, final_dst_folder, force_extension=force_extension)
 
 
 def expand_list(l, n):
