@@ -125,9 +125,15 @@ def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
     return folders_dst_folders
 
 
-def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
-    """ Generates CSV files for each group of DICOM files using the filename as ID """
+def generate_template(dst_folder, groups, subgroup_length, excel=True, csv_sep=';'):
+    """ Generates template files for each group of DICOM files using the filename as ID """
     
+    # Define extension
+    if excel:
+        extension = '.xls'
+    else:
+        extension = '.csv'
+
     # Extract the length of the path from the destination folder
     dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
 
@@ -141,17 +147,22 @@ def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
     if groups is not None:
         prefix += '*/'
      
-    # Look for CSV files in the folders and remove them
-    csv_files = glob(
+    # Look for Excel/CSV files in the folders and remove them
+    template_files = glob(
+        os.path.join(
+            dst_folder,
+            prefix + '*.xls'
+        )
+    ) + glob(
         os.path.join(
             dst_folder,
             prefix + '*.csv'
         )
-    )
-    if len(csv_files) > 0:
-        # Remove CSV files
-        for csv_file in csv_files:
-            os.remove(csv_file)
+    ) 
+    if len(template_files) > 0:
+        # Remove template files
+        for template_file in template_files:
+            os.remove(template_file)
 
     # Get all the folder and subfolders that contain DICOM files
     folderpaths = glob(
@@ -161,7 +172,7 @@ def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
         )
     )
 
-    # Loop on across the folders to generate de CSV file
+    # Loop on across the folders to generate de template file
     for folderpath in folderpaths:
         # Get all the DICOM files
         filepaths = glob(
@@ -184,25 +195,70 @@ def generate_csv(dst_folder, groups, subgroup_length, sep=';'):
         )
 
         # Create DataFrame from the data with the proposed structure
-        df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect image', 'Not enough quality'])
+        df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect_image', 'Not_enough_quality'])
 
         # Split the path on all the folders
         path_split = os.path.normpath(filepaths[0]).split(os.sep)
 
         if subgroup_length is not None or groups is not None:
-            # Set CSV filename as the name of the folder just after the destination folder
-            csv_name = path_split[dst_folder_length]
+            # Set template filename as the name of the folder just after the destination folder
+            template_name = path_split[dst_folder_length]
         else:
-            # Set CSV filename as 'labels'
-            csv_name = 'labels'
+            # Set template filename as 'labels'
+            template_name = 'labels'
 
         # If there are subgroups then it is added also the subfolder on the filename
         if subgroup_length is not None:
-            csv_name = csv_name + '_' + path_split[-2]
+            template_name = template_name + '_' + path_split[-2]
 
-        # Transform to CSV on the corresponding folder
-        df.to_csv(
-            os.sep.join(path_split[:-1] + [csv_name + '.csv']),
-            index=False,
-            sep=sep,
+        # Transform to Excel/CSV on the corresponding folder
+        if excel:
+            df.to_excel(
+                os.sep.join(path_split[:-1] + [template_name + extension]),
+                index=False,
+            )
+        else:
+            df.to_csv(
+                os.sep.join(path_split[:-1] + [template_name + extension]),
+                index=False,
+                sep=csv_sep,
+            )
+
+
+def concat_templates(src_folder, excel=True, csv_sep=';'):
+
+    # Define extension
+    if excel:
+        extension = '.xls'
+    else:
+        extension = '.csv'
+
+    label_paths = glob(
+        os.path.join(
+            src_folder,
+            '*' + extension
         )
+    ) + glob(
+        os.path.join(
+            src_folder,
+            '*/*' + extension
+        )
+    ) + glob(
+        os.path.join(
+            src_folder,
+            '*/*/*' + extension
+        )
+    )
+
+    dtype = {'ID':'string','Target':'string'}
+
+    df = pd.DataFrame()
+    print(label_paths)
+    for label_path in label_paths:
+        df = pd.concat([
+            df,
+            pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
+        ])
+
+    df = df.reset_index(drop=True)
+    return df
