@@ -262,3 +262,16 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 
     df = df.reset_index(drop=True)
     return df
+
+
+def rename_patient(dicom_files):
+    """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
+    
+    dcms = dicom_files.map(pydicom.dcmread)
+    for filepath,dcm in zip(dicom_files,dcms):
+        _, filename = os.path.split(filepath)
+        filename, _ = os.path.splitext(filename)
+        dcm.PatientName = filename
+        dcm.PatientID = filename
+        with open(filepath, 'wb') as f:
+            dcm.save_as(f)
