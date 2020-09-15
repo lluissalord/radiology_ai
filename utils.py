@@ -253,7 +253,6 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
     dtype = {'ID':'string','Target':'string'}
 
     df = pd.DataFrame()
-    print(label_paths)
     for label_path in label_paths:
         df = pd.concat([
             df,
