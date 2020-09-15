@@ -22,7 +22,7 @@ def check_DICOM(dcm, debug=False):
     return True
 
 
-def move_file(src_filepath, filename, dst_folder, force_extension=None):
+def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True):
     """ Copy file to the destination folder with folder name """
 
     # Get extension of source file
@@ -37,11 +37,15 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None):
     if not os.path.exists(dst_folder):
         os.makedirs(dst_folder)
 
-    # Copy file with folder name
-    shutil.copyfile(src_filepath, dst_filepath)
+    if copy:
+        # Copy file with folder name
+        shutil.copyfile(src_filepath, dst_filepath)
+    else:
+        # Move file with folder name
+        shutil.move(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, force_extension=None, debug=False):
+def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, force_extension=None, copy=True, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # Clean destination folder
@@ -68,7 +72,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, 
         # Rename the file with the name of the folder (patient ID)
         _, filename = os.path.split(path)
 
-        move_file(filepath, filename, final_dst_folder, force_extension=force_extension)
+        move_file(filepath, filename, final_dst_folder, force_extension=force_extension, copy=copy)
 
 
 def expand_list(l, n):
