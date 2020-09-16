@@ -3,6 +3,8 @@ import os
 import shutil
 import random
 
+from tqdm import tqdm_notebook
+
 import pandas as pd
 
 import pydicom
@@ -56,7 +58,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, 
     folders = glob(os.path.join(src_folder, '*'))
     correct_filepaths = []
     correct_folders = []
-    for folder in folders:
+    for folder in tqdm_notebook(folders, desc='Check folders: '):
         filepaths = glob(os.path.join(folder, '*'))
         for filepath in filepaths:
             dcm = pydicom.dcmread(filepath)
@@ -65,7 +67,7 @@ def organize_folders(src_folder, dst_folder, groups=None, subgroup_length=None, 
                 correct_folders.append(folder)
 
     folders_dst_folders = get_final_dst_folder(dst_folder, correct_folders, groups, subgroup_length)
-    for filepath in correct_filepaths:
+    for filepath in tqdm_notebook(correct_filepaths, desc='Move files'):
         path, _ = os.path.split(filepath)
         final_dst_folder = folders_dst_folders[path]
 
@@ -177,7 +179,7 @@ def generate_template(dst_folder, groups, subgroup_length, excel=True, csv_sep='
     )
 
     # Loop on across the folders to generate de template file
-    for folderpath in folderpaths:
+    for folderpath in tqdm_notebook(folderpaths, desc='Folders: '):
         # Get all the DICOM files
         filepaths = glob(
             os.path.join(
@@ -257,7 +259,7 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
     dtype = {'ID':'string','Target':'string'}
 
     df = pd.DataFrame()
-    for label_path in label_paths:
+    for label_path in tqdm_notebook(label_paths, desc='Label files: '):
         df = pd.concat([
             df,
             pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
@@ -271,7 +273,7 @@ def rename_patient(dicom_files):
     """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
     
     dcms = dicom_files.map(pydicom.dcmread)
-    for filepath,dcm in zip(dicom_files,dcms):
+    for filepath,dcm in tqdm_notebook(zip(dicom_files,dcms), desc='Files: '):
         _, filename = os.path.split(filepath)
         filename, _ = os.path.splitext(filename)
         dcm.PatientName = filename
