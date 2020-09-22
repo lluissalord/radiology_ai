@@ -20,6 +20,33 @@ def default_check_DICOM_dict():
     return check_DICOM_dict
 
 
+def df_check_DICOM(df, check_DICOM_dict):
+    match = True
+    for key, value in check_DICOM_dict.items():
+        match = (match) & df[key].isin(value)
+    
+    return df[match]
+
+
+def sample_df_check_DICOM(df, check_DICOM_dict, max_samples_per_case=5):
+    df_match = df_check_DICOM(df, check_DICOM_dict)
+    
+    all_keys = list(check_DICOM_dict.keys())
+    cases_df = df_match[all_keys].drop_duplicates()
+    
+    concat_list = []
+    for i in range(len(cases_df.index)):
+        concat_list.append(
+            df_match[
+                (
+                    df_match[all_keys] == cases_df.iloc[i][all_keys]
+                ).all(axis=1)
+            ].sample(max_samples_per_case)
+        )
+
+    return pd.concat(concat_list)
+
+
 def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
     """ Check the DICOM file if it is has the feature required """
 
@@ -27,7 +54,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
         check_DICOM_dict = default_check_DICOM_dict()
 
     check = True
-    for key, value in check_DICOM_dict:
+    for key, value in check_DICOM_dict.items():
         if dcm.get(key) not in value:
             check = False
             if debug:
