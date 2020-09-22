@@ -11,18 +11,29 @@ import pandas as pd
 import pydicom
 
 
-def check_DICOM(dcm, debug=False):
+def default_check_DICOM_dict():
+    check_DICOM_dict = {
+        'SeriesDescription': ['RODILLA AP', 'RODILLAS AP'],
+        'BodyPartExamined': ['LOWER LIMB', 'KNEE']
+    }
+
+    return check_DICOM_dict
+
+
+def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
     """ Check the DICOM file if it is has the feature required """
 
-    if dcm.BodyPartExamined != 'LOWER LIMB':
-        if debug:
-            print('BodyPartExamined: ', dcm.BodyPartExamined, 'on Accession Number:', dcm.AccessionNumber)
-        return False
-    if dcm.SeriesDescription != 'RODILLA AP':
-        if debug:
-            print('SeriesDescription: ', dcm.SeriesDescription, 'on Accession Number:', dcm.AccessionNumber)
-        return False
-    return True
+    if check_DICOM_dict is None:
+        check_DICOM_dict = default_check_DICOM_dict()
+
+    check = True
+    for key, value in check_DICOM_dict:
+        if dcm.get(key) not in value:
+            check = False
+            if debug:
+                print(f'{key}: {dcm.get(key)} on Accession Number: {dcm.AccessionNumber}')
+            break
+    return check
 
 
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True):
@@ -48,7 +59,7 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
         shutil.move(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, new_numeration=True, filename_prefix='IMG_', force_extension=None, copy=True, debug=False):
+def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, new_numeration=True, filename_prefix='IMG_', force_extension=None, copy=True, check_DICOM_dict=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # In case not reseting the folders, then the current relation is required
@@ -76,7 +87,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             
             # Read and check DICOM
             dcm = pydicom.dcmread(filepath)
-            if check_DICOM(dcm, debug):
+            if check_DICOM(dcm, check_DICOM_dict, debug):
                 correct_filepaths.append(filepath)
                 correct_folders.append(folder)
 
