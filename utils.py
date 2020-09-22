@@ -12,6 +12,8 @@ import pydicom
 
 
 def default_check_DICOM_dict():
+    """ Get default values for check DICOM dictionary """
+
     check_DICOM_dict = {
         'SeriesDescription': ['RODILLA AP', 'RODILLAS AP'],
         'BodyPartExamined': ['LOWER LIMB', 'KNEE']
@@ -21,6 +23,7 @@ def default_check_DICOM_dict():
 
 
 def df_check_DICOM(df, check_DICOM_dict):
+    """ Filter DataFrame on the rows that match the filter specified on `check_DICOM_dict` """
     match = True
     for key, value in check_DICOM_dict.items():
         match = (match) & df[key].isin(value)
@@ -29,19 +32,27 @@ def df_check_DICOM(df, check_DICOM_dict):
 
 
 def sample_df_check_DICOM(df, check_DICOM_dict, max_samples_per_case=5):
+    """ Get a random sample of the filtered DataFrame determined by `check_DICOM_dict` appearing all the cases there """
+
     df_match = df_check_DICOM(df, check_DICOM_dict)
     
     all_keys = list(check_DICOM_dict.keys())
-    cases_df = df_match[all_keys].drop_duplicates()
+
+    return get_each_case_samples(df_match, all_keys, max_samples_per_case)
+
+
+def get_each_case_samples(df, all_keys, max_samples_per_case=5):
+    """ Extract all the different cases on `all_keys` and creating a DataFrame with the number set for all the cases """
+    cases_df = df[all_keys].drop_duplicates()
     
     concat_list = []
     for i in range(len(cases_df.index)):
         concat_list.append(
-            df_match[
+            df[
                 (
-                    df_match[all_keys] == cases_df.iloc[i][all_keys]
+                    df[all_keys] == cases_df.iloc[i][all_keys]
                 ).all(axis=1)
-            ].sample(max_samples_per_case)
+            ].sample(max_samples_per_case, replace=True)
         )
 
     return pd.concat(concat_list)
