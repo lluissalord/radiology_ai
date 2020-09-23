@@ -225,7 +225,7 @@ def get_final_dst(dst_folder, filepaths, groups, subgroup_length):
     return folders_dst
 
 
-def generate_template(dst_folder, groups, subgroup_length, excel=True, csv_sep=';'):
+def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_', excel=True, csv_sep=';'):
     """ Generates template files for each group of DICOM files using the filename as ID """
     
     # Define extension
@@ -296,6 +296,14 @@ def generate_template(dst_folder, groups, subgroup_length, excel=True, csv_sep='
 
         # Create DataFrame from the data with the proposed structure
         df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect_image', 'Not_enough_quality'])
+
+        # Sort DataFrame by ID if possible
+        try:
+            df['sort'] = df['ID'].str[len(filename_prefix):].astype(int)
+            df = df.sort_values('sort')
+            df = df.drop('sort', axis=1)
+        except ValueError as e:
+            print('Not able to sort template by ID because: ', e)
 
         # Split the path on all the folders
         path_split = os.path.normpath(filepaths[0]).split(os.sep)
