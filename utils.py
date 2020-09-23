@@ -97,7 +97,7 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
         shutil.move(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, new_numeration=True, filename_prefix='IMG_', force_extension=None, copy=True, check_DICOM_dict=None, debug=False):
+def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, check_DICOM_dict=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # In case not reseting the folders, then the current relation is required
@@ -109,7 +109,6 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
     # Look at all the DICOM files in the source folder, check them and move them appropiatly
     folders = glob(os.path.join(src_folder, '*'))
     correct_filepaths = []
-    correct_folders = []
     for folder in tqdm_notebook(folders, desc='Check folders: '):
         # Find all files in the folder
         filepaths = glob(os.path.join(folder, '*'))
@@ -127,14 +126,13 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             dcm = pydicom.dcmread(filepath)
             if check_DICOM(dcm, check_DICOM_dict, debug):
                 correct_filepaths.append(filepath)
-                correct_folders.append(folder)
 
     # Only proceed if there is files to move or resetting folders
-    if len(correct_folders) > 0 or reset:
+    if len(correct_filepaths) > 0 or reset:
 
-        # Relates source folders with destination folder paths depending on shuffle groups and subgroup length
-        folders_dst_folders = get_final_dst_folder(dst_folder, correct_folders, groups, subgroup_length)
-        temp_relation_df = pd.DataFrame(folders_dst_folders.values(), index=folders_dst_folders.keys(), columns=['Path'])
+        # Relates source filepaths with destination folder paths depending on shuffle groups and subgroup length
+        folders_dst = get_final_dst(dst_folder, correct_filepaths, groups, subgroup_length)
+        temp_relation_df = pd.DataFrame(folders_dst.values(), index=folders_dst.keys(), columns=['Path'])
         temp_relation_df['Filename'] = filename_prefix + str(-1)
         temp_relation_df.index.rename('Original', inplace=True)
 
@@ -148,31 +146,25 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
         else:
             relation_df = pd.concat([relation_df, temp_relation_df], axis=0)
 
-        # Get last ID of the current files in case of using numeration
-        if new_numeration:
-            current_id = get_last_id(relation_df, prefix=filename_prefix)
+        # Get last ID of the current files
+        current_id = get_last_id(relation_df, prefix=filename_prefix)
 
         # Loop over the files that should be copied/moved
         for filepath in tqdm_notebook(correct_filepaths, desc='Move files'):
 
             # Get the final destination folder
-            src_path, src_filename = os.path.split(filepath)
-            _, src_folder = os.path.split(src_path)
-            final_dst_folder = relation_df.loc[src_path, 'Path']
+            _, src_filename = os.path.split(filepath)
+            final_dst = relation_df.loc[filepath, 'Path']
 
-            # Set filename depending on numeration or patient ID
-            if new_numeration:
-                filename = filename_prefix + str(current_id + 1)
-                current_id += 1
-            else:
-                # Rename the file with the name of the folder (patient ID)
-                filename = src_folder
+            # Set filename depending on numeration
+            filename = filename_prefix + str(current_id + 1)
+            current_id += 1
 
             # Add new relation on the DataFrame
-            relation_df = add_new_relation(relation_df, src_path, src_filename, filename)
+            relation_df = add_new_relation(relation_df, filepath, src_filename, filename)
 
             # Copy/Move the file to the final destination with
-            move_file(filepath, filename, final_dst_folder, force_extension=force_extension, copy=copy)
+            move_file(filepath, filename, final_dst, force_extension=force_extension, copy=copy)
 
             # Save the relation file
             save_name_relation_file(relation_df, relation_filepath, sep=',')
@@ -206,31 +198,31 @@ def shuffle_group_folders(folders, groups, subgroup_length=None):
         return folders_group
 
 
-def get_final_dst_folder(dst_folder, folders, groups, subgroup_length):
-    """ Relates source folders with destination folder paths depending on shuffle groups and subgroup length """
+def get_final_dst(dst_folder, filepaths, groups, subgroup_length):
+    """ Relates source filepaths with destination paths depending on shuffle groups and subgroup length """
     
-    folders_dst_folders = {}
+    folders_dst = {}
     if groups is not None and subgroup_length is not None:
-        folders_subgroup, subgroup_group = shuffle_group_folders(folders, groups, subgroup_length)
-        for folder in folders:
-            current_subgroup = folders_subgroup[folder]
+        folders_subgroup, subgroup_group = shuffle_group_folders(filepaths, groups, subgroup_length)
+        for filepath in filepaths:
+            current_subgroup = folders_subgroup[filepath]
             current_group = subgroup_group[current_subgroup]
             relative_folder = os.path.join(current_group, str(current_subgroup))
-            folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder)
     elif groups is None and subgroup_length is None:
-        for folder in folders:
-            folders_dst_folders[folder] = dst_folder
+        for filepath in filepaths:
+            folders_dst[filepath] = dst_folder
     else:
         if groups is None:
-            n_groups = len(folders) // subgroup_length + (len(folders) % subgroup_length != 0)
+            n_groups = len(filepaths) // subgroup_length + (len(filepaths) % subgroup_length != 0)
             groups = [str(i) for i in range(n_groups)]
             subgroup_length = None
-        folders_group = shuffle_group_folders(folders, groups, subgroup_length)
-        for folder in folders:
-            current_group = folders_group[folder]
+        folders_group = shuffle_group_folders(filepaths, groups, subgroup_length)
+        for filepath in filepaths:
+            current_group = folders_group[filepath]
             relative_folder = current_group
-            folders_dst_folders[folder] = os.path.join(dst_folder, relative_folder)
-    return folders_dst_folders
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder)
+    return folders_dst
 
 
 def generate_template(dst_folder, groups, subgroup_length, excel=True, csv_sep=';'):
@@ -375,7 +367,7 @@ def rename_patient(dicom_files):
     """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
     
     dcms = dicom_files.map(pydicom.dcmread)
-    for filepath,dcm in tqdm_notebook(zip(dicom_files,dcms), desc='Files: '):
+    for filepath, dcm in tqdm_notebook(zip(dicom_files, dcms), desc='Files: ', total=len(dicom_files)):
         _, filename = os.path.split(filepath)
         filename, _ = os.path.splitext(filename)
         dcm.PatientName = filename
