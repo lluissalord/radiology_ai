@@ -77,13 +77,21 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True):
     """ Copy file to the destination folder with folder name """
 
-    # Get extension of source file
-    _, extension = os.path.splitext(src_filepath)
+    # Define extension
+    _, src_extension = os.path.splitext(src_filepath)
+    dst_filename, dst_extension = os.path.splitext(filename)
     if force_extension is not None:
         extension = force_extension
+    elif dst_extension != '':
+        extension = dst_extension
+    else:
+        extension = src_extension
+
+    # Define filename
+    filename = filename + extension
 
     # Define the destination path
-    dst_filepath = os.path.join(dst_folder, filename + extension)
+    dst_filepath = os.path.join(dst_folder, filename)
 
     # Create the destination folder if not exists
     if not os.path.exists(dst_folder):
@@ -247,34 +255,6 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
     if groups is not None:
         prefix += '*/'
      
-    # Look for Excel/CSV files in the folders and remove them
-    template_files = glob(
-        os.path.join(
-            dst_folder,
-            prefix + '*.xls'
-        )
-    ) + glob(
-        os.path.join(
-            dst_folder,
-            prefix + '*.csv'
-        )
-    ) 
-    if len(template_files) > 0:
-        # Remove template files
-        for template_file in template_files:
-            allow_remove = True
-            # Check if there is data on the template file
-            if check_data_in_template(template_file):
-                # Ask user if want to overwrite file with data
-                allow_input = input(f'There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (y default): ')
-                if len(allow_input) != 0 and allow_input[0].lower() == 'n':
-                    allow_remove = False
-
-            # If there is no data or the user allow to remove the file
-            if allow_remove:
-                os.remove(template_file)
-            else:
-                raise ValueError('Currently it is not supported to not override a template file')
 
     # Get all the folder and subfolders that contain DICOM files
     folderpaths = glob(
@@ -309,14 +289,34 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
         # Create DataFrame from the data with the proposed structure
         df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect_image', 'Not_enough_quality'])
 
+        # Look for Excel/CSV files in the folders
+        template_files = glob(
+            os.path.join(
+                folderpath + '*.xls'
+            )
+        ) + glob(
+            os.path.join(
+                folderpath + '*.csv'
+            )
+        )
+
+        # If there are template then we have to check if there is data and if it has to be overwritten or not
+        template_file = None
+        if len(template_files) == 1:
+            template_file = template_files[0]
+
+            # Check if there is data on the template file
+            old_df, check_data = check_data_in_template(template_file)
+
+        elif len(template_files) > 1:
+            raise ValueError(f'There are more than one template on the following folder, please remove the out-dated one:\n{folderpath}')
+
+        # In case that there is no template files then we are sure that there is no data
+        else:
+            check_data = False
+
         # Sort DataFrame by ID if possible
-        try:
-            # Extract ID from the filename and sort by it as numerical sorting
-            df['sort'] = df['ID'].str[len(filename_prefix):].astype(int)
-            df = df.sort_values('sort')
-            df = df.drop('sort', axis=1)
-        except ValueError as e:
-            print('Not able to sort template by ID because: ', e)
+        df = sort_template_file(df, filename_prefix)
 
         # Split the path on all the folders
         path_split = os.path.normpath(filepaths[0]).split(os.sep)
@@ -332,18 +332,58 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
         if subgroup_length is not None:
             template_name = template_name + '_' + path_split[-2]
 
-        # Transform to Excel/CSV on the corresponding folder
-        if excel:
-            df.to_excel(
-                os.sep.join(path_split[:-1] + [template_name + extension]),
-                index=False,
-            )
-        else:
-            df.to_csv(
-                os.sep.join(path_split[:-1] + [template_name + extension]),
-                index=False,
-                sep=csv_sep,
-            )
+        # If there is data then we need to request permission to the user to overwrite
+        allow_overwrite = True
+        check_same_ids = True
+        if check_data:
+            
+            # Check if old DataFrame match with current IDs
+            old_df = sort_template_file(old_df, filename_prefix)
+            check_same_ids = (df['ID'] == old_df['ID']).all()
+            if check_same_ids:
+                # Ask user if want to overwrite file with data
+                allow_input = input(f'There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (y default): ')
+                if len(allow_input) != 0 and allow_input[0].lower() == 'n':
+                    allow_overwrite = False
+            else:
+                # Rename file with prefix 'old_'
+                src_folder, src_filename = os.path.split(template_file)
+                new_filename = 'old_' + src_filename
+                move_file(template_file, new_filename, src_folder, copy=False)
+
+                print(f'WARNING: The following file is out-dated with different IDs than the ones in the folder:\n{template_file}\n\nHowever, there is data in it, then it is being renamed from {src_filename} to {new_filename}. Please updated the file the new file and remove the old one before continuing')
+
+        # If there is no data or the user allow to remove the file
+        if template_file is not None and allow_overwrite:
+            # Only remove if file still exists
+            if os.path.exists(template_file):
+                os.remove(template_file)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                    sep=csv_sep,
+                )
+
+
+def sort_template_file(df, filename_prefix):
+    try:
+        # Extract ID from the filename and sort by it as numerical sorting
+        df['sort'] = df['ID'].str[len(filename_prefix):].astype(int)
+        df = df.sort_values('sort')
+        df = df.drop('sort', axis=1)
+    except ValueError as e:
+        print('Not able to sort template by ID because: ', e)
+        df = df.sort_values('ID')
+
+    return df.reset_index(drop=True)
 
 
 def check_data_in_template(template_file, sep=None):
@@ -368,7 +408,7 @@ def check_data_in_template(template_file, sep=None):
             if len(df.columns) == 1:
                 raise ValueError('Please define the correct sep for the CSV files already existing as for examples: ', template_file)
 
-    return df.drop('ID', axis=1).notnull().any().any()
+    return df, df.drop('ID', axis=1).notnull().any().any()
 
 
 def concat_templates(src_folder, excel=True, csv_sep=';'):
@@ -400,6 +440,11 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 
     df = pd.DataFrame()
     for label_path in tqdm_notebook(label_paths, desc='Label files: '):
+        # Check if there is any file which is out-dated
+        _, label_filename = os.path.split(label_path)
+        if label_filename.startswith('old_'):
+            raise ValueError(f'The following file is out-dated, please move the data in this file to the corresponding file and remove the out-dated file.\n\n{label_path}')
+
         df = pd.concat([
             df,
             pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
