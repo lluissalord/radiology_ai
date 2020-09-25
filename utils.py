@@ -262,7 +262,19 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
     if len(template_files) > 0:
         # Remove template files
         for template_file in template_files:
-            os.remove(template_file)
+            allow_remove = True
+            # Check if there is data on the template file
+            if check_data_in_template(template_file):
+                # Ask user if want to overwrite file with data
+                allow_input = input(f'There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (y default): ')
+                if len(allow_input) != 0 and allow_input[0].lower() == 'n':
+                    allow_remove = False
+
+            # If there is no data or the user allow to remove the file
+            if allow_remove:
+                os.remove(template_file)
+            else:
+                raise ValueError('Currently it is not supported to not override a template file')
 
     # Get all the folder and subfolders that contain DICOM files
     folderpaths = glob(
@@ -299,6 +311,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
 
         # Sort DataFrame by ID if possible
         try:
+            # Extract ID from the filename and sort by it as numerical sorting
             df['sort'] = df['ID'].str[len(filename_prefix):].astype(int)
             df = df.sort_values('sort')
             df = df.drop('sort', axis=1)
@@ -331,6 +344,31 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
                 index=False,
                 sep=csv_sep,
             )
+
+
+def check_data_in_template(template_file, sep=None):
+    """ Check if there is data different than null in each template """
+
+    dtype = {'ID':'string','Target':'string'}
+
+    # Extract extension and define loading method depending on it
+    _, extension = os.path.splitext(template_file)
+    if extension.startswith('.xls'):
+        df = pd.read_excel(template_file, dtype=dtype)
+
+    elif extension == '.csv':
+        if sep is not None:
+            df = pd.read_csv(template_file, sep=sep, dtype=dtype)
+        else:
+            df = pd.read_csv(template_file, sep=',', dtype=dtype)
+
+        # Check if CSV has been loaded with the correct sep
+        if len(df.columns) == 1:
+            df = pd.read_csv(template_file, sep=';', dtype=dtype)
+            if len(df.columns) == 1:
+                raise ValueError('Please define the correct sep for the CSV files already existing as for examples: ', template_file)
+
+    return df.drop('ID', axis=1).notnull().any().any()
 
 
 def concat_templates(src_folder, excel=True, csv_sep=';'):
