@@ -73,6 +73,12 @@ class DCMPreprocessDataset(Dataset):
 
         return self.fnames[idx].dcmread()
 
+    def get_dcm_by_name(self, img_name):
+        if img_name[-4:] != '.dcm':
+            img_name = img_name + '.dcm'
+
+        return self.fnames.map(lambda x: x if x.name == img_name else None).filter(None)[0].dcmread()
+
     def dcm_scale_px(self, dcm):
         """ Transform from raw pixel data to scaled one and inversing (if the case) """
         return (dcm.scaled_px - dcm.scaled_px.max() * int(dcm.PresentationLUTShape == 'INVERSE')) * (1 - 2 * int(dcm.PresentationLUTShape == 'INVERSE'))# / dcm.WindowWidth
