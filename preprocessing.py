@@ -9,6 +9,7 @@ from skimage.transform import resize as sk_resize
 import torchvision.transforms as tfms
 
 import random
+from tqdm import tqdm
 
 class DCMPreprocessDataset(Dataset):
     """ Dataset class for DCM preprocessing """
@@ -24,11 +25,9 @@ class DCMPreprocessDataset(Dataset):
 
     def __getitem__(self,  idx):
         """ Get sample after reading from DCM file, scale it and applying the transformations """
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
 
-        dcm = self.fnames[idx].dcmread()
-        sample = dcm.scaled_px
+        dcm = self.get_dcm(idx)
+        sample = self.dcm_scale_px(dcm)
         if self.bins is not None:
             sample = sample.hist_scaled(brks=self.bins)
 
@@ -66,12 +65,23 @@ class DCMPreprocessDataset(Dataset):
 
         return self.fnames[idx].name
 
+    def get_dcm(self, idx):
+        """ Get the DCM file """
+
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        return self.fnames[idx].dcmread()
+
+    def dcm_scale_px(self, dcm):
+        """ Transform from raw pixel data to scaled one and inversing (if the case) """
+        return (dcm.scaled_px - dcm.scaled_px.max() * int(dcm.PresentationLUTShape == 'INVERSE')) * (1 - 2 * int(dcm.PresentationLUTShape == 'INVERSE'))# / dcm.WindowWidth
 
     def init_bins(self, n_samples=None):
         """ Initialize bins to equally distribute the histogram of the dataset """
 
         # Select randomly n_samples
-        if n_samples is None:
+        if n_samples is not None:
             fnames_sample = self.fnames.copy()
             random.shuffle(fnames_sample)
             fnames_sample = fnames_sample[:n_samples]
@@ -83,15 +93,15 @@ class DCMPreprocessDataset(Dataset):
 
         # Resize all images to the same size as the smallest one
         resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
-        
+
         # Extract bins from scaled and resized samples
-        samples = torch.stack(tuple([torch.from_numpy(sk_resize(dcm.scaled_px, resize)) for dcm in dcms]))
+        samples = torch.stack(tuple([torch.from_numpy(sk_resize(self.dcm_scale_px(dcm), resize)) for dcm in dcms]))
         self.bins = samples.freqhist_bins()
 
         return self.bins
 
     def save(self, dst_folder, extension='png'):
-        for idx, data in enumerate(self):
+        for idx, data in enumerate(tqdm(self, desc='Saving Images: ')):
             # Create the destination folder if not exists
             if not os.path.exists(dst_folder):
                 os.makedirs(dst_folder)
