@@ -94,11 +94,23 @@ class DCMPreprocessDataset(Dataset):
         else:
             fnames_sample = self.fnames
         
-        # Extract DCMs
-        dcms = fnames_sample.map(dcmread)
+        try:
+            # Extract DCMs
+            dcms = fnames_sample.map(dcmread)
 
-        # Resize all images to the same size as the smallest one
-        resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
+            # Resize all images to the same size as the smallest one
+            resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
+        except AttributeError:
+            import pydicom
+            from numpy import inf
+            dcms = []
+            resize = []
+            for fname in fnames_sample:
+                dcm = fname.dcmread()
+                resize.append(dcm.scaled_px.size())
+                dcms.append(dcm)
+            resize = min(resize)
+
 
         # Extract bins from scaled and resized samples
         samples = torch.stack(tuple([torch.from_numpy(sk_resize(self.dcm_scale_px(dcm), resize)) for dcm in dcms]))
