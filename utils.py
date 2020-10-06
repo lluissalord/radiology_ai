@@ -384,9 +384,9 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
                 print(f'WARNING: The following file is out-dated with different IDs than the ones in the folder:\n{template_file}\n\nHowever, there is data in it, then it is being renamed from {src_filename} to {new_filename}. Please updated the file the new file and remove the old one before continuing')
 
         # If there is no data or the user allow to remove the file
-        if template_file is not None and allow_overwrite:
+        if not check_data or (template_file is not None and allow_overwrite):
             # Only remove if file still exists
-            if os.path.exists(template_file):
+            if template_file is not None and os.path.exists(template_file):
                 os.remove(template_file)
 
             # Transform to Excel/CSV on the corresponding folder
