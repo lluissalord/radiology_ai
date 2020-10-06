@@ -74,6 +74,28 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
     return check
 
 
+def check_metadata_label(raw_path, metadata_labels, label='ap'):
+    """ Check if the path matches with the desired label on metadata_labels """
+
+    if 'Final_pred' in metadata_labels.columns:
+        pred_col = 'Final_pred'
+    else:
+        pred_col = 'Pred'
+
+    try:
+        return metadata_labels.loc[raw_path, pred_col] == label
+    except KeyError as e:
+        # Probably these are cases which have wrong metadata out of 'ap', 'lat', 'two'
+        # However, we try if it can be a case of wrong path sep and only take the filename
+        filename = os.path.splitext(
+            os.path.split(raw_path)[-1]
+        )[0]
+        row_match = metadata_labels.index.str.endswith(
+            filename
+        )
+        return (metadata_labels.loc[row_match, pred_col] == label).any()
+
+
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True):
     """ Copy file to the destination folder with folder name """
 
@@ -105,7 +127,7 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
         shutil.move(src_filepath, dst_filepath)
 
 
-def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, check_DICOM_dict=None, debug=False):
+def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # In case not reseting the folders, then the current relation is required
@@ -124,16 +146,24 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
         # Open all the files as DICOM and check if they fullfil the condition to be used in the study
         for filepath in filepaths:
 
+            # Normalize path to be equal without depending on the OS
+            filepath = os.path.normpath(filepath).replace(os.sep, '/')
+
             # If is no resetting and the file is already on the relation, then there is no need to check
             if not reset:
                 src_path = os.path.split(filepath)[0]
                 if src_path in relation_df.index:
                     continue
             
-            # Read and check DICOM
-            dcm = pydicom.dcmread(filepath)
-            if check_DICOM(dcm, check_DICOM_dict, debug):
-                correct_filepaths.append(filepath)
+            # Check if current file is frontal (ap) image
+            if metadata_labels is not None:
+                if check_metadata_label(filepath, metadata_labels, label='ap'):
+                    correct_filepaths.append(filepath)
+            else:
+                # Read and check DICOM
+                dcm = pydicom.dcmread(filepath)
+                if check_DICOM(dcm, check_DICOM_dict, debug):
+                    correct_filepaths.append(filepath)
 
     # Only proceed if there is files to move or resetting folders
     if len(correct_filepaths) > 0 or reset:
