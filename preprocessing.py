@@ -9,6 +9,7 @@ from skimage.transform import resize as sk_resize
 import torchvision.transforms as tfms
 
 import random
+import shutil
 from tqdm import tqdm
 
 class DCMPreprocessDataset(Dataset):
@@ -118,12 +119,25 @@ class DCMPreprocessDataset(Dataset):
 
         return self.bins
 
-    def save(self, dst_folder, extension='png'):
+    def save(self, dst_folder, extension='png', overwrite=True, clean_folder=False):
+        
+        # Create the destination folder if not exists
+        if not os.path.exists(dst_folder):
+            os.makedirs(dst_folder)
+        elif clean_folder:
+            shutil.rmtree(dst_folder)
+            os.makedirs(dst_folder)
+            
         for idx, data in enumerate(tqdm(self, desc='Saving Images: ')):
-            # Create the destination folder if not exists
-            if not os.path.exists(dst_folder):
-                os.makedirs(dst_folder)
-
+            # Define filename and filepath
             filename, _ = os.path.splitext(self.get_fname(idx))
-            data.save(f'{dst_folder}/{filename}.{extension}', format=extension, compress_level=0 if extension.lower()=='png' else None)
+            filepath = f'{dst_folder}/{filename}.{extension}'
+
+            # Add numeration if files already exist and do not want to overwrite
+            i = 1
+            while not overwrite and os.path.exists(filepath):
+                filepath = f'{dst_folder}/{filename}_{i}.{extension}'
+                i += 1
+
+            data.save(filepath, format=extension, compress_level=0 if extension.lower()=='png' else None)
             # save_image(data, f'{dst_folder}/{filename}.{extension}')
