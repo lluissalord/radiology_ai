@@ -127,6 +127,47 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
         shutil.move(src_filepath, dst_filepath)
 
 
+def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_extension='xlsx'):
+
+    # Create new folder if it does not exist
+    new_folder_path = os.path.join(parent_folder, new_folder)
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
+
+    relation_df = open_name_relation_file(relation_filepath, sep=',')
+
+    if type(blocks) is not list:
+        blocks = [blocks]
+
+    for block in blocks:
+        block = str(block)
+
+        # Search for the block folder path
+        block_path = glob(
+            os.path.join(parent_folder, '*', block)
+        )[0]
+
+        # Move entire block folder
+        dst_folder = os.path.join(new_folder_path, block)
+        shutil.move(block_path, dst_folder)
+
+        # Search for the template of this folder and rename it appropiately
+        template_path = glob(
+            os.path.join(dst_folder, f'*.{template_extension}')
+        )[0]
+        new_template_filename = f'{new_folder}_{block}.{template_extension}'
+        os.rename(
+            template_path,
+            os.path.join(dst_folder, new_template_filename)
+        )
+
+        # Update the relation file with the new folder path
+        relation_df = update_block_relation(relation_df, block, new_folder, sep='/')
+
+    # Save relation file
+    save_name_relation_file(relation_df, relation_filepath, sep=',')
+
+
 def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
@@ -268,7 +309,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
     
     # Define extension
     if excel:
-        extension = '.xls'
+        extension = '.xlsx'
     else:
         extension = '.csv'
 
@@ -317,12 +358,16 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
         )
 
         # Create DataFrame from the data with the proposed structure
-        df = pd.DataFrame(data, columns=['ID', 'Target', 'Confidence', 'Incorrect_image', 'Not_enough_quality'])
+        df = pd.DataFrame(data, columns=['ID', 'Target', 'Side', 'Difficulty', 'Incorrect_image', 'Not_enough_quality'])
 
         # Look for Excel/CSV files in the folders
         template_files = glob(
             os.path.join(
                 folderpath + '*.xls'
+            )
+        ) + glob(
+            os.path.join(
+                folderpath + '*.xlsx'
             )
         ) + glob(
             os.path.join(
@@ -445,7 +490,7 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 
     # Define extension
     if excel:
-        extension = '.xls'
+        extension = '.xlsx'
     else:
         extension = '.csv'
 
@@ -537,5 +582,22 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename):
     else:
         relation_df.loc[src_path, 'Filename'] = new_filename
         relation_df.loc[src_path, 'Original_Filename'] = src_filename
+
+    return relation_df
+
+
+def update_block_relation(relation_df, block, new_folder, sep='/'):
+    
+    # Replace the old folder names by the new folder only to the paths where the block appears
+    relation_df.loc[
+        relation_df['Path'].str.endswith(block),
+        'Path'
+    ] = relation_df.loc[
+        relation_df['Path'].str.endswith(block),
+        'Path'
+    ].str.replace(
+        f'((?<={sep})(.*)(?={sep}{block}$))',
+        new_folder,
+    )
 
     return relation_df
