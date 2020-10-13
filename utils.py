@@ -4,6 +4,8 @@ import shutil
 import random
 
 from tqdm import tqdm_notebook
+from tqdm.auto import tqdm
+tqdm.pandas()
 
 import numpy as np
 import pandas as pd
@@ -96,21 +98,21 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
         return (metadata_labels.loc[row_match, pred_col] == label).any()
 
 
-def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True):
+def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True):
     """ Copy file to the destination folder with folder name """
 
     # Define extension
     _, src_extension = os.path.splitext(src_filepath)
     dst_filename, dst_extension = os.path.splitext(filename)
-    if force_extension is not None:
+    if force_extension != False and force_extension is not None:
         extension = force_extension
-    elif dst_extension != '':
+    elif dst_extension != '' or force_extension == False:
         extension = dst_extension
     else:
         extension = src_extension
 
     # Define filename
-    filename = filename + extension
+    filename = dst_filename + extension
 
     # Define the destination path
     dst_filepath = os.path.join(dst_folder, filename)
@@ -125,6 +127,48 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
     else:
         # Move file with folder name
         shutil.move(src_filepath, dst_filepath)
+
+    if return_filepath:
+        return dst_filepath
+
+
+def move_relation(relation_filepath, copy=True, to_raw=True):
+    
+    # Open relation file where the move/copy will be based on
+    relation_df = open_name_relation_file(relation_filepath, sep=',')
+
+    # Check source files
+    check_relation(relation_df, check_path=to_raw, check_raw=not to_raw)
+
+    if to_raw:
+        # Loop over all the files to move/copy them to the raw destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=os.path.join(x.Path, x.Filename + '.dcm'),
+                filename=x.Original_Filename,
+                dst_folder=os.path.split(x.name)[0],
+                force_extension=False,
+                copy=copy,
+                return_filepath=False
+            ),
+            axis=1
+        )
+    else:
+        # Loop over all the files to move/copy them to the final destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=x.name,
+                filename=x.Filename,
+                dst_folder=x.Path,
+                force_extension='.dcm',
+                copy=copy,
+                return_filepath=False
+            ),
+            axis=1
+        )
+
+    # Check destination files
+    check_relation(relation_df, check_path=not to_raw, check_raw=to_raw)
 
 
 def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_extension='xlsx'):
@@ -242,8 +286,14 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             # Add new relation on the DataFrame
             relation_df = add_new_relation(relation_df, filepath, src_filename, filename)
 
+            # Check raw relation before moving
+            check_relation(relation_df.loc[filepath], check_path=False, check_raw=True)
+
             # Copy/Move the file to the final destination with
             move_file(filepath, filename, final_dst, force_extension=force_extension, copy=copy)
+
+            # Check new path relation before saving
+            check_relation(relation_df.loc[filepath], check_path=True, check_raw=False)
 
             # Save the relation file
             save_name_relation_file(relation_df, relation_filepath, sep=',')
@@ -587,8 +637,8 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename):
 
 
 def update_block_relation(relation_df, block, new_folder, sep='/'):
-    
-    # Replace the old folder names by the new folder only to the paths where the block appears
+    """ Replace the old folder names by the new folder only to the paths where the block appears """
+
     relation_df.loc[
         relation_df['Path'].str.endswith(block),
         'Path'
@@ -600,4 +650,34 @@ def update_block_relation(relation_df, block, new_folder, sep='/'):
         new_folder,
     )
 
+    check_relation(relation_df, check_path=True, check_raw=False)
+
     return relation_df
+
+
+def check_relation(relation_df, check_path=True, check_raw=True):
+    """ Check that the relation on the relation DataFrame is preserved """
+
+    # Check current path
+    if check_path:
+        if type(relation_df) is pd.DataFrame:
+            check = relation_df['Path'].apply(lambda x: os.path.exists(x))
+        else:
+            check = pd.Series(os.path.exists(relation_df['Path']))
+
+        # Raise error if not true for all the cases
+        if not check.all():
+            raise ValueError(f'The following cases do not have correct `Path` on relation DataFrame:\n{relation_df.loc[~check]}')
+
+    # Check raw path
+    if check_raw:
+        if type(relation_df) is pd.DataFrame:
+            check = pd.Series(relation_df.index.map(lambda x: os.path.exists(x)), index=relation_df.index, dtype=bool)
+        else:
+            check = pd.Series(os.path.exists(relation_df.name))
+
+        # Raise error if not true for all the cases
+        if not check.all():
+            raise ValueError(f'The following cases do not have correct `Path` on relation DataFrame:\n{relation_df.loc[~check]}')
+
+    return True
