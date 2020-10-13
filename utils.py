@@ -99,7 +99,7 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
 
 
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True):
-    """ Copy file to the destination folder with folder name """
+    """ Move or copy file to the destination folder with folder name """
 
     # Define extension
     _, src_extension = os.path.splitext(src_filepath)
@@ -133,7 +133,8 @@ def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=Tru
 
 
 def move_relation(relation_filepath, copy=True, to_raw=True):
-    
+    """ Move or copy files to/from raw destination from/to final destination based on relation file """
+
     # Open relation file where the move/copy will be based on
     relation_df = open_name_relation_file(relation_filepath, sep=',')
 
@@ -172,6 +173,7 @@ def move_relation(relation_filepath, copy=True, to_raw=True):
 
 
 def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_extension='xlsx'):
+    """ Move blocks of files to the new folder (person name) """
 
     # Create new folder if it does not exist
     new_folder_path = os.path.join(parent_folder, new_folder)
@@ -499,6 +501,8 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
 
 
 def sort_template_file(df, filename_prefix):
+    """ Sort DataFrame based on template filename """
+
     try:
         # Extract ID from the filename and sort by it as numerical sorting
         df['sort'] = df['ID'].str[len(filename_prefix):].astype(int)
@@ -537,6 +541,7 @@ def check_data_in_template(template_file, sep=None):
 
 
 def concat_templates(src_folder, excel=True, csv_sep=';'):
+    """ Concatenate all the template into a DataFrame """
 
     # Define extension
     if excel:
@@ -623,7 +628,8 @@ def get_last_id(relation_df, prefix='IMG_'):
 
 
 def add_new_relation(relation_df, src_path, src_filename, new_filename):
-    
+    """ Add a new relation on the relation DataFrame """
+
     # Check it does not exist a conflictive addition
     # if src_path in relation_df.index and 'Original_Filename' in relation_df.columns and not np.isnan(relation_df.loc[src_path, 'Original_Filename']):
     if src_path in relation_df.index and 'Original_Filename' in relation_df.columns and relation_df['Original_Filename'].notnull()[src_path]:
