@@ -545,7 +545,7 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 
     # Define extension
     if excel:
-        extension = '.xlsx'
+        extension = '.xls*'
     else:
         extension = '.csv'
 
