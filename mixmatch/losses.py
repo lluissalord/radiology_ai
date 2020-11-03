@@ -20,7 +20,7 @@ class SemiLoss(object):
     def __call__(self, logits, targets):#, batch_size, epoch):
 
         # put interleaved samples back
-        # logits = de_interleave(logits)
+        logits = de_interleave(logits)
 
         # Transform label if it has been flatten
         if len(targets.size()) == 1:

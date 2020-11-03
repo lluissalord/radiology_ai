@@ -3,7 +3,7 @@ import torch
 from fastai.callback.core import Callback
 from fastai.callback.mixup import MixUp
 
-# from mixmatch.utils import interleave
+from mixmatch.utils import interleave
 
 class MixMatchCallback(Callback):
 
@@ -41,4 +41,4 @@ class MixMatchCallback(Callback):
         self.learn.yb = torch.cat([target_x, targets_u, targets_u], dim=0).unsqueeze(0)
 
         # interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
-        # self.learn.xb = interleave(self.learn.xb)
+        self.learn.xb = interleave(self.learn.xb)
