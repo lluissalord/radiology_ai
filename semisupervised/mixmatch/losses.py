@@ -4,6 +4,8 @@ import numpy as np
 
 from fastai.basics import BaseLoss
 
+from semisupervised.losses import SemiLoss
+
 class MixMatchLoss(BaseLoss):
     """ Loss for MixMatch process """
 
@@ -19,15 +21,15 @@ class MixMatchLoss(BaseLoss):
         self.losses = {}
         self.weight = weight.float()
 
-    def Lx_criterion(self, logits, targets):
+    def Lx_criterion(self, logits, targets, reduction='mean'):
         """ Supervised loss criterion """
 
         logits_x = logits[:self.bs]
         targets_x = targets[:self.bs]
         
-        return -torch.mean(torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1))
+        return -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
 
-    def Lu_criterion(self, logits, targets):
+    def Lu_criterion(self, logits, targets, reduction='mean'):
         """ Unsupervised loss criterion """
 
         logits_u = logits[self.bs:]
@@ -37,7 +39,7 @@ class MixMatchLoss(BaseLoss):
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
             
-            return torch.mean((probs_u - targets_u)**2)
+            return (probs_u - targets_u)**2
         else:
             return 0
 
