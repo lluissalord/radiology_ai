@@ -3,52 +3,10 @@ import torch.nn.functional as F
 import numpy as np
 
 from fastai.basics import BaseLoss
-# from abc import abstractmethod
-
-from mixmatch.utils import de_interleave
-
-class SemiLoss(object):
-    def __init__(self, bs, lambda_u, n_out, Lx_criterion, Lu_criterion, axis=-1):
-        self.axis = axis
-        self.bs = bs
-        self.lambda_u = lambda_u
-        self.n_out = n_out
-        self.Lx_criterion = Lx_criterion
-        self.Lu_criterion = Lu_criterion
-        self.losses = {}
-
-    def __call__(self, logits, targets):#, batch_size, epoch):
-
-        # put interleaved samples back
-        logits = de_interleave(logits)
-
-        # Transform label if it has been flatten
-        if len(targets.size()) == 1:
-            targets = targets.view(len(targets) // n_out, n_out)
-
-        Lx = self.Lx_criterion(logits, targets)
-        Lu = self.Lu_criterion(logits, targets)
-        # w = self.w_scheduling(self.epoch)
-        
-        loss = Lx + self.lambda_u * Lu
-        # self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu, 'w': w}
-        self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu}
-
-        return loss
-
-    # @abstractmethod
-    # def Lx_criterion(self, logits, targets):
-    #     pass
-
-    # @abstractmethod
-    # def Lu_criterion(self, logits, targets):
-    #     pass
-
-    # @abstractmethod
-    # def w_scheduling(self, epoch):
-    #     pass
 
 class MixMatchLoss(BaseLoss):
+    """ Loss for MixMatch process """
+
     def __init__(self, unlabel_dl, model, n_out, bs, lambda_u, weight=1, *args, axis=-1, **kwargs):
         super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
         self.axis = axis
@@ -62,15 +20,20 @@ class MixMatchLoss(BaseLoss):
         self.weight = weight.float()
 
     def Lx_criterion(self, logits, targets):
+        """ Supervised loss criterion """
+
         logits_x = logits[:self.bs]
         targets_x = targets[:self.bs]
         
         return -torch.mean(torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1))
 
     def Lu_criterion(self, logits, targets):
+        """ Unsupervised loss criterion """
+
         logits_u = logits[self.bs:]
         targets_u = targets[self.bs:]
         
+        # Return zero if no logits are provided (when not training)
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
             
@@ -79,6 +42,8 @@ class MixMatchLoss(BaseLoss):
             return 0
 
     def w_scheduling(self, epoch):
+        """ Scheduling of w paramater (unsupervised loss multiplier) """
+
         return self.lambda_u * linear_rampup(epoch)
 
     # def decodes(self, x):    return x.argmax(dim=self.axis)
