@@ -8,9 +8,91 @@ from skimage.transform import resize as sk_resize
 
 import torchvision.transforms as tfms
 
+from PIL import Image
+
 import random
 import shutil
 from tqdm import tqdm
+
+
+def dcm_scale(dcm):
+    """ Transform from raw pixel data to scaled one and inversing (if the case) """
+    
+    if dcm.PresentationLUTShape == 'INVERSE':
+        img = (dcm.scaled_px.max() - dcm.scaled_px)
+    else:
+        img = dcm.scaled_px
+    if dcm.pixel_array.dtype.name == 'uint16':
+        return img / (2**12 - 1)
+    else:
+        return img
+
+def dcmread_scale(fn):
+    """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
+
+    dcm = dcmread(fn)
+    return dcm_scale(dcm)
+
+def init_bins(fnames, n_samples=None):
+        """ Initialize bins to equally distribute the histogram of the dataset """
+
+        # Select randomly n_samples
+        if n_samples is not None:
+            fnames_sample = fnames.copy()
+            random.shuffle(fnames_sample)
+            fnames_sample = fnames_sample[:n_samples]
+        else:
+            fnames_sample = fnames
+        
+        # Extract the current smallest size
+        try:
+            # Extract DCMs
+            dcms = fnames_sample.map(dcmread)
+
+            # Get the current smallest size
+            resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
+        except AttributeError:
+            import pydicom
+            from numpy import inf
+            dcms = []
+            resize = []
+
+            # Extract different size and get the samllest one
+            for fname in fnames_sample:
+                dcm = fname.dcmread()
+                resize.append(dcm.scaled_px.size())
+                dcms.append(dcm)
+            resize = min(resize)
+
+        # Extract bins from scaled and resized samples
+        samples = torch.stack(tuple([torch.from_numpy(sk_resize(dcm_scale(dcm), resize)) for dcm in dcms]))
+        
+        # Calculate the frequency bins from these samples
+        bins = samples.freqhist_bins()
+
+        return bins
+
+class PILDicom_scaled(PILDicom):
+    @classmethod
+    def create(cls, fn:(Path,str,bytes), mode=None)->None:
+        "Open a `DICOM file` from path `fn` or bytes `fn` and load it as a `PIL Image`"
+        if isinstance(fn,bytes): im = Image.fromarray(pydicom.dcmread(pydicom.filebase.DicomBytesIO(fn)).pixel_array)
+        if isinstance(fn,(Path,str)): im = Image.fromarray(255 * dcmread_scale(fn).numpy())
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)
+
+class HistScaled(Transform):
+    def __init__(self, bins):
+        super().__init__()
+        self.bins = bins
+    def encodes(self, sample:PILDicom_scaled):
+        return Image.fromarray(
+            (
+                sample._tensor_cls(sample) / 255
+            )
+            .hist_scaled(brks=self.bins).numpy() * 255
+        )
 
 class DCMPreprocessDataset(Dataset):
     """ Dataset class for DCM preprocessing """
@@ -28,7 +110,7 @@ class DCMPreprocessDataset(Dataset):
         """ Get sample after reading from DCM file, scale it and applying the transformations """
 
         dcm = self.get_dcm(idx)
-        sample = self.dcm_scale_px(dcm)
+        sample = dcm_scale(dcm)
         if self.bins is not None:
             sample = sample.hist_scaled(brks=self.bins)
 
@@ -80,43 +162,10 @@ class DCMPreprocessDataset(Dataset):
 
         return self.fnames.map(lambda x: x if x.name == img_name else None).filter(None)[0].dcmread()
 
-    def dcm_scale_px(self, dcm):
-        """ Transform from raw pixel data to scaled one and inversing (if the case) """
-        return (dcm.scaled_px - dcm.scaled_px.max() * int(dcm.PresentationLUTShape == 'INVERSE')) * (1 - 2 * int(dcm.PresentationLUTShape == 'INVERSE'))# / dcm.WindowWidth
-
     def init_bins(self, n_samples=None):
         """ Initialize bins to equally distribute the histogram of the dataset """
 
-        # Select randomly n_samples
-        if n_samples is not None:
-            fnames_sample = self.fnames.copy()
-            random.shuffle(fnames_sample)
-            fnames_sample = fnames_sample[:n_samples]
-        else:
-            fnames_sample = self.fnames
-        
-        try:
-            # Extract DCMs
-            dcms = fnames_sample.map(dcmread)
-
-            # Resize all images to the same size as the smallest one
-            resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
-        except AttributeError:
-            import pydicom
-            from numpy import inf
-            dcms = []
-            resize = []
-            for fname in fnames_sample:
-                dcm = fname.dcmread()
-                resize.append(dcm.scaled_px.size())
-                dcms.append(dcm)
-            resize = min(resize)
-
-
-        # Extract bins from scaled and resized samples
-        samples = torch.stack(tuple([torch.from_numpy(sk_resize(self.dcm_scale_px(dcm), resize)) for dcm in dcms]))
-        self.bins = samples.freqhist_bins()
-
+        self.bins = init_bins(self.fnames, n_samples)
         return self.bins
 
     def save(self, dst_folder, extension='png', overwrite=True, clean_folder=False):
