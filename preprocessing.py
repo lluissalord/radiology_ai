@@ -183,8 +183,12 @@ class DCMPreprocessDataset(Dataset):
         self.bins = init_bins(self.fnames, n_samples)
         return self.bins
 
-    def save(self, dst_folder, extension='png', overwrite=True, clean_folder=False):
+    def save(self, dst_folder, extension='png', overwrite=True, keep=False, clean_folder=False):
         
+        # Do not make sense overwrite=True with keep=True
+        if overwrite and keep:
+            raise ValueError('Incoherent setting of overwrite=True with keep=True')
+
         # Create the destination folder if not exists
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
@@ -192,10 +196,16 @@ class DCMPreprocessDataset(Dataset):
             shutil.rmtree(dst_folder)
             os.makedirs(dst_folder)
             
-        for idx, data in enumerate(tqdm(self, desc='Saving Images: ')):
+        for idx in enumerate(tqdm(range(len(self)), desc='Saving Images: ')):
             # Define filename and filepath
             filename, _ = os.path.splitext(self.get_fname(idx))
             filepath = f'{dst_folder}/{filename}.{extension}'
+
+            # In case the file already exists and it has to be keep, then continue with the loop
+            if os.path.exists(filepath) and keep:
+                continue
+            
+            data = self[idx]
 
             # Add numeration if files already exist and do not want to overwrite
             i = 1
