@@ -114,7 +114,14 @@ class DCMPreprocessDataset(Dataset):
 
 
         # Extract bins from scaled and resized samples
-        samples = torch.stack(tuple([torch.from_numpy(sk_resize(self.dcm_scale_px(dcm), resize)) for dcm in dcms]))
+        samples = []
+        for dcm in dcms:
+            try:
+                samples.append(torch.from_numpy(sk_resize(dcm_scale(dcm), resize)))
+            except AttributeError:
+                continue
+
+        samples = torch.stack(tuple(samples))
         self.bins = samples.freqhist_bins()
 
         return self.bins
