@@ -13,6 +13,41 @@ import pandas as pd
 import pydicom
 
 
+def filter_fnames(
+    fnames,
+    check_DICOM_dict={
+        'PresentationLUTShape': ['IDENTITY', 'INVERSE'],
+        'Modality': ['CR', 'DR', 'DX'],
+    },
+    metadata_raw_filename='metadata_raw.csv'
+):
+    """ Filter all the filenames which are fulfill the metadata conditions passed on `check_DICOM_dict` """
+
+    # Load metadata 
+    metadata_raw_path = os.path.join(PATH_PREFIX, metadata_raw_filename)
+    metadata_df = pd.read_csv(metadata_raw_path)
+
+    # Filter by the ones taht fulfill the conditions
+    metadata_df = df_check_DICOM(metadata_df, check_DICOM_dict)
+
+    # Create a DataFrame to compare filenames
+    check_df = pd.DataFrame(metadata_df.fname.str.split('/').str[-1], index=metadata_df.fname.str.split('/').str[-1])
+
+    # Loop over all the filenames
+    filter_fnames = L()
+    for fname in tqdm(fnames):
+        filename = os.path.splitext(fname.name)[0]
+
+        # Check if is in the list and add it
+        try:
+            check_df.loc[filename, :]
+            filter_fnames.append(fname)
+        except KeyError:
+            continue
+    
+    return filter_fnames
+
+
 def default_check_DICOM_dict():
     """ Get default values for check DICOM dictionary """
 
