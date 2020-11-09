@@ -19,13 +19,9 @@ def dcm_scale(dcm):
     """ Transform from raw pixel data to scaled one and inversing (if the case) """
     
     if dcm.PresentationLUTShape == 'INVERSE':
-        img = (dcm.scaled_px.max() - dcm.scaled_px)
+        return (dcm.scaled_px.max() - dcm.scaled_px) / (2**dcm.BitsStored - 1)
     else:
-        img = dcm.scaled_px
-    if dcm.pixel_array.dtype.name == 'uint16':
-        return img / (2**12 - 1)
-    else:
-        return img
+        return dcm.scaled_px / (2**dcm.BitsStored - 1)
 
 def dcmread_scale(fn):
     """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
