@@ -196,7 +196,7 @@ class DCMPreprocessDataset(Dataset):
             shutil.rmtree(dst_folder)
             os.makedirs(dst_folder)
             
-        for idx in enumerate(tqdm(range(len(self)), desc='Saving Images: ')):
+        for idx in tqdm(range(len(self)), desc='Saving Images: '):
             # Define filename and filepath
             filename, _ = os.path.splitext(self.get_fname(idx))
             filepath = f'{dst_folder}/{filename}.{extension}'
