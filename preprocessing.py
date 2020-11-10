@@ -10,6 +10,7 @@ import torchvision.transforms as tfms
 
 from PIL import Image
 
+import gc
 import random
 import shutil
 from tqdm import tqdm
@@ -211,3 +212,6 @@ class DCMPreprocessDataset(Dataset):
 
             data.save(filepath, format=extension, compress_level=0 if extension.lower()=='png' else None)
             # save_image(data, f'{dst_folder}/{filename}.{extension}')
+
+            del data
+            gc.collect()

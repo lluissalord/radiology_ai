@@ -15,16 +15,15 @@ import pydicom
 
 def filter_fnames(
     fnames,
+    metadata_raw_path,
     check_DICOM_dict={
         'PresentationLUTShape': ['IDENTITY', 'INVERSE'],
         'Modality': ['CR', 'DR', 'DX'],
-    },
-    metadata_raw_filename='metadata_raw.csv'
+    }
 ):
     """ Filter all the filenames which are fulfill the metadata conditions passed on `check_DICOM_dict` """
 
     # Load metadata 
-    metadata_raw_path = os.path.join(PATH_PREFIX, metadata_raw_filename)
     metadata_df = pd.read_csv(metadata_raw_path)
 
     # Filter by the ones taht fulfill the conditions
@@ -34,7 +33,7 @@ def filter_fnames(
     check_df = pd.DataFrame(metadata_df.fname.str.split('/').str[-1], index=metadata_df.fname.str.split('/').str[-1])
 
     # Loop over all the filenames
-    filter_fnames = L()
+    filter_fnames = []
     for fname in tqdm(fnames):
         filename = os.path.splitext(fname.name)[0]
 
