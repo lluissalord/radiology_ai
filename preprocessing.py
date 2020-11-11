@@ -7,6 +7,7 @@ from fastai.medical.imaging import *
 from skimage.transform import resize as sk_resize
 
 import torchvision.transforms as tfms
+import torchvision.transforms.functional as TF
 
 from PIL import Image
 
@@ -19,7 +20,7 @@ from tqdm import tqdm
 def dcm_scale(dcm):
     """ Transform from raw pixel data to scaled one and inversing (if the case) """
     
-    if dcm.PresentationLUTShape == 'INVERSE':
+    if dcm.PhotometricInterpretation == 'MONOCHROME1':
         return (dcm.scaled_px.max() - dcm.scaled_px) / (2**dcm.BitsStored - 1)
     else:
         return dcm.scaled_px / (2**dcm.BitsStored - 1)
@@ -30,7 +31,7 @@ def dcmread_scale(fn):
     dcm = dcmread(fn)
     return dcm_scale(dcm)
 
-def init_bins(fnames, n_samples=None):
+def init_bins(fnames, n_samples=None, isDCM=True):
         """ Initialize bins to equally distribute the histogram of the dataset """
 
         # Select randomly n_samples
@@ -41,36 +42,42 @@ def init_bins(fnames, n_samples=None):
         else:
             fnames_sample = fnames
         
-        # Extract the current smallest size
-        try:
-            # Extract DCMs
-            dcms = fnames_sample.map(dcmread)
-
-            # Get the current smallest size
-            resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
-        except AttributeError:
-            import pydicom
-            from numpy import inf
-            dcms = []
-            resize = []
-
-            # Extract different size and get the samllest one
-            for fname in fnames_sample:
-                dcm = fname.dcmread()
-                resize.append(dcm.scaled_px.size())
-                dcms.append(dcm)
-            resize = min(resize)
-
-        # Extract bins from scaled and resized samples
-        samples = []
-        for dcm in dcms:
+        if isDCM:
+            # Extract the current smallest size
             try:
-                samples.append(torch.from_numpy(sk_resize(dcm_scale(dcm), resize)))
+                # Extract DCMs
+                dcms = fnames_sample.map(dcmread)
+
+                # Get the current smallest size
+                resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
             except AttributeError:
-                continue
-        samples = torch.stack(tuple(samples))
+                import pydicom
+                from numpy import inf
+                dcms = []
+                resize = []
+
+                # Extract different size and get the samllest one
+                for fname in fnames_sample:
+                    dcm = fname.dcmread()
+                    resize.append(dcm.scaled_px.size())
+                    dcms.append(dcm)
+                resize = min(resize)
+
+            # Extract bins from scaled and resized samples
+            samples = []
+            for dcm in dcms:
+                try:
+                    samples.append(torch.from_numpy(sk_resize(dcm_scale(dcm), resize)))
+                except AttributeError:
+                    continue
+        else:
+            samples = []
+            for fn in fnames_sample:
+                image = Image.open(fn)
+                samples.append(TF.to_tensor(image))
         
         # Calculate the frequency bins from these samples
+        samples = torch.stack(tuple(samples))
         bins = samples.freqhist_bins()
 
         return bins
@@ -97,6 +104,20 @@ class HistScaled(Transform):
             .hist_scaled(brks=self.bins).numpy() * 255
         )
 
+# TODO: Review how to handle HistScaled for transforms on PNG
+class HistScaled_all(Transform):
+    def __init__(self, bins):
+        super().__init__()
+        self.bins = bins
+    def encodes(self, sample:PILImage):
+        return Image.fromarray(
+            (
+                sample._tensor_cls(sample) / 255
+            )
+            .hist_scaled(brks=self.bins).numpy() * 255
+        )
+
+
 class DCMPreprocessDataset(Dataset):
     """ Dataset class for DCM preprocessing """
 
@@ -115,13 +136,7 @@ class DCMPreprocessDataset(Dataset):
         dcm = self.get_dcm(idx)
         
         # Treat sample even if cannot transform DCM because of missing PresentationLUTShape (so it is not a X-ray image)
-        try:
-            sample = dcm_scale(dcm)
-        except AttributeError:
-            if dcm.pixel_array.dtype.name == 'uint16':
-                sample = dcm.scaled_px / (2**12 - 1)
-            else:
-                sample = dcm.scaled_px
+        sample = dcm_scale(dcm)
     
         if self.bins is not None:
             sample = sample.hist_scaled(brks=self.bins)
@@ -195,7 +210,12 @@ class DCMPreprocessDataset(Dataset):
             
         for idx in tqdm(range(len(self)), desc='Saving Images: '):
             # Define filename and filepath
-            filename, _ = os.path.splitext(self.get_fname(idx))
+            filename, ext = os.path.splitext(self.get_fname(idx))
+
+            # Take into account the ones which seems to have extension ".PACSXXX" is not an extension
+            if ext.startswith('.PACS'):
+                filename = self.get_fname(idx)
+
             filepath = f'{dst_folder}/{filename}.{extension}'
 
             # In case the file already exists and it has to be keep, then continue with the loop

@@ -2,6 +2,7 @@ from glob import glob
 import os
 import shutil
 import random
+from pathlib import Path
 
 from tqdm import tqdm_notebook
 from tqdm.auto import tqdm
@@ -17,7 +18,6 @@ def filter_fnames(
     fnames,
     metadata_raw_path,
     check_DICOM_dict={
-        'PresentationLUTShape': ['IDENTITY', 'INVERSE'],
         'Modality': ['CR', 'DR', 'DX'],
     }
 ):
@@ -35,7 +35,15 @@ def filter_fnames(
     # Loop over all the filenames
     filter_fnames = []
     for fname in tqdm(fnames):
-        filename = os.path.splitext(fname.name)[0]
+        try:
+            filename, ext = os.path.splitext(fname.name)
+        except AttributeError:
+            fname = Path(fname)
+            filename, ext = os.path.splitext(fname.name)
+
+        # Take into account the ones which seems to have extension ".PACSXXX" is not an extension
+        if ext.startswith('.PACS'):
+            filename = fname.name
 
         # Check if is in the list and add it
         try:
