@@ -48,7 +48,7 @@ def filter_fnames(
         # Check if is in the list and add it
         try:
             check_df.loc[filename, :]
-            filter_fnames.append(fname)
+            filter_fnames.append(str(fname).replace(os.sep, '/'))
         except KeyError:
             continue
     
