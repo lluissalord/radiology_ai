@@ -4,7 +4,6 @@ import shutil
 import random
 from pathlib import Path
 
-from tqdm import tqdm_notebook
 from tqdm.auto import tqdm
 tqdm.pandas()
 
@@ -273,11 +272,13 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
         relation_df = open_name_relation_file(relation_filepath, sep=',')
         if len(relation_df.index) == 0:
             raise ValueError('No reset is set, but there is no relation file or it is empty')
+        if relation_df.index.duplicated('Original').any():
+            raise ValueError('There is a duplicated value on relation file, please review it and modify it')
 
     # Look at all the DICOM files in the source folder, check them and move them appropiatly
     folders = glob(os.path.join(src_folder, '*'))
     correct_filepaths = []
-    for folder in tqdm_notebook(folders, desc='Check folders: '):
+    for folder in tqdm(folders, desc='Check folders: '):
         # Find all files in the folder
         filepaths = glob(os.path.join(folder, '*'))
 
@@ -289,8 +290,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
 
             # If is no resetting and the file is already on the relation, then there is no need to check
             if not reset:
-                src_path = os.path.split(filepath)[0]
-                if src_path in relation_df.index:
+                if filepath in relation_df.index:
                     continue
             
             # Check if current file is frontal (ap) image
@@ -306,8 +306,15 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
     # Only proceed if there is files to move or resetting folders
     if len(correct_filepaths) > 0 or reset:
 
+        # TODO: Make sure that it continues from the last block
+        if not reset:
+            last_block = relation_df['Path'].str.split('/').str[-1].astype(int).max()
+            start_num_subgrups = last_block + 1
+        else:
+            start_num_subgrups = 0
+
         # Relates source filepaths with destination folder paths depending on shuffle groups and subgroup length
-        folders_dst = get_final_dst(dst_folder, correct_filepaths, groups, subgroup_length)
+        folders_dst = get_final_dst(dst_folder, correct_filepaths, groups, subgroup_length, start_num_subgrups)
         temp_relation_df = pd.DataFrame(folders_dst.values(), index=folders_dst.keys(), columns=['Path'])
         temp_relation_df['Filename'] = filename_prefix + str(-1)
         temp_relation_df.index.rename('Original', inplace=True)
@@ -326,7 +333,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
         current_id = get_last_id(relation_df, prefix=filename_prefix)
 
         # Loop over the files that should be copied/moved
-        for filepath in tqdm_notebook(correct_filepaths, desc='Move files'):
+        for filepath in tqdm(correct_filepaths, desc='Move files'):
 
             # Get the final destination folder
             _, src_filename = os.path.split(filepath)
@@ -358,10 +365,12 @@ def expand_list(l, n):
     return (l*(n // len(l) + 1))[:n]
 
 
-def shuffle_group_folders(folders, groups, subgroup_length=None):
+def shuffle_group_folders(folders, groups, subgroup_length=None, start_num_subgrups=None):
     """ Generate dictionaries of the shuffled groups and subgroups related to folders """
     if subgroup_length is not None:
-        subgroups = list(range(len(folders) // subgroup_length + 1))[:len(folders)]
+        num_subgroups = len(folders) // subgroup_length + 1
+        start_num_subgrups = start_num_subgrups if start_num_subgrups is not None else 0
+        subgroups = list(range(start_num_subgrups, start_num_subgrups + num_subgroups))[:len(folders)]
         expanded_subgroups = expand_list(subgroups, len(folders))
         random.shuffle(folders)
         folders_subgroup = dict(zip(folders, expanded_subgroups))
@@ -380,17 +389,17 @@ def shuffle_group_folders(folders, groups, subgroup_length=None):
         return folders_group
 
 
-def get_final_dst(dst_folder, filepaths, groups, subgroup_length):
+def get_final_dst(dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None):
     """ Relates source filepaths with destination paths depending on shuffle groups and subgroup length """
     
     folders_dst = {}
     if groups is not None and subgroup_length is not None:
-        folders_subgroup, subgroup_group = shuffle_group_folders(filepaths, groups, subgroup_length)
+        folders_subgroup, subgroup_group = shuffle_group_folders(filepaths, groups, subgroup_length, start_num_subgrups)
         for filepath in filepaths:
             current_subgroup = folders_subgroup[filepath]
             current_group = subgroup_group[current_subgroup]
             relative_folder = os.path.join(current_group, str(current_subgroup))
-            folders_dst[filepath] = os.path.join(dst_folder, relative_folder)
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(os.sep, '/')
     elif groups is None and subgroup_length is None:
         for filepath in filepaths:
             folders_dst[filepath] = dst_folder
@@ -399,15 +408,15 @@ def get_final_dst(dst_folder, filepaths, groups, subgroup_length):
             n_groups = len(filepaths) // subgroup_length + (len(filepaths) % subgroup_length != 0)
             groups = [str(i) for i in range(n_groups)]
             subgroup_length = None
-        folders_group = shuffle_group_folders(filepaths, groups, subgroup_length)
+        folders_group = shuffle_group_folders(filepaths, groups, subgroup_length, start_num_subgrups)
         for filepath in filepaths:
             current_group = folders_group[filepath]
             relative_folder = current_group
-            folders_dst[filepath] = os.path.join(dst_folder, relative_folder)
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(os.sep, '/')
     return folders_dst
 
 
-def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_', excel=True, csv_sep=';'):
+def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_', excel=True, csv_sep=';', able_overwrite=False):
     """ Generates template files for each group of DICOM files using the filename as ID """
     
     # Define extension
@@ -439,7 +448,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
     )
 
     # Loop on across the folders to generate de template file
-    for folderpath in tqdm_notebook(folderpaths, desc='Folders: '):
+    for folderpath in tqdm(folderpaths, desc='Folders: '):
         # Get all the DICOM files
         filepaths = glob(
             os.path.join(
@@ -511,7 +520,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
             template_name = template_name + '_' + path_split[-2]
 
         # If there is data then we need to request permission to the user to overwrite
-        allow_overwrite = True
+        allow_overwrite = False
         check_same_ids = True
         if check_data:
             
@@ -519,10 +528,11 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
             old_df = sort_template_file(old_df, filename_prefix)
             check_same_ids = (df['ID'] == old_df['ID']).all()
             if check_same_ids:
-                # Ask user if want to overwrite file with data
-                allow_input = input(f'There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (y default): ')
-                if len(allow_input) != 0 and allow_input[0].lower() == 'n':
-                    allow_overwrite = False
+                if able_overwrite:
+                    # Ask user if want to overwrite file with data
+                    allow_input = input(f'There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (n default): ')
+                    if len(allow_input) != 0 and allow_input[0].lower() == 'y':
+                        allow_overwrite = True
             else:
                 # Rename file with prefix 'old_'
                 src_folder, src_filename = os.path.split(template_file)
@@ -532,7 +542,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
                 print(f'WARNING: The following file is out-dated with different IDs than the ones in the folder:\n{template_file}\n\nHowever, there is data in it, then it is being renamed from {src_filename} to {new_filename}. Please updated the file the new file and remove the old one before continuing')
 
         # If there is no data or the user allow to remove the file
-        if not check_data or (template_file is not None and allow_overwrite):
+        if not check_data or (template_file is not None and allow_overwrite and able_overwrite):
             # Only remove if file still exists
             if template_file is not None and os.path.exists(template_file):
                 os.remove(template_file)
@@ -620,7 +630,7 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
     dtype = {'ID':'string','Target':'string'}
 
     df = pd.DataFrame()
-    for label_path in tqdm_notebook(label_paths, desc='Label files: '):
+    for label_path in tqdm(label_paths, desc='Label files: '):
         # Check if there is any file which is out-dated
         _, label_filename = os.path.split(label_path)
         if label_filename.startswith('old_'):
@@ -638,14 +648,16 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 def rename_patient(dicom_files):
     """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
     
+    print('Reading DCM files...')
     dcms = dicom_files.map(pydicom.dcmread)
-    for filepath, dcm in tqdm_notebook(zip(dicom_files, dcms), desc='Files: ', total=len(dicom_files)):
+    for filepath, dcm in tqdm(zip(dicom_files, dcms), desc='Files: ', total=len(dicom_files)):
         _, filename = os.path.split(filepath)
         filename, _ = os.path.splitext(filename)
-        dcm.PatientName = filename
-        dcm.PatientID = filename
-        with open(filepath, 'wb') as f:
-            dcm.save_as(f)
+        if dcm.PatientName != filename or dcm.PatientID != filename:
+            dcm.PatientName = filename
+            dcm.PatientID = filename
+            with open(filepath, 'wb') as f:
+                dcm.save_as(f)
 
 
 def open_name_relation_file(filepath, sep=','):
@@ -662,7 +674,7 @@ def open_name_relation_file(filepath, sep=','):
 
 def save_name_relation_file(relation_df, filepath, sep=','):
     """ Save file containing the relation between original and new files """
-    relation_df.to_csv(filepath, sep=sep, index=True)
+    relation_df[relation_df['Original_Filename'].notnull()].to_csv(filepath, sep=sep, index=True)
 
 
 def get_last_id(relation_df, prefix='IMG_'):
