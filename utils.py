@@ -70,7 +70,11 @@ def df_check_DICOM(df, check_DICOM_dict):
     """ Filter DataFrame on the rows that match the filter specified on `check_DICOM_dict` """
     match = True
     for key, value in check_DICOM_dict.items():
-        match = (match) & df[key].isin(value)
+        # Lambda function checking if DICOM file fulfills the condition
+        if key == 'function':
+            match = (match) & df.apply(value, axis=1)
+        else:
+            match = (match) & df[key].isin(value)
     
     return df[match]
 
@@ -110,7 +114,12 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 
     check = True
     for key, value in check_DICOM_dict.items():
-        if dcm.get(key) not in value:
+        # Lambda function checking if DICOM file fulfills the condition
+        if key == 'function':
+            check = value(dcm)
+            if not check:
+                break
+        elif dcm.get(key) not in value:
             check = False
             if debug:
                 print(f'{key}: {dcm.get(key)} on Accession Number: {dcm.AccessionNumber}')
