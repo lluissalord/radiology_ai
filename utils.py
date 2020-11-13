@@ -136,7 +136,7 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
 
     try:
         return metadata_labels.loc[raw_path, pred_col] == label
-    except KeyError as e:
+    except KeyError:
         # Probably these are cases which have wrong metadata out of 'ap', 'lat', 'two'
         # However, we try if it can be a case of wrong path sep and only take the filename
         filename = os.path.splitext(
@@ -144,6 +144,8 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
         )[0]
         row_match = metadata_labels.index.str.endswith(
             filename
+        ) | metadata_labels.index.str.endswith(
+            filename + '.png'
         )
         return (metadata_labels.loc[row_match, pred_col] == label).any()
 
@@ -303,6 +305,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
                 if check_DICOM(dcm, check_DICOM_dict, debug):
                     correct_filepaths.append(filepath)
 
+    print('Preparing for organizing files...')
     # Only proceed if there is files to move or resetting folders
     if len(correct_filepaths) > 0 or reset:
 
@@ -319,6 +322,10 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
         temp_relation_df['Filename'] = filename_prefix + str(-1)
         temp_relation_df.index.rename('Original', inplace=True)
 
+        print('Groups and subgroups organized')
+        if debug:
+            print(temp_relation_df)
+
         # Define relation DataFrame depending on reset
         if reset:
             # Clean destination folder
@@ -331,6 +338,13 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
 
         # Get last ID of the current files
         current_id = get_last_id(relation_df, prefix=filename_prefix)
+
+        print('Current last id is: ', current_id)
+
+        print('Number of correct filepaths: ', len(correct_filepaths))
+
+        if debug:
+            print('Current filepaths:\n\n', correct_filepaths)
 
         # Loop over the files that should be copied/moved
         for filepath in tqdm(correct_filepaths, desc='Move files'):
@@ -358,7 +372,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             # Save the relation file
             save_name_relation_file(relation_df, relation_filepath, sep=',')
 
-    return relation_df
+    return relation_df, len(correct_filepaths)
 
 def expand_list(l, n):
     """ Expand a list `l` to repeat its elements till reaching length of `n` """
