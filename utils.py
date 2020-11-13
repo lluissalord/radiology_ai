@@ -484,7 +484,7 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
         )
 
         # Create DataFrame from the data with the proposed structure
-        df = pd.DataFrame(data, columns=['ID', 'Target', 'Side', 'Difficulty', 'Incorrect_image', 'Not_enough_quality'])
+        df = pd.DataFrame(data, columns=['ID', 'Target', 'Difficulty', 'Incorrect_image', 'Not_enough_quality'])
 
         # Look for Excel/CSV files in the folders
         template_files = glob(
@@ -575,6 +575,76 @@ def generate_template(dst_folder, groups, subgroup_length, filename_prefix='IMG_
                 )
 
 
+def modify_template(dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=';'):
+    """ Modify all the templates on dst_folder applying `modify_func` on each DataFrame """
+    
+    # Define extension
+    if excel:
+        extension = '.xlsx'
+    else:
+        extension = '.csv'
+
+    # Extract the length of the path from the destination folder
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
+
+    # Take into account if there are or not subgroups
+    prefix = ''
+    if subgroup_length is not None:
+        prefix += '*/'
+        if groups is None:
+            subgroup_length = None
+        
+    if groups is not None:
+        prefix += '*/'
+        
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(
+        os.path.join(
+            dst_folder,
+            prefix
+        )
+    )
+
+    # Loop on across the folders to generate de template file
+    for folderpath in tqdm(folderpaths, desc='Folders: '):
+
+        # Look for Excel/CSV files in the folders
+        template_files = glob(
+            os.path.join(
+                folderpath + '*.xls'
+            )
+        ) + glob(
+            os.path.join(
+                folderpath + '*.xlsx'
+            )
+        ) + glob(
+            os.path.join(
+                folderpath + '*.csv'
+            )
+        )
+
+        for template_file in template_files:
+            # Read each template
+            df = read_template(template_file, sep=csv_sep)
+
+            # Do specified modification
+            df = modify_func(df)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    template_file,
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    template_file,
+                    index=False,
+                    sep=csv_sep,
+                )
+
+
 def sort_template_file(df, filename_prefix):
     """ Sort DataFrame based on template filename """
 
@@ -593,7 +663,14 @@ def sort_template_file(df, filename_prefix):
 def check_data_in_template(template_file, sep=None):
     """ Check if there is data different than null in each template """
 
-    dtype = {'ID':'string','Target':'string'}
+    dtype = {'ID':'string','Target':'string'} 
+    df = read_template(template_file, sep=sep, dtype=dtype)
+
+    return df, df.drop('ID', axis=1).notnull().any().any()
+
+
+def read_template(template_file, sep=None, dtype=None):
+    """ Read template idenpendently of the extension """
 
     # Extract extension and define loading method depending on it
     _, extension = os.path.splitext(template_file)
@@ -612,7 +689,7 @@ def check_data_in_template(template_file, sep=None):
             if len(df.columns) == 1:
                 raise ValueError('Please define the correct sep for the CSV files already existing as for examples: ', template_file)
 
-    return df, df.drop('ID', axis=1).notnull().any().any()
+    return df
 
 
 def concat_templates(src_folder, excel=True, csv_sep=';'):
