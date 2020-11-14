@@ -29,17 +29,17 @@ class SemiLoss(object):
         # w = self.w_scheduling(self.epoch)
         
         # Calculation of total loss
-        loss = Lx + self.lambda_u * Lu
-
         if reduction == 'mean':
+            loss = Lx.mean() + (self.lambda_u * Lu).mean()
             # self.losses = {'loss': loss.mean(), 'Lx': Lx.mean(), 'Lu': Lu.mean(), 'w': w}
-            return loss.mean()
         elif reduction=='sum':
+            loss = Lx.sum() + (self.lambda_u * Lu).sum()
             # self.losses = {'loss': loss.sum(), 'Lx': Lx.sum(), 'Lu': Lu.sum(), 'w': w}
-            return loss.sum()
         else:
+            loss = Lx + self.lambda_u * Lu
             # self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu, 'w': w}
-            return loss
+ 
+        return loss
 
     # @abstractmethod
     # def Lx_criterion(self, logits, targets):

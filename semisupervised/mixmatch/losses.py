@@ -39,9 +39,9 @@ class MixMatchLoss(BaseLoss):
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
             
-            return (probs_u - targets_u)**2
+            return torch.mean((probs_u - targets_u)**2, dim=1)
         else:
-            return 0
+            return torch.zeros(1)
 
     def w_scheduling(self, epoch):
         """ Scheduling of w paramater (unsupervised loss multiplier) """

@@ -99,7 +99,7 @@ class HistScaled(Transform):
     def encodes(self, sample:PILDicom_scaled):
         return Image.fromarray(
             (
-                sample._tensor_cls(sample) / 255
+                sample._tensor_cls(sample) / 255.
             )
             .hist_scaled(brks=self.bins).numpy() * 255
         )
@@ -112,7 +112,7 @@ class HistScaled_all(Transform):
     def encodes(self, sample:PILImage):
         return Image.fromarray(
             (
-                sample._tensor_cls(sample) / 255
+                sample._tensor_cls(sample) / 255.
             )
             .hist_scaled(brks=self.bins).numpy() * 255
         )
