@@ -93,7 +93,7 @@ class PILDicom_scaled(PILDicom):
         return cls(im.convert(mode) if mode else im)
 
 class HistScaled(Transform):
-    def __init__(self, bins):
+    def __init__(self, bins=None):
         super().__init__()
         self.bins = bins
     def encodes(self, sample:PILDicom_scaled):
@@ -106,7 +106,7 @@ class HistScaled(Transform):
 
 # TODO: Review how to handle HistScaled for transforms on PNG
 class HistScaled_all(Transform):
-    def __init__(self, bins):
+    def __init__(self, bins=None):
         super().__init__()
         self.bins = bins
     def encodes(self, sample:PILImage):
