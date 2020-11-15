@@ -25,6 +25,7 @@ else:
 
 class FastaiLoss(torch.nn.Module):
     def __init__(self, num_classes):
+        super(FastaiLoss, self).__init__()
         self.num_classes = num_classes
 
     def decodes(self, x):    return x.argmax(dim=-1)
