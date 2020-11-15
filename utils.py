@@ -12,6 +12,29 @@ import pandas as pd
 
 import pydicom
 
+import torch
+
+
+def seed_everything(use_seed=0):
+    seed = use_seed if use_seed else random.randint(1,1000000)
+    print(f"Using seed: {seed}")
+
+    # python RNG
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(SEED)
+
+    # pytorch RNGs
+    torch.manual_seed(seed)
+    if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
+    if use_seed:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark     = False
+
+    # numpy RNG
+    np.random.seed(seed)
+
+    return seed
+
 
 def filter_fnames(
     fnames,
