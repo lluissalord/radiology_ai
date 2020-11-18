@@ -15,13 +15,30 @@ import pydicom
 import torch
 
 
+def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=False):
+    if model is None:
+      if model_arq[:12].lower() == 'efficientnet':
+        model = EfficientNet.from_pretrained(model_arq, num_classes=n_out, include_top=True, in_channels=n_in)
+      else:
+        model = create_cnn_model(model_arq, n_out=n_out, cut=None, pretrained=pretrained, n_in=n_in)
+    
+    if torch.cuda.is_available():
+      model = model.cuda()
+
+    if ema:
+        for param in model.parameters():
+            param.detach_()
+
+    return model
+
+
 def seed_everything(use_seed=0):
     seed = use_seed if use_seed else random.randint(1,1000000)
     print(f"Using seed: {seed}")
 
     # python RNG
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(SEED)
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
     # pytorch RNGs
     torch.manual_seed(seed)

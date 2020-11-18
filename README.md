@@ -11,6 +11,8 @@ Create environment:
 Install environment:
 `conda install -n radiology_ai -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm kornia scikit-image scikit-learn pandas numpy ipykernel ipywidgets xlrd tensorboard openpyxl --yes -q`
 
+Install EfficientNet for Pytorch
+`pip install efficientnet_pytorch`
 
 ## Troubleshooting
 
