@@ -1,5 +1,7 @@
 # from abc import abstractmethod
 
+import torch
+
 from semisupervised.utils import de_interleave
 
 class SemiLoss(object):
@@ -20,20 +22,24 @@ class SemiLoss(object):
         logits = de_interleave(logits)
 
         # Transform label if it has been flatten
-        if len(targets.size()) == 1:
-            targets = targets.view(len(targets) // self.n_out, self.n_out)
+        # if len(targets.size()) == 1:
+        #     targets = targets.view(len(targets) // self.n_out, self.n_out)
 
         # Calculate supervised loss (Lx), unsupervised loss (Lu) and w scheduling (unsupervised multiplier)
         Lx = self.Lx_criterion(logits, targets, reduction=reduction)
         Lu = self.Lu_criterion(logits, targets, reduction=reduction)
         # w = self.w_scheduling(self.epoch)
         
+        if torch.cuda.is_available:
+            Lx = Lx.cuda()
+            Lu = Lu.cuda()
+
         # Calculation of total loss
         if reduction == 'mean':
-            loss = Lx.mean() + (self.lambda_u * Lu).mean()
+            loss = Lx + (self.lambda_u * Lu).mean()
             # self.losses = {'loss': loss.mean(), 'Lx': Lx.mean(), 'Lu': Lu.mean(), 'w': w}
         elif reduction=='sum':
-            loss = Lx.sum() + (self.lambda_u * Lu).sum()
+            loss = Lx + (self.lambda_u * Lu).sum()
             # self.losses = {'loss': loss.sum(), 'Lx': Lx.sum(), 'Lu': Lu.sum(), 'w': w}
         else:
             loss = Lx + self.lambda_u * Lu

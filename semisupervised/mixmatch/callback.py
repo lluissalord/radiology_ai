@@ -4,11 +4,12 @@ from fastai.callback.core import Callback
 from fastai.callback.mixup import MixUp
 
 from semisupervised.utils import interleave
+from utils import categorical_to_one_hot
 
 class MixMatchCallback(Callback):
     """ MixMatch required preprocess before each batch """
 
-    run_after = MixUp
+    run_before = MixUp
     def __init__(self, unlabel_dl, transform_dl, T):
         self.unlabel_dl = unlabel_dl
         self.transform_dl = transform_dl
@@ -39,13 +40,16 @@ class MixMatchCallback(Callback):
             input_x = input_x[0]
 
         # Make suree the target has the right structure
-        target_x = self.learn.yb
-        if type(target_x) is tuple:
-            target_x = target_x[0]
-    
+        targets_x = self.learn.yb
+        if type(targets_x) is tuple:
+            targets_x = targets_x[0]
+
+        if len(targets_x.size()) == 1:
+            targets_x = categorical_to_one_hot(targets_x, targets_u.size()[-1])
+
         # Set together label and unlabel data
-        self.learn.xb = torch.cat([input_x, inputs_u, inputs_u2], dim=0).unsqueeze(0)
-        self.learn.yb = torch.cat([target_x, targets_u, targets_u], dim=0).unsqueeze(0)
+        self.learn.xb = torch.cat([input_x, inputs_u, inputs_u2], dim=0)#.unsqueeze(0)
+        self.learn.yb = torch.cat([targets_x, targets_u, targets_u], dim=0)#.unsqueeze(0)
 
         # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
         self.learn.xb = interleave(self.learn.xb)

@@ -14,10 +14,34 @@ import pydicom
 
 import torch
 
+from fastai.data.transforms import IndexSplitter
+from fastai.basics import mask2idxs
+
+from fastai.vision.learner import create_cnn_model
+from efficientnet_pytorch import EfficientNet
+
+def categorical_to_one_hot(x, n_out):
+    """ Transform categorical tensor to one hot encoding """
+    zeros = torch.zeros(len(x), n_out)
+    if torch.cuda.is_available():
+        zeros = zeros.cuda()
+
+    return zeros.scatter_(1, x.view(-1,1).long(), 1)
+
+def TestColSplitter(col='Dataset'):
+    "Split `items` (supposed to be a dataframe) by value in `col`"
+    def _inner(o):
+        assert isinstance(o, pd.DataFrame), "ColSplitter only works when your items are a pandas DataFrame"
+        train_idx = (o.iloc[:,col] if isinstance(col, int) else o[col]) == 'train'
+        valid_idx = (o.iloc[:,col] if isinstance(col, int) else o[col]) == 'valid'
+        test_idx = (o.iloc[:,col] if isinstance(col, int) else o[col]) == 'test'
+        return IndexSplitter(mask2idxs(train_idx))(o)[1], IndexSplitter(mask2idxs(valid_idx))(o)[1], IndexSplitter(mask2idxs(test_idx))(o)[1]
+    return _inner
+
 
 def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=False):
     if model is None:
-      if model_arq[:12].lower() == 'efficientnet':
+      if type(model_arq) is str and model_arq[:12].lower == 'efficientnet':
         model = EfficientNet.from_pretrained(model_arq, num_classes=n_out, include_top=True, in_channels=n_in)
       else:
         model = create_cnn_model(model_arq, n_out=n_out, cut=None, pretrained=pretrained, n_in=n_in)
