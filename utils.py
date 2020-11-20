@@ -39,12 +39,12 @@ def TestColSplitter(col='Dataset'):
     return _inner
 
 
-def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=False):
+def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=False, bn_final=False):
     if model is None:
       if type(model_arq) is str and model_arq[:12].lower == 'efficientnet':
         model = EfficientNet.from_pretrained(model_arq, num_classes=n_out, include_top=True, in_channels=n_in)
       else:
-        model = create_cnn_model(model_arq, n_out=n_out, cut=None, pretrained=pretrained, n_in=n_in)
+        model = create_cnn_model(model_arq, n_out=n_out, cut=None, pretrained=pretrained, n_in=n_in, bn_final=bn_final)
     
     if torch.cuda.is_available():
       model = model.cuda()
@@ -803,9 +803,8 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 def rename_patient(dicom_files):
     """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
     
-    print('Reading DCM files...')
-    dcms = dicom_files.map(pydicom.dcmread)
-    for filepath, dcm in tqdm(zip(dicom_files, dcms), desc='Files: ', total=len(dicom_files)):
+    for filepath in tqdm(dicom_files, desc='Files: '):
+        dcm = pydicom.dcmread(filepath)
         _, filename = os.path.split(filepath)
         filename, _ = os.path.splitext(filename)
         if dcm.PatientName != filename or dcm.PatientID != filename:
