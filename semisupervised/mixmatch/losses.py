@@ -11,7 +11,7 @@ class MixMatchLoss(BaseLoss):
     """ Loss for MixMatch process """
     y_int = False
 
-    def __init__(self, unlabel_dl, model, n_out, bs, lambda_u, weight=None, *args, axis=-1, **kwargs):
+    def __init__(self, unlabel_dl, model, n_out, bs, lambda_u, weight=None, *args, axis=-1, reduction='mean', **kwargs):
         super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
         self.axis = axis
         self.n_out = n_out
@@ -21,6 +21,7 @@ class MixMatchLoss(BaseLoss):
         self.bs = bs
         self.lambda_u = lambda_u
         self.losses = {}
+        self.reduction = reduction
         self.weight = weight
         if weight is None:
             self.weight = torch.as_tensor(1.).float()
@@ -38,9 +39,9 @@ class MixMatchLoss(BaseLoss):
             targets_x = categorical_to_one_hot(targets_x, self.n_out)
 
         Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
-        if reduction == 'mean':
+        if self.reduction == 'mean':
             return Lx.mean()
-        elif reduction == 'sum':
+        elif self.reduction == 'sum':
             return Lx.sum()
         else:
             return Lx

@@ -9,7 +9,7 @@ from semisupervised.losses import SemiLoss
 class FixMatchLoss(BaseLoss):
     """ Loss for FixMatch process """
 
-    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, **kwargs):
+    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, reduction='mean', **kwargs):
         super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
         self.axis = axis
         self.n_out = n_out
@@ -19,6 +19,7 @@ class FixMatchLoss(BaseLoss):
         self.label_threshold = label_threshold
         self.losses = {}
         self.weight = weight
+        self.reduction = reduction
 
     def Lx_criterion(self, logits, targets, reduction='mean'):
         """ Supervised loss criterion """
@@ -32,7 +33,7 @@ class FixMatchLoss(BaseLoss):
         if torch.cuda.is_available():
             targets_x = targets_x.cuda()
 
-        Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=reduction)
+        Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=self.reduction)
         if torch.cuda.is_available:
             Lx_criterion_func = Lx_criterion_func.cuda()
 
@@ -67,13 +68,5 @@ class FixMatchLoss(BaseLoss):
         return self.lambda_u
 
     def decodes(self, x):    return x.argmax(dim=1)
-    # def decodes(self, x):
-    #     print('x',x)
-    #     dec = x.argmax(dim=1)
-    #     print('dec_1',dec)
-    #     # if len(dec.size()) == 1:
-    #     #     dec = torch.zeros(len(dec), self.n_out).scatter_(1, dec.cpu().view(-1,1).long(), 1)
-    #     # print('dec_2',dec)
-    #     return dec
 
     def activation(self, x): return F.softmax(x, dim=self.axis)
