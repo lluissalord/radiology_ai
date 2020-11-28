@@ -11,6 +11,8 @@ import torchvision.transforms.functional as TF
 
 from PIL import Image
 
+import cv2
+
 import gc
 import random
 import shutil
@@ -116,6 +118,169 @@ class HistScaled_all(Transform):
             )
             .hist_scaled(brks=self.bins).numpy() * 255
         )
+
+
+class KneeLocalizer(Transform):
+    """ Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
+    
+    ```
+    @inproceedings{tiulpin2017novel,
+        title={A novel method for automatic localization of joint area on knee plain radiographs},
+        author={Tiulpin, Aleksei and Thevenot, Jerome and Rahtu, Esa and Saarakkala, Simo},
+        booktitle={Scandinavian Conference on Image Analysis},
+        pages={290--301},
+        year={2017},
+        organization={Springer}
+    }
+    ```
+    """
+    def __init__(self, svm_model_path, scales=[1, 1.25, 1.5, 2], debug=False):
+        super().__init__()
+        self.win_size = (64, 64)
+        self.win_stride = (64, 64)
+        self.block_size = (16, 16)
+        self.block_stride = (8, 8)
+        self.cell_size = (8, 8)
+        self.padding = (0, 0)
+        self.nbins = 9
+        self.scales = scales
+
+        self.svm_w, self.svm_b = np.load(svm_model_path, encoding='bytes', allow_pickle=True)
+        
+        self.debug = debug
+
+    def encodes(self, x:PILImage):
+        img = ToTensor()(x).squeeze().numpy()
+        R, C = img.shape
+
+        # We will store the coordinates of the top left and
+        # the bottom right corners of the bounding box
+        hog = cv2.HOGDescriptor(self.win_size,
+                                self.block_size,
+                                self.block_stride,
+                                self.cell_size,
+                                self.nbins)
+
+        displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
+        prop = self.get_joint_y_proposals(img)
+        best_score = -np.inf
+
+        for y_coord in prop:
+            for x_displ in displacements:
+                for scale in self.scales:
+                    if C / 2 + x_displ - R / scale / 2 >= 0 and y_coord - R / scale / 2 >= 0:
+                        # Candidate ROI
+                        roi = np.array([C / 2 + x_displ - R / scale / 2,
+                                        y_coord - R / scale / 2,
+                                        R / scale, R / scale], dtype=np.int)
+                        x1, y1 = roi[0], roi[1]
+                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                        patch = cv2.resize(img[y1:y2, x1:x2], self.win_size)
+
+                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
+                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+
+                        if score > best_score:
+                            best_score = score
+                            roi_R = ((x1, y1), (x2,y2))
+
+                            if self.debug:
+                                print()
+                                plt.imshow(patch, cmap=plt.cm.bone)
+                                plt.title(f'{score:.2f}{(x1, y1), (x2,y2)}')
+                                plt.show()
+
+        return x.__class__.create(img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]])
+
+
+    def smooth_line(self, line, av_points):
+        smooth = np.convolve(
+            line,
+            np.ones((av_points, )) / av_points
+        )[(av_points - 1):-(av_points - 1)]
+
+        return smooth
+
+    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10, tau=0.1):
+        """Return Y-coordinates of the joint approximate locations."""
+
+        R, C = img.shape
+
+        # Sum the middle if the leg is along the X-axis
+        segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
+                            int(C / 3):int(C - C / 3)], axis=1)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+
+        # Find the absolute of the derivative smoothed
+        derv_segm_line = np.abs(
+            self.smooth_line(
+                np.diff(
+                    segm_line
+                ),
+                av_derv_points
+            )
+        )
+
+        # Get top tau % of the peaks
+        peaks = np.argsort(derv_segm_line)[::-1][:int(tau * R * (1 - 2 * margin))]
+        
+        return peaks[::step] + int(R * margin)
+
+    
+    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10, tau=0.1):
+        """Return X-coordinates of the bone approximate locations"""
+
+        R, C = img.shape
+
+        # Sum the middle if the leg is along the Y-axis
+        segm_line = np.sum(img[int(R / 3):int(R - R / 3),
+                               int(C * margin):int(C * (1 - margin))], axis=0)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+        plt.plot(segm_line)
+
+        # Get top tau % of the maximum values
+        peaks = np.argsort(segm_line)[::-1][:int(tau * C * (1 - 2 * margin))]
+        return peaks[::step] + int(C * margin)
+
+
+class XRayPreprocess(Transform):
+
+    def __init__(self, cut_min=5., cut_max=99., only_non_zero=True):
+        self.cut_min = cut_min
+        self.cut_max = cut_max
+        self.only_non_zero = only_non_zero
+
+    def encodes(self, x:PILImage):
+        """Preprocess the X-ray image using histogram clipping and global contrast normalization.
+        Parameters
+        ----------
+        cut_min: int
+            Lowest percentile which is used to cut the image histogram.
+        cut_max: int
+            Highest percentile.
+        """
+
+        img = ToTensor()(x).squeeze().numpy()
+        img = img.astype(np.float64)
+
+        lim1, lim2 = np.percentile(
+            img[img != 0] if self.only_non_zero else img,
+            [self.cut_min, self.cut_max]
+        )
+
+        img[img < lim1] = lim1
+        img[img > lim2] = lim2
+
+        img -= lim1
+
+        img /= img.max()
+        img *= 255
+
+        return x.__class__.create(img.astype(np.uint8, casting='unsafe'))
 
 
 class DCMPreprocessDataset(Dataset):
