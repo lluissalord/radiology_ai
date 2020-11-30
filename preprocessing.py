@@ -280,7 +280,7 @@ class XRayPreprocess(Transform):
         img /= img.max()
         img *= 255
 
-        return x.__class__.create(img.astype(np.uint8, casting='unsafe'))
+        return x.__class__.create(img)
 
 
 class DCMPreprocessDataset(Dataset):
