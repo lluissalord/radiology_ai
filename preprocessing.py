@@ -134,7 +134,7 @@ class KneeLocalizer(Transform):
     }
     ```
     """
-    def __init__(self, svm_model_path, scales=[1, 1.25, 1.5, 2], debug=False):
+    def __init__(self, svm_model_path, debug=False):
         super().__init__()
         self.win_size = (64, 64)
         self.win_stride = (64, 64)
@@ -143,15 +143,18 @@ class KneeLocalizer(Transform):
         self.cell_size = (8, 8)
         self.padding = (0, 0)
         self.nbins = 9
-        self.scales = scales
+        self.scales = [1.25, 1.5, 2, 2.5]
 
         self.svm_w, self.svm_b = np.load(svm_model_path, encoding='bytes', allow_pickle=True)
         
         self.debug = debug
 
     def encodes(self, x:PILImage):
-        img = ToTensor()(x).squeeze().numpy()
-        R, C = img.shape
+        img = ToTensor()(x).numpy()
+
+        if len(img.shape) > 2:
+          img = np.squeeze(img, 0)
+        R, C = img.shape[-2:]
 
         # We will store the coordinates of the top left and
         # the bottom right corners of the bounding box
@@ -161,16 +164,18 @@ class KneeLocalizer(Transform):
                                 self.cell_size,
                                 self.nbins)
 
-        displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
-        prop = self.get_joint_y_proposals(img)
+        # displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
+        x_prop = self.get_joint_x_proposals(img)
+        y_prop = self.get_joint_y_proposals(img)
         best_score = -np.inf
 
-        for y_coord in prop:
-            for x_displ in displacements:
+        for y_coord in y_prop:
+            for x_coord in x_prop:
                 for scale in self.scales:
-                    if C / 2 + x_displ - R / scale / 2 >= 0 and y_coord - R / scale / 2 >= 0:
+                    # Check if fits on image
+                    if x_coord - R / scale / 2 >= 0 and x_coord + R / scale / 2 <= C and y_coord - R / scale / 2 >= 0 and y_coord + R / scale / 2 <= R :
                         # Candidate ROI
-                        roi = np.array([C / 2 + x_displ - R / scale / 2,
+                        roi = np.array([x_coord - R / scale / 2,
                                         y_coord - R / scale / 2,
                                         R / scale, R / scale], dtype=np.int)
                         x1, y1 = roi[0], roi[1]
@@ -190,7 +195,10 @@ class KneeLocalizer(Transform):
                                 plt.title(f'{score:.2f}{(x1, y1), (x2,y2)}')
                                 plt.show()
 
-        return x.__class__.create(img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]])
+        # return x.__class__.create(img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]])
+        return Image.fromarray(
+            img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+        )
 
 
     def smooth_line(self, line, av_points):
@@ -201,10 +209,10 @@ class KneeLocalizer(Transform):
 
         return smooth
 
-    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10, tau=0.1):
+    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
         """Return Y-coordinates of the joint approximate locations."""
 
-        R, C = img.shape
+        R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the X-axis
         segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
@@ -224,15 +232,15 @@ class KneeLocalizer(Transform):
         )
 
         # Get top tau % of the peaks
-        peaks = np.argsort(derv_segm_line)[::-1][:int(tau * R * (1 - 2 * margin))]
+        peaks = np.argsort(derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
         
         return peaks[::step] + int(R * margin)
 
     
-    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10, tau=0.1):
+    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
         """Return X-coordinates of the bone approximate locations"""
 
-        R, C = img.shape
+        R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the Y-axis
         segm_line = np.sum(img[int(R / 3):int(R - R / 3),
@@ -240,10 +248,10 @@ class KneeLocalizer(Transform):
     
         # Smooth the segmentation line
         segm_line = self.smooth_line(segm_line, av_points)
-        plt.plot(segm_line)
 
-        # Get top tau % of the maximum values
-        peaks = np.argsort(segm_line)[::-1][:int(tau * C * (1 - 2 * margin))]
+        # Get top tau % of the peaks
+        peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
+        # print(peaks)
         return peaks[::step] + int(C * margin)
 
 
@@ -264,7 +272,10 @@ class XRayPreprocess(Transform):
             Highest percentile.
         """
 
-        img = ToTensor()(x).squeeze().numpy()
+        img = ToTensor()(x).numpy()
+        
+        if len(img.shape) > 2:
+          img = np.squeeze(img, 0)
         img = img.astype(np.float64)
 
         lim1, lim2 = np.percentile(
@@ -280,7 +291,10 @@ class XRayPreprocess(Transform):
         img /= img.max()
         img *= 255
 
-        return x.__class__.create(img)
+        # return x.__class__.create(img)
+        return Image.fromarray(
+            img.astype('uint8')
+        )
 
 
 class DCMPreprocessDataset(Dataset):
