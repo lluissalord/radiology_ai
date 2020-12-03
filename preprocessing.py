@@ -120,6 +120,27 @@ class HistScaled_all(Transform):
         )
 
 
+class CLAHE_Transform(Transform):
+    
+    def __init__(self, clipLimit=2.0, tileGridSize=(8,8), grayscale=True):
+        super().__init__()
+        self.grayscale = grayscale
+
+        clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+    
+    def encodes(self, sample:PILImage):
+        if self.grayscale:
+            img = np.array(sample.convert('L'))
+        else:
+            img = cv2.cvtColor(np.array(sample.convert('RGB')), cv2.COLOR_RGB2BGR)
+        
+        clahe_out = clahe.apply(img)
+        
+        return Image.fromarray(
+                clahe_out
+            )
+
+
 class KneeLocalizer(Transform):
     """ Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
     
