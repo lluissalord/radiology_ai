@@ -126,7 +126,7 @@ class CLAHE_Transform(Transform):
         super().__init__()
         self.grayscale = grayscale
 
-        clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
     
     def encodes(self, sample:PILImage):
         if self.grayscale:
@@ -134,7 +134,7 @@ class CLAHE_Transform(Transform):
         else:
             img = cv2.cvtColor(np.array(sample.convert('RGB')), cv2.COLOR_RGB2BGR)
         
-        clahe_out = clahe.apply(img)
+        clahe_out = self.clahe.apply(img)
         
         return Image.fromarray(
                 clahe_out
@@ -300,7 +300,7 @@ class XRayPreprocess(Transform):
         img = img.astype(np.float64)
 
         lim1, lim2 = np.percentile(
-            img[img != 0] if self.only_non_zero else img,
+            img[img != 0] if self.only_non_zero and len(img[img != 0]) > 0 else img,
             [self.cut_min, self.cut_max]
         )
 
