@@ -122,23 +122,31 @@ class HistScaled_all(Transform):
 
 class CLAHE_Transform(Transform):
     
-    def __init__(self, clipLimit=2.0, tileGridSize=(8,8), grayscale=True):
+    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
         super().__init__()
         self.grayscale = grayscale
+        self.np_input = np_input
+        self.np_output = np_output
+
+        self.PIL_cls = PIL_cls
 
         self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
     
-    def encodes(self, sample:PILImage):
-        if self.grayscale:
-            img = np.array(sample.convert('L'))
+    def encodes(self, sample:(PILImage,np.ndarray)):
+        if self.np_input:
+            img = sample
         else:
-            img = cv2.cvtColor(np.array(sample.convert('RGB')), cv2.COLOR_RGB2BGR)
-        
+            if self.grayscale:
+                img = np.array(sample.convert('L'))
+            else:
+                img = cv2.cvtColor(np.array(sample.convert('RGB')), cv2.COLOR_RGB2BGR)
+            
         clahe_out = self.clahe.apply(img)
         
-        return Image.fromarray(
-                clahe_out
-            )
+        if self.np_output:
+            return clahe_out
+        else:
+            return self.PIL_cls.create(clahe_out)
 
 
 class KneeLocalizer(Transform):
@@ -155,7 +163,7 @@ class KneeLocalizer(Transform):
     }
     ```
     """
-    def __init__(self, svm_model_path, debug=False):
+    def __init__(self, svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False):
         super().__init__()
         self.win_size = (64, 64)
         self.win_stride = (64, 64)
@@ -168,10 +176,21 @@ class KneeLocalizer(Transform):
 
         self.svm_w, self.svm_b = np.load(svm_model_path, encoding='bytes', allow_pickle=True)
         
+        self.resize = resize
+
+        self.PIL_cls = PIL_cls
+
         self.debug = debug
 
-    def encodes(self, x:PILImage):
-        img = ToTensor()(x).numpy()
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
 
         if len(img.shape) > 2:
           img = np.squeeze(img, 0)
@@ -216,10 +235,22 @@ class KneeLocalizer(Transform):
                                 plt.title(f'{score:.2f}{(x1, y1), (x2,y2)}')
                                 plt.show()
 
-        # return x.__class__.create(img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]])
-        return Image.fromarray(
-            img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
-        )
+        if self.resize:
+            img = cv2.resize(
+                img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
+                dsize=(self.resize, self.resize)
+            )
+        else:
+            img = img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+
+        if self.np_output:
+            return img
+        else:
+            value = self.PIL_cls.create(img)
+            # value = Image.fromarray(
+            #     img
+            # )
+            return value
 
 
     def smooth_line(self, line, av_points):
@@ -278,12 +309,18 @@ class KneeLocalizer(Transform):
 
 class XRayPreprocess(Transform):
 
-    def __init__(self, cut_min=5., cut_max=99., only_non_zero=True):
+    def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
         self.cut_min = cut_min
         self.cut_max = cut_max
         self.only_non_zero = only_non_zero
+        self.scale = scale
 
-    def encodes(self, x:PILImage):
+        self.PIL_cls = PIL_cls
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
         """Preprocess the X-ray image using histogram clipping and global contrast normalization.
         Parameters
         ----------
@@ -292,30 +329,40 @@ class XRayPreprocess(Transform):
         cut_max: int
             Highest percentile.
         """
-
-        img = ToTensor()(x).numpy()
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
         
         if len(img.shape) > 2:
           img = np.squeeze(img, 0)
-        img = img.astype(np.float64)
+
+        if self.only_non_zero:
+            percentile_img = img[img != 0]
 
         lim1, lim2 = np.percentile(
-            img[img != 0] if self.only_non_zero and len(img[img != 0]) > 0 else img,
+            percentile_img if self.only_non_zero and len(percentile_img) > 0 else img,
             [self.cut_min, self.cut_max]
         )
 
         img[img < lim1] = lim1
         img[img > lim2] = lim2
 
-        img -= lim1
+        img -= int(lim1)
 
-        img /= img.max()
-        img *= 255
+        if self.scale:
+            img = img.astype(np.float32)
+            img /= lim2
+            img *= 255
 
-        # return x.__class__.create(img)
-        return Image.fromarray(
-            img.astype('uint8')
-        )
+        if self.np_output:
+            return img.astype('uint8')
+        else:
+            value = self.PIL_cls.create(img.astype('uint8'))
+            # value = Image.fromarray(
+            #     img.astype('uint8')
+            # )
+            return value
 
 
 class DCMPreprocessDataset(Dataset):
