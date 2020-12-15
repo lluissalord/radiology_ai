@@ -298,6 +298,8 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
 
     relation_df = open_name_relation_file(relation_filepath, sep=',')
 
+    check_relation(relation_df, check_path=True, check_raw=False)
+
     if type(blocks) is not list:
         blocks = [blocks]
 
@@ -324,7 +326,7 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
         )
 
         # Update the relation file with the new folder path
-        relation_df = update_block_relation(relation_df, block, new_folder, sep='/')
+        relation_df = update_block_relation(relation_df, parent_folder, block, new_folder, sep='/')
 
     # Save relation file
     save_name_relation_file(relation_df, relation_filepath, sep=',')
@@ -859,7 +861,7 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename):
     return relation_df
 
 
-def update_block_relation(relation_df, block, new_folder, sep='/'):
+def update_block_relation(relation_df, parent_folder, block, new_folder, sep='/'):
     """ Replace the old folder names by the new folder only to the paths where the block appears """
 
     relation_df.loc[
@@ -869,7 +871,7 @@ def update_block_relation(relation_df, block, new_folder, sep='/'):
         relation_df['Path'].str.endswith(block),
         'Path'
     ].str.replace(
-        f'((?<={sep})(.*)(?={sep}{block}$))',
+        f'((?<={os.path.split(parent_folder)[-1]}{sep})(.*)(?={sep}{block}$))',
         new_folder,
     )
 
@@ -878,15 +880,32 @@ def update_block_relation(relation_df, block, new_folder, sep='/'):
     return relation_df
 
 
+def check_generic_path(path):
+    """ Check if path exists even if folder name modified adding suffix """
+
+    if os.path.exists(path):
+        return True
+
+    else:
+        candidates = glob(path + ' *') + glob(path + '-*') + glob(path + '.*') + glob(path + '_*')
+        if len(candidates) == 1:
+            return True
+        elif len(candidates) > 1:
+            print(f'For path {path} there are duplicates paths')
+            return True
+        else:
+            return False
+
+
 def check_relation(relation_df, check_path=True, check_raw=True):
     """ Check that the relation on the relation DataFrame is preserved """
 
     # Check current path
     if check_path:
         if type(relation_df) is pd.DataFrame:
-            check = relation_df['Path'].apply(lambda x: os.path.exists(x))
+            check = relation_df['Path'].apply(check_generic_path)
         else:
-            check = pd.Series(os.path.exists(relation_df['Path']))
+            check = pd.Series(check_generic_path(relation_df['Path']))
 
         # Raise error if not true for all the cases
         if not check.all():
@@ -901,6 +920,6 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 
         # Raise error if not true for all the cases
         if not check.all():
-            raise ValueError(f'The following cases do not have correct `Path` on relation DataFrame:\n{relation_df.loc[~check]}')
+            raise ValueError(f'The following cases do not have correct `Original` on relation DataFrame:\n{relation_df.loc[~check]}')
 
     return True
