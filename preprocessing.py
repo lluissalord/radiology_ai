@@ -352,7 +352,8 @@ class XRayPreprocess(Transform):
 
         if self.scale:
             img = img.astype(np.float32)
-            img /= lim2
+            if lim2:
+                img /= lim2
             img *= 255
 
         if self.np_output:
