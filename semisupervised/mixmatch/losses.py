@@ -38,10 +38,7 @@ class MixMatchLoss(BaseLoss):
         if len(targets_x.size()) == 1:
             targets_x = categorical_to_one_hot(targets_x, self.n_out)
 
-        print('targets_x: ', targets_x)
-
         Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
-        print('Lx: ', Lx)
         if self.reduction == 'mean':
             return Lx.mean()
         elif self.reduction == 'sum':
@@ -57,12 +54,10 @@ class MixMatchLoss(BaseLoss):
 
         if len(targets_u.size()) == 1:
             targets_u = categorical_to_one_hot(targets_u, self.n_out)
-        print('targets_u: ', targets_u)
 
         # Return zero if no logits are provided (when not training)
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
-            print('probs_u: ', probs_u)
             
             # return torch.mean((probs_u - targets_u)**2, dim=1)
             return (probs_u - targets_u)**2
