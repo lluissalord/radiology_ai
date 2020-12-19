@@ -6,6 +6,9 @@ from semisupervised.utils import de_interleave
 
 
 class SuppressedConsistencyLoss(object):
+    """ Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al. 
+        Intuition that we should suppress the consistency regularization of minor classes in class-imbalanced Semi-Supervised Learning
+    """
 
     def __init__(self, frequencies, beta=0.5):
         weights = beta ** (1 - frequencies.float() / torch.max(frequencies))
