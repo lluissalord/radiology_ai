@@ -43,8 +43,11 @@ class SemiLoss(object):
 
     def __call__(self, logits, targets, reduction='mean'):#, batch_size, epoch):
 
+        isTraining = len(logits) > self.bs
+
         # put interleaved samples back
-        logits = de_interleave(logits, self.bs)
+        if isTraining:
+            logits = de_interleave(logits, self.bs)
 
         # Transform label if it has been flatten
         # if len(targets.size()) == 1:
@@ -59,8 +62,10 @@ class SemiLoss(object):
             Lx = Lx.cuda()
             Lu = Lu.cuda()
 
-        if self.SCL is not None:
-            Lu = self.SCL(torch.argmax(logits[self.bs:], dim=-1)) * Lu
+        if isTraining and self.SCL is not None:
+            with torch.no_grad():
+                SCL_coefs = self.SCL(torch.argmax(logits[self.bs:], dim=-1)) 
+            Lu = SCL_coefs * Lu
 
         # Calculation of total loss
         if reduction == 'mean':

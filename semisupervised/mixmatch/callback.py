@@ -57,6 +57,9 @@ class MixMatchCallback(Callback):
     def after_loss(self):
         # Once loss has been calculated then it is only required to use the supervised targets/preds
 
+        # Only process if is trainig
+        if not self.training: return
+
         # Make suree the target has the right structure
         isTuple = False
         if type(self.learn.yb) is tuple:
