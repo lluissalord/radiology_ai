@@ -60,7 +60,7 @@ class SemiLoss(object):
             Lu = Lu.cuda()
 
         if self.SCL is not None:
-            Lu = self.SCL(torch.argmax(logits, dim=-1)) * Lu
+            Lu = self.SCL(torch.argmax(logits[self.bs:], dim=-1)) * Lu
 
         # Calculation of total loss
         if reduction == 'mean':
