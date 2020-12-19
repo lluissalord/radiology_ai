@@ -3,7 +3,7 @@ import torch
 from fastai.callback.core import Callback
 from fastai.callback.mixup import MixUp
 
-from semisupervised.utils import interleave
+from semisupervised.utils import interleave, de_interleave
 from utils import categorical_to_one_hot
 
 class MixMatchCallback(Callback):
@@ -52,4 +52,23 @@ class MixMatchCallback(Callback):
         self.learn.yb = torch.cat([targets_x, targets_u, targets_u], dim=0)#.unsqueeze(0)
 
         # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
-        self.learn.xb = interleave(self.learn.xb)
+        self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)
+
+    def after_loss(self):
+        # Once loss has been calculated then it is only required to use the supervised targets/preds
+
+        # Make suree the target has the right structure
+        isTuple = False
+        if type(self.learn.yb) is tuple:
+            isTuple = True
+            self.learn.yb = self.learn.yb[0]
+        
+        # Transform into categorical data and select only supervised targets
+        self.learn.yb = torch.argmax(self.learn.yb[:self.learn.dls[0].bs], dim=1)
+
+        # Select only supervised preds
+        self.learn.pred = de_interleave(self.learn.pred, self.learn.dls[0].bs)[:self.learn.dls[0].bs]
+
+        # Format again as it should
+        if isTuple:
+            self.learn.yb = (self.learn.yb,)

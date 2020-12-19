@@ -31,6 +31,7 @@ class FixMatchCallback(Callback):
         target_x = self.learn.yb
         if type(target_x) is tuple:
             target_x = target_x[0]
+        print('target_x: ', target_x.size(), target_x)
         
         # Set targets to 0 for unlabel data
         targets_u_weak = torch.zeros(inputs_u_weak.size()[:1] + target_x.size()[1:])
@@ -42,6 +43,8 @@ class FixMatchCallback(Callback):
         # Set together label and unlabel data
         self.learn.xb = torch.cat([input_x, inputs_u_weak, inputs_u_strong], dim=0).unsqueeze(0)
         self.learn.yb = torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0).unsqueeze(0).long()
+        print('self.learn.xb: ', self.learn.xb.size(), self.learn.xb)
+        print('self.learn.yb: ', self.learn.yb.size(), self.learn.yb)
 
         # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
-        self.learn.xb = interleave(self.learn.xb)
+        self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)
