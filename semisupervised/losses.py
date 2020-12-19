@@ -4,10 +4,25 @@ import torch
 
 from semisupervised.utils import de_interleave
 
+
+class SuppressedConsistencyLoss(object):
+
+    def __init__(self, frequencies, beta=0.5):
+        weights = beta ** (1 - frequencies.float() / torch.max(frequencies))
+        weights = weights.unsqueeze(1)
+        self.emb = torch.nn.Embedding(len(frequencies), 1, _weight=weights)
+        self.emb.weight.requires_grad = False
+
+        if torch.cuda.is_available():
+            self.emb = self.emb.cuda()
+
+    def __call__(self, targets):
+        return self.emb(targets)
+
 class SemiLoss(object):
     """ Define structure and process that it is required for a Semi-supervised loss """
 
-    def __init__(self, bs, lambda_u, n_out, Lx_criterion, Lu_criterion, axis=-1):
+    def __init__(self, bs, lambda_u, n_out, Lx_criterion, Lu_criterion, use_SCL=True, frequencies=None, beta=0.5, axis=-1):
         self.axis = axis
         self.bs = bs
         self.lambda_u = lambda_u
@@ -15,6 +30,13 @@ class SemiLoss(object):
         self.Lx_criterion = Lx_criterion
         self.Lu_criterion = Lu_criterion
         self.losses = {}
+
+        if use_SCL:
+            if frequencies is None:
+                raise ValueError('In order to use SCL frequencies of targets should be provided')
+            self.SCL = SuppressedConsistencyLoss(frequencies=frequencies, beta=beta)
+        else:
+            self.SCL = None
 
     def __call__(self, logits, targets, reduction='mean'):#, batch_size, epoch):
 
@@ -33,6 +55,9 @@ class SemiLoss(object):
         if torch.cuda.is_available:
             Lx = Lx.cuda()
             Lu = Lu.cuda()
+
+        if self.SCL is not None:
+            Lu = self.SCL(torch.argmax(logits, dim=-1)) * Lu
 
         # Calculation of total loss
         if reduction == 'mean':
