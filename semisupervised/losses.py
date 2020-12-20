@@ -1,6 +1,7 @@
 # from abc import abstractmethod
 
 import torch
+import numpy as np
 
 from semisupervised.utils import de_interleave
 
@@ -48,6 +49,9 @@ class SemiLoss(object):
         # put interleaved samples back
         if isTraining:
             logits = de_interleave(logits, self.bs)
+
+        # Clip values of logits
+        logits = torch.clamp(logits, min=np.finfo(np.float16).min + 1, max=np.finfo(np.float16).max - 1)
 
         # Transform label if it has been flatten
         # if len(targets.size()) == 1:
