@@ -1,3 +1,5 @@
+""" Loss classes required for Semi-Supervised Learning """
+
 # from abc import abstractmethod
 
 import torch

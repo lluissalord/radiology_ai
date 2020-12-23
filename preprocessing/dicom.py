@@ -1,3 +1,5 @@
+""" Preprocessings used for DICOM treatments """
+
 from tqdm import tqdm
 import gc
 
@@ -27,6 +29,8 @@ def dcmread_scale(fn):
 
 
 class PILDicom_scaled(PILDicom):
+    """ Generalization of PILDicom class making sure it is properly scaled taking into account DICOM metadata """
+
     @classmethod
     def create(cls, fn:(Path,str,bytes), mode=None)->None:
         "Open a `DICOM file` from path `fn` or bytes `fn` and load it as a `PIL Image`"
@@ -38,9 +42,12 @@ class PILDicom_scaled(PILDicom):
 
 
 class HistScaled(Transform):
+    """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
+
     def __init__(self, bins=None):
         super().__init__()
         self.bins = bins
+
     def encodes(self, sample:PILDicom_scaled):
         return Image.fromarray(
             (
@@ -128,6 +135,7 @@ class DCMPreprocessDataset(Dataset):
         return self.bins
 
     def save(self, dst_folder, extension='png', overwrite=True, keep=False, clean_folder=False):
+        """ Saves all preprocessed files converting them into image files """
         
         # Do not make sense overwrite=True with keep=True
         if overwrite and keep:

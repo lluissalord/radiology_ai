@@ -1,3 +1,5 @@
+""" Fastai Transformations to be used on training """
+
 import numpy as np
 
 from fastai.vision.augment import *
@@ -8,9 +10,12 @@ import cv2
 
 
 class HistScaled(Transform):
+    """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
+
     def __init__(self, bins=None):
         super().__init__()
         self.bins = bins
+
     def encodes(self, sample:PILImage):
         return Image.fromarray(
             (
@@ -21,6 +26,7 @@ class HistScaled(Transform):
 
 
 class CLAHE_Transform(Transform):
+    """ Implement CLAHE transformation for Adaptative Histogram Equalization """
     
     def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
         super().__init__()
@@ -50,7 +56,8 @@ class CLAHE_Transform(Transform):
 
 
 class KneeLocalizer(Transform):
-    """ Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
+    """ Transformation which finds out where is the knee and cut out the rest of the image
+    Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
     
     ```
     @inproceedings{tiulpin2017novel,
@@ -208,6 +215,7 @@ class KneeLocalizer(Transform):
 
 
 class XRayPreprocess(Transform):
+    """ Preprocess the X-ray image using histogram clipping and global contrast normalization. """
 
     def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
         self.cut_min = cut_min
@@ -221,14 +229,7 @@ class XRayPreprocess(Transform):
         self.np_output = np_output
 
     def encodes(self, x:(PILImage,np.ndarray)):
-        """Preprocess the X-ray image using histogram clipping and global contrast normalization.
-        Parameters
-        ----------
-        cut_min: int
-            Lowest percentile which is used to cut the image histogram.
-        cut_max: int
-            Highest percentile.
-        """
+
         if self.np_input:
             img = x
         else:

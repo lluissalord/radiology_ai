@@ -1,3 +1,5 @@
+""" Functions required for organizing files for proper annotation """
+
 from glob import glob
 import os
 import shutil

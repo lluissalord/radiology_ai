@@ -1,3 +1,5 @@
+""" Model related utilities """
+
 import torch
 
 from fastai.callback.core import Callback

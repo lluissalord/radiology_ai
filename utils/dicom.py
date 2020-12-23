@@ -1,3 +1,5 @@
+""" DICOM utilities for checking/filtering depending on metadata """
+
 import os
 import pandas as pd
 

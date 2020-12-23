@@ -1,5 +1,6 @@
 """ 
-Some ideas taken from [valencebond repository](https://github.com/valencebond/FixMatch_pytorch)
+[FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence](https://arxiv.org/abs/2001.07685) paper implemented for any dataset using Fastai v2 framework.
+Some ideas taken from [valencebond repository](https://github.com/valencebond/FixMatch_pytorch) (Pytorch implementation for CIFAR10 and CIFAR100)
 ## References
 ```
 @article{sohn2020fixmatch,
