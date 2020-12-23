@@ -1,3 +1,5 @@
+import torch
+
 from fastai.callback.core import Callback
 from fastai.vision.learner import create_cnn_model
 

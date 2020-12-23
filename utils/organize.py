@@ -12,6 +12,8 @@ import pandas as pd
 
 import pydicom
 
+from utils.dicom import *
+
 
 def check_metadata_label(raw_path, metadata_labels, label='ap'):
     """ Check if the path matches with the desired label on metadata_labels """
