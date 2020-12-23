@@ -1,3 +1,5 @@
+""" Callback class for FixMatch algorith """
+
 import torch
 
 from fastai.callback.core import Callback
