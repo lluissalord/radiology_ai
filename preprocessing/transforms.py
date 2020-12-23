@@ -7,8 +7,7 @@ from PIL import Image
 import cv2
 
 
-# TODO: Review how to handle HistScaled for transforms on PNG
-class HistScaled_all(Transform):
+class HistScaled(Transform):
     def __init__(self, bins=None):
         super().__init__()
         self.bins = bins
