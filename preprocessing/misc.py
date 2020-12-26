@@ -9,7 +9,20 @@ from skimage.transform import resize as sk_resize
 from PIL import Image
 from pydicom import dcmread
 
-from preprocessing.dicom import dcm_scale
+
+def dcm_scale(dcm):
+    """ Transform from raw pixel data to scaled one and inversing (if the case) """
+    
+    if dcm.PhotometricInterpretation == 'MONOCHROME1':
+        return (dcm.scaled_px.max() - dcm.scaled_px) / (2**dcm.BitsStored - 1)
+    else:
+        return dcm.scaled_px / (2**dcm.BitsStored - 1)
+
+def dcmread_scale(fn):
+    """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
+
+    dcm = dcmread(fn)
+    return dcm_scale(dcm)
 
 
 def init_bins(fnames, n_samples=None, isDCM=True):

@@ -6,7 +6,7 @@ from fastai.callback.core import Callback
 from fastai.callback.mixup import MixUp
 
 from semisupervised.utils import interleave, de_interleave
-from utils import categorical_to_one_hot
+from utils.misc import categorical_to_one_hot
 
 class MixMatchCallback(Callback):
     """ MixMatch required preprocess before each batch """
