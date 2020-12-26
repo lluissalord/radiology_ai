@@ -7,6 +7,18 @@ import os
 
 import torch
 
+from fastai.callback.core import Callback
+
+class GradientClipping(Callback):
+    "Gradient clipping during training."
+    def __init__(self, clip:float = 0.):
+        super().__init__()
+        self.clip = clip
+
+    def after_backward(self):
+        "Clip the gradient before the optimizer step."
+        if self.clip: nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)
+
 
 def categorical_to_one_hot(x, n_out):
     """ Transform categorical tensor to one hot encoding """

@@ -1,4 +1,6 @@
-""" Extracted from https://github.com/HanxunH/Active-Passive-Losses/blob/master/loss.py
+""" Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels.
+
+Extracted [Normalized Loss Functions for Deep Learning with Noisy Labels](https://arxiv.org/abs/2006.13554) paper implemented on https://github.com/HanxunH/Active-Passive-Losses/blob/master/loss.py
 ```
 @inproceedings{ma2020normalized,
   title={Normalized Loss Functions for Deep Learning with Noisy Labels},

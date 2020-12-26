@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from fastai.vision.augment import *
+from fastai.vision.core import *
+from fastcore.transform import Transform
 
 from PIL import Image
 

@@ -1,0 +1,2834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>radiology_ai.APL_losses API documentation</title>
+<meta name="description" content="Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/APL_losses.html">
+<link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radiology_ai.APL_losses</code></h1>
+</header>
+<section id="section-intro">
+<p>Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels.</p>
+<p>Extracted <a href="https://arxiv.org/abs/2006.13554">Normalized Loss Functions for Deep Learning with Noisy Labels</a> paper implemented on <a href="https://github.com/HanxunH/Active-Passive-Losses/blob/master/loss.py">https://github.com/HanxunH/Active-Passive-Losses/blob/master/loss.py</a></p>
+<pre><code>@inproceedings{ma2020normalized,
+  title={Normalized Loss Functions for Deep Learning with Noisy Labels},
+  author={Ma, Xingjun and Huang, Hanxun and Wang, Yisen and Romano, Simone and Erfani, Sarah and Bailey, James},
+  booktitle={ICML},
+  year={2020}
+}
+</code></pre>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L0-L428" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels.
+
+Extracted [Normalized Loss Functions for Deep Learning with Noisy Labels](https://arxiv.org/abs/2006.13554) paper implemented on https://github.com/HanxunH/Active-Passive-Losses/blob/master/loss.py
+```
+@inproceedings{ma2020normalized,
+  title={Normalized Loss Functions for Deep Learning with Noisy Labels},
+  author={Ma, Xingjun and Huang, Hanxun and Wang, Yisen and Romano, Simone and Erfani, Sarah and Bailey, James},
+  booktitle={ICML},
+  year={2020}
+}
+```
+&#34;&#34;&#34;
+
+import torch
+import torch.nn.functional as F
+import numpy as np
+
+if torch.cuda.is_available():
+    torch.backends.cudnn.benchmark = True
+    if torch.cuda.device_count() &gt; 1:
+        device = torch.device(&#39;cuda:0&#39;)
+    else:
+        device = torch.device(&#39;cuda&#39;)
+else:
+    device = torch.device(&#39;cpu&#39;)
+
+
+class FastaiLoss(torch.nn.Module):
+    def __init__(self, num_classes):
+        super(FastaiLoss, self).__init__()
+        self.num_classes = num_classes
+
+    def decodes(self, x):    return x.argmax(dim=-1)
+    # def decodes(self, x):
+    #     dec = x.argmax(dim=-1)
+    #     if len(dec.size()) == 1:
+    #         dec = torch.zeros(len(dec), self.num_classes).scatter_(1, dec.cpu().view(-1,1).long(), 1)
+    #     return dec
+
+    def activation(self, x): return F.softmax(x, dim=-1)
+
+
+class SCELoss(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes=10):
+        super(SCELoss, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.alpha = alpha
+        self.beta = beta
+        self.num_classes = num_classes
+        self.cross_entropy = torch.nn.CrossEntropyLoss()
+
+    def forward(self, pred, labels):
+        # CCE
+        ce = self.cross_entropy(pred, labels)
+
+        # RCE
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+
+        # Loss
+        loss = self.alpha * ce + self.beta * rce.mean()
+        return loss
+
+
+class ReverseCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(ReverseCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+        return self.scale * rce.mean()
+
+
+class NormalizedReverseCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedReverseCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        normalizor = 1 / 4 * (self.num_classes - 1)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+        return self.scale * normalizor * rce.mean()
+
+
+class NormalizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.log_softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        nce = -1 * torch.sum(label_one_hot * pred, dim=1) / (- pred.sum(dim=1))
+        return self.scale * nce.mean()
+
+
+class GeneralizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, q=0.7):
+        super(GeneralizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.q = q
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        gce = (1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)) / self.q
+        return gce.mean()
+
+
+class NormalizedGeneralizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0, q=0.7):
+        super(NormalizedGeneralizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.q = q
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        numerators = 1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)
+        denominators = self.num_classes - pred.pow(self.q).sum(dim=1)
+        ngce = numerators / denominators
+        return self.scale * ngce.mean()
+
+
+class MeanAbsoluteError(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(MeanAbsoluteError, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+        return
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+        # Note: Reduced MAE
+        # Original: torch.abs(pred - label_one_hot).sum(dim=1)
+        # $MAE = \sum_{k=1}^{K} |\bm{p}(k|\bm{x}) - \bm{q}(k|\bm{x})|$
+        # $MAE = \sum_{k=1}^{K}\bm{p}(k|\bm{x}) - p(y|\bm{x}) + (1 - p(y|\bm{x}))$
+        # $MAE = 2 - 2p(y|\bm{x})$
+        #
+        return self.scale * mae.mean()
+
+
+class NormalizedMeanAbsoluteError(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedMeanAbsoluteError, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+        return
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        normalizor = 1 / (2 * (self.num_classes - 1))
+        mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+        return self.scale * normalizor * mae.mean()
+
+
+class NCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(NCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nce = NormalizedCrossEntropy(scale=alpha, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.rce(pred, labels)
+
+
+class NCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(NCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nce = NormalizedCrossEntropy(scale=alpha, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.mae(pred, labels)
+
+
+class GCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.mae(pred, labels)
+
+
+class GCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.rce(pred, labels)
+
+
+class GCEandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.nce = NormalizedCrossEntropy(num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.nce(pred, labels)
+
+
+class NGCEandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.nce = NormalizedCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.nce(pred, labels)
+
+
+class NGCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.mae(pred, labels)
+
+
+class NGCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.rce(pred, labels)
+
+
+class MAEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(MAEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.mae = MeanAbsoluteError(scale=alpha, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.mae(pred, labels) + self.rce(pred, labels)
+
+
+class NLNL(FastaiLoss):
+    def __init__(self, train_loader, num_classes, ln_neg=1):
+        super(NLNL, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.ln_neg = ln_neg
+        weight = torch.FloatTensor(num_classes).zero_() + 1.
+        if not hasattr(train_loader.dataset, &#39;targets&#39;):
+            weight = [1] * num_classes
+            weight = torch.FloatTensor(weight)
+        else:
+            for i in range(num_classes):
+                weight[i] = (torch.from_numpy(np.array(train_loader.dataset.targets)) == i).sum()
+            weight = 1 / (weight / weight.max())
+        self.weight = weight.to(self.device)
+        self.criterion = torch.nn.CrossEntropyLoss(weight=self.weight)
+        self.criterion_nll = torch.nn.NLLLoss()
+
+    def forward(self, pred, labels):
+        labels_neg = (labels.unsqueeze(-1).repeat(1, self.ln_neg)
+                      + torch.LongTensor(len(labels), self.ln_neg).to(self.device).random_(1, self.num_classes)) % self.num_classes
+        labels_neg = torch.autograd.Variable(labels_neg)
+
+        assert labels_neg.max() &lt;= self.num_classes-1
+        assert labels_neg.min() &gt;= 0
+        assert (labels_neg != labels.unsqueeze(-1).repeat(1, self.ln_neg)).sum() == len(labels)*self.ln_neg
+
+        s_neg = torch.log(torch.clamp(1. - F.softmax(pred, 1), min=1e-5, max=1.))
+        s_neg *= self.weight[labels].unsqueeze(-1).expand(s_neg.size()).to(self.device)
+        labels = labels * 0 - 100
+        loss = self.criterion(pred, labels) * float((labels &gt;= 0).sum())
+        loss_neg = self.criterion_nll(s_neg.repeat(self.ln_neg, 1), labels_neg.t().contiguous().view(-1)) * float((labels_neg &gt;= 0).sum())
+        loss = ((loss+loss_neg) / (float((labels &gt;= 0).sum())+float((labels_neg[:, 0] &gt;= 0).sum())))
+        return loss
+
+
+class FocalLoss(FastaiLoss):
+    &#39;&#39;&#39;
+        https://github.com/clcarwin/focal_loss_pytorch/blob/master/focalloss.py
+    &#39;&#39;&#39;
+
+    def __init__(self, gamma=0, alpha=None, size_average=True):
+        super(FocalLoss, self).__init__(num_classes=num_classes)
+        self.gamma = gamma
+        self.alpha = alpha
+        if isinstance(alpha, (float, int)):
+            self.alpha = torch.Tensor([alpha, 1-alpha])
+        if isinstance(alpha, list):
+            self.alpha = torch.Tensor(alpha)
+        self.size_average = size_average
+
+    def forward(self, input, target):
+        if input.dim() &gt; 2:
+            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W =&gt; N,C,H*W
+            input = input.transpose(1, 2)                         # N,C,H*W =&gt; N,H*W,C
+            input = input.contiguous().view(-1, input.size(2))    # N,H*W,C =&gt; N*H*W,C
+        target = target.view(-1, 1)
+
+        logpt = F.log_softmax(input, dim=1)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = torch.autograd.Variable(logpt.data.exp())
+
+        if self.alpha is not None:
+            if self.alpha.type() != input.data.type():
+                self.alpha = self.alpha.type_as(input.data)
+            at = self.alpha.gather(0, target.data.view(-1))
+            logpt = logpt * torch.autograd.Variable(at)
+
+        loss = -1 * (1-pt)**self.gamma * logpt
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()
+
+
+class NormalizedFocalLoss(FastaiLoss):
+    def __init__(self, scale=1.0, gamma=0, num_classes=10, alpha=None, size_average=True):
+        super(NormalizedFocalLoss, self).__init__(num_classes=num_classes)
+        self.gamma = gamma
+        self.size_average = size_average
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, input, target):
+        target = target.view(-1, 1)
+        logpt = F.log_softmax(input, dim=1)
+        normalizor = torch.sum(-1 * (1 - logpt.data.exp()) ** self.gamma * logpt, dim=1)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = torch.autograd.Variable(logpt.data.exp())
+        loss = -1 * (1-pt)**self.gamma * logpt
+        loss = self.scale * loss / normalizor
+
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()
+
+
+class NFLandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.nce = NormalizedCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.nce(pred, labels)
+
+
+class NFLandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.mae(pred, labels)
+
+
+class NFLandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.rce(pred, labels)
+
+
+class DMILoss(FastaiLoss):
+    def __init__(self, num_classes):
+        super(DMILoss, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+
+    def forward(self, output, target):
+        outputs = F.softmax(output, dim=1)
+        targets = target.reshape(target.size(0), 1).cpu()
+        y_onehot = torch.FloatTensor(target.size(0), self.num_classes).zero_()
+        y_onehot.scatter_(1, targets, 1)
+        y_onehot = y_onehot.transpose(0, 1).cuda()
+        mat = y_onehot @ outputs
+        return -1.0 * torch.log(torch.abs(torch.det(mat.float())) + 0.001)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="radiology_ai.APL_losses.DMILoss"><code class="flex name class">
+<span>class <span class="ident">DMILoss</span></span>
+<span>(</span><span>num_classes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L417-L429" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class DMILoss(FastaiLoss):
+    def __init__(self, num_classes):
+        super(DMILoss, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+
+    def forward(self, output, target):
+        outputs = F.softmax(output, dim=1)
+        targets = target.reshape(target.size(0), 1).cpu()
+        y_onehot = torch.FloatTensor(target.size(0), self.num_classes).zero_()
+        y_onehot.scatter_(1, targets, 1)
+        y_onehot = y_onehot.transpose(0, 1).cuda()
+        mat = y_onehot @ outputs
+        return -1.0 * torch.log(torch.abs(torch.det(mat.float())) + 0.001)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.DMILoss.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.DMILoss.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.DMILoss.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, output, target) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L422-L429" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, output, target):
+    outputs = F.softmax(output, dim=1)
+    targets = target.reshape(target.size(0), 1).cpu()
+    y_onehot = torch.FloatTensor(target.size(0), self.num_classes).zero_()
+    y_onehot.scatter_(1, targets, 1)
+    y_onehot = y_onehot.transpose(0, 1).cuda()
+    mat = y_onehot @ outputs
+    return -1.0 * torch.log(torch.abs(torch.det(mat.float())) + 0.001)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.FastaiLoss"><code class="flex name class">
+<span>class <span class="ident">FastaiLoss</span></span>
+<span>(</span><span>num_classes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L28-L40" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class FastaiLoss(torch.nn.Module):
+    def __init__(self, num_classes):
+        super(FastaiLoss, self).__init__()
+        self.num_classes = num_classes
+
+    def decodes(self, x):    return x.argmax(dim=-1)
+    # def decodes(self, x):
+    #     dec = x.argmax(dim=-1)
+    #     if len(dec.size()) == 1:
+    #         dec = torch.zeros(len(dec), self.num_classes).scatter_(1, dec.cpu().view(-1,1).long(), 1)
+    #     return dec
+
+    def activation(self, x): return F.softmax(x, dim=-1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.DMILoss" href="#radiology_ai.APL_losses.DMILoss">DMILoss</a></li>
+<li><a title="radiology_ai.APL_losses.FocalLoss" href="#radiology_ai.APL_losses.FocalLoss">FocalLoss</a></li>
+<li><a title="radiology_ai.APL_losses.GCEandMAE" href="#radiology_ai.APL_losses.GCEandMAE">GCEandMAE</a></li>
+<li><a title="radiology_ai.APL_losses.GCEandNCE" href="#radiology_ai.APL_losses.GCEandNCE">GCEandNCE</a></li>
+<li><a title="radiology_ai.APL_losses.GCEandRCE" href="#radiology_ai.APL_losses.GCEandRCE">GCEandRCE</a></li>
+<li><a title="radiology_ai.APL_losses.GeneralizedCrossEntropy" href="#radiology_ai.APL_losses.GeneralizedCrossEntropy">GeneralizedCrossEntropy</a></li>
+<li><a title="radiology_ai.APL_losses.MAEandRCE" href="#radiology_ai.APL_losses.MAEandRCE">MAEandRCE</a></li>
+<li><a title="radiology_ai.APL_losses.MeanAbsoluteError" href="#radiology_ai.APL_losses.MeanAbsoluteError">MeanAbsoluteError</a></li>
+<li><a title="radiology_ai.APL_losses.NCEandMAE" href="#radiology_ai.APL_losses.NCEandMAE">NCEandMAE</a></li>
+<li><a title="radiology_ai.APL_losses.NCEandRCE" href="#radiology_ai.APL_losses.NCEandRCE">NCEandRCE</a></li>
+<li><a title="radiology_ai.APL_losses.NFLandMAE" href="#radiology_ai.APL_losses.NFLandMAE">NFLandMAE</a></li>
+<li><a title="radiology_ai.APL_losses.NFLandNCE" href="#radiology_ai.APL_losses.NFLandNCE">NFLandNCE</a></li>
+<li><a title="radiology_ai.APL_losses.NFLandRCE" href="#radiology_ai.APL_losses.NFLandRCE">NFLandRCE</a></li>
+<li><a title="radiology_ai.APL_losses.NGCEandMAE" href="#radiology_ai.APL_losses.NGCEandMAE">NGCEandMAE</a></li>
+<li><a title="radiology_ai.APL_losses.NGCEandNCE" href="#radiology_ai.APL_losses.NGCEandNCE">NGCEandNCE</a></li>
+<li><a title="radiology_ai.APL_losses.NGCEandRCE" href="#radiology_ai.APL_losses.NGCEandRCE">NGCEandRCE</a></li>
+<li><a title="radiology_ai.APL_losses.NLNL" href="#radiology_ai.APL_losses.NLNL">NLNL</a></li>
+<li><a title="radiology_ai.APL_losses.NormalizedCrossEntropy" href="#radiology_ai.APL_losses.NormalizedCrossEntropy">NormalizedCrossEntropy</a></li>
+<li><a title="radiology_ai.APL_losses.NormalizedFocalLoss" href="#radiology_ai.APL_losses.NormalizedFocalLoss">NormalizedFocalLoss</a></li>
+<li><a title="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy" href="#radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy">NormalizedGeneralizedCrossEntropy</a></li>
+<li><a title="radiology_ai.APL_losses.NormalizedMeanAbsoluteError" href="#radiology_ai.APL_losses.NormalizedMeanAbsoluteError">NormalizedMeanAbsoluteError</a></li>
+<li><a title="radiology_ai.APL_losses.NormalizedReverseCrossEntropy" href="#radiology_ai.APL_losses.NormalizedReverseCrossEntropy">NormalizedReverseCrossEntropy</a></li>
+<li><a title="radiology_ai.APL_losses.ReverseCrossEntropy" href="#radiology_ai.APL_losses.ReverseCrossEntropy">ReverseCrossEntropy</a></li>
+<li><a title="radiology_ai.APL_losses.SCELoss" href="#radiology_ai.APL_losses.SCELoss">SCELoss</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.FastaiLoss.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.FastaiLoss.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.FastaiLoss.activation"><code class="name flex">
+<span>def <span class="ident">activation</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L40-L40" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def activation(self, x): return F.softmax(x, dim=-1)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.APL_losses.FastaiLoss.decodes"><code class="name flex">
+<span>def <span class="ident">decodes</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L33-L33" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def decodes(self, x):    return x.argmax(dim=-1)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.APL_losses.FastaiLoss.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, *input: Any) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/torch\nn\modules\module.py#L222-L223" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def _forward_unimplemented(self, *input: Any) -&gt; None:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.FocalLoss"><code class="flex name class">
+<span>class <span class="ident">FocalLoss</span></span>
+<span>(</span><span>gamma=0, alpha=None, size_average=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><a href="https://github.com/clcarwin/focal_loss_pytorch/blob/master/focalloss.py">https://github.com/clcarwin/focal_loss_pytorch/blob/master/focalloss.py</a></p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L320-L357" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class FocalLoss(FastaiLoss):
+    &#39;&#39;&#39;
+        https://github.com/clcarwin/focal_loss_pytorch/blob/master/focalloss.py
+    &#39;&#39;&#39;
+
+    def __init__(self, gamma=0, alpha=None, size_average=True):
+        super(FocalLoss, self).__init__(num_classes=num_classes)
+        self.gamma = gamma
+        self.alpha = alpha
+        if isinstance(alpha, (float, int)):
+            self.alpha = torch.Tensor([alpha, 1-alpha])
+        if isinstance(alpha, list):
+            self.alpha = torch.Tensor(alpha)
+        self.size_average = size_average
+
+    def forward(self, input, target):
+        if input.dim() &gt; 2:
+            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W =&gt; N,C,H*W
+            input = input.transpose(1, 2)                         # N,C,H*W =&gt; N,H*W,C
+            input = input.contiguous().view(-1, input.size(2))    # N,H*W,C =&gt; N*H*W,C
+        target = target.view(-1, 1)
+
+        logpt = F.log_softmax(input, dim=1)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = torch.autograd.Variable(logpt.data.exp())
+
+        if self.alpha is not None:
+            if self.alpha.type() != input.data.type():
+                self.alpha = self.alpha.type_as(input.data)
+            at = self.alpha.gather(0, target.data.view(-1))
+            logpt = logpt * torch.autograd.Variable(at)
+
+        loss = -1 * (1-pt)**self.gamma * logpt
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.FocalLoss.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.FocalLoss.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.FocalLoss.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, input, target) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L335-L357" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, input, target):
+    if input.dim() &gt; 2:
+        input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W =&gt; N,C,H*W
+        input = input.transpose(1, 2)                         # N,C,H*W =&gt; N,H*W,C
+        input = input.contiguous().view(-1, input.size(2))    # N,H*W,C =&gt; N*H*W,C
+    target = target.view(-1, 1)
+
+    logpt = F.log_softmax(input, dim=1)
+    logpt = logpt.gather(1, target)
+    logpt = logpt.view(-1)
+    pt = torch.autograd.Variable(logpt.data.exp())
+
+    if self.alpha is not None:
+        if self.alpha.type() != input.data.type():
+            self.alpha = self.alpha.type_as(input.data)
+        at = self.alpha.gather(0, target.data.view(-1))
+        logpt = logpt * torch.autograd.Variable(at)
+
+    loss = -1 * (1-pt)**self.gamma * logpt
+    if self.size_average:
+        return loss.mean()
+    else:
+        return loss.sum()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandMAE"><code class="flex name class">
+<span>class <span class="ident">GCEandMAE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L207-L215" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class GCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandMAE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandMAE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandMAE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L214-L215" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.gce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandNCE"><code class="flex name class">
+<span>class <span class="ident">GCEandNCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L229-L237" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class GCEandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.nce = NormalizedCrossEntropy(num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandNCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandNCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandNCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L236-L237" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.gce(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandRCE"><code class="flex name class">
+<span>class <span class="ident">GCEandRCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L218-L226" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class GCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(GCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.gce = GeneralizedCrossEntropy(num_classes=num_classes, q=q)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.gce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandRCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.GCEandRCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GCEandRCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L225-L226" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.gce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.GeneralizedCrossEntropy"><code class="flex name class">
+<span>class <span class="ident">GeneralizedCrossEntropy</span></span>
+<span>(</span><span>num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L115-L127" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class GeneralizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, q=0.7):
+        super(GeneralizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.q = q
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        gce = (1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)) / self.q
+        return gce.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GeneralizedCrossEntropy.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.GeneralizedCrossEntropy.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.GeneralizedCrossEntropy.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L122-L127" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    gce = (1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)) / self.q
+    return gce.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.MAEandRCE"><code class="flex name class">
+<span>class <span class="ident">MAEandRCE</span></span>
+<span>(</span><span>alpha, beta, num_classes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L273-L281" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class MAEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(MAEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.mae = MeanAbsoluteError(scale=alpha, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.mae(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.MAEandRCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.MAEandRCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.MAEandRCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L280-L281" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.mae(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.MeanAbsoluteError"><code class="flex name class">
+<span>class <span class="ident">MeanAbsoluteError</span></span>
+<span>(</span><span>num_classes, scale=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L148-L166" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class MeanAbsoluteError(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(MeanAbsoluteError, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+        return
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+        # Note: Reduced MAE
+        # Original: torch.abs(pred - label_one_hot).sum(dim=1)
+        # $MAE = \sum_{k=1}^{K} |\bm{p}(k|\bm{x}) - \bm{q}(k|\bm{x})|$
+        # $MAE = \sum_{k=1}^{K}\bm{p}(k|\bm{x}) - p(y|\bm{x}) + (1 - p(y|\bm{x}))$
+        # $MAE = 2 - 2p(y|\bm{x})$
+        #
+        return self.scale * mae.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.MeanAbsoluteError.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.MeanAbsoluteError.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.MeanAbsoluteError.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L156-L166" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+    # Note: Reduced MAE
+    # Original: torch.abs(pred - label_one_hot).sum(dim=1)
+    # $MAE = \sum_{k=1}^{K} |\bm{p}(k|\bm{x}) - \bm{q}(k|\bm{x})|$
+    # $MAE = \sum_{k=1}^{K}\bm{p}(k|\bm{x}) - p(y|\bm{x}) + (1 - p(y|\bm{x}))$
+    # $MAE = 2 - 2p(y|\bm{x})$
+    #
+    return self.scale * mae.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NCEandMAE"><code class="flex name class">
+<span>class <span class="ident">NCEandMAE</span></span>
+<span>(</span><span>alpha, beta, num_classes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L196-L204" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(NCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nce = NormalizedCrossEntropy(scale=alpha, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NCEandMAE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NCEandMAE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NCEandMAE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L203-L204" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.nce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NCEandRCE"><code class="flex name class">
+<span>class <span class="ident">NCEandRCE</span></span>
+<span>(</span><span>alpha, beta, num_classes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L185-L193" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes):
+        super(NCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nce = NormalizedCrossEntropy(scale=alpha, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NCEandRCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NCEandRCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NCEandRCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L192-L193" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.nce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandMAE"><code class="flex name class">
+<span>class <span class="ident">NFLandMAE</span></span>
+<span>(</span><span>alpha, beta, num_classes, gamma=0.5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L395-L403" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NFLandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandMAE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandMAE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandMAE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L402-L403" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.nfl(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandNCE"><code class="flex name class">
+<span>class <span class="ident">NFLandNCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, gamma=0.5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L384-L392" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NFLandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.nce = NormalizedCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandNCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandNCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandNCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L391-L392" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.nfl(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandRCE"><code class="flex name class">
+<span>class <span class="ident">NFLandRCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, gamma=0.5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L406-L414" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NFLandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, gamma=0.5):
+        super(NFLandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.nfl = NormalizedFocalLoss(scale=alpha, gamma=gamma, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.nfl(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandRCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NFLandRCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NFLandRCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L413-L414" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.nfl(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandMAE"><code class="flex name class">
+<span>class <span class="ident">NGCEandMAE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L251-L259" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NGCEandMAE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandMAE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.mae = MeanAbsoluteError(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandMAE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandMAE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandMAE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L258-L259" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.ngce(pred, labels) + self.mae(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandNCE"><code class="flex name class">
+<span>class <span class="ident">NGCEandNCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L240-L248" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NGCEandNCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandNCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.nce = NormalizedCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandNCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandNCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandNCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L247-L248" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.ngce(pred, labels) + self.nce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandRCE"><code class="flex name class">
+<span>class <span class="ident">NGCEandRCE</span></span>
+<span>(</span><span>alpha, beta, num_classes, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L262-L270" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NGCEandRCE(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandRCE, self).__init__(num_classes=num_classes)
+        self.num_classes = num_classes
+        self.ngce = NormalizedGeneralizedCrossEntropy(scale=alpha, q=q, num_classes=num_classes)
+        self.rce = ReverseCrossEntropy(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandRCE.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NGCEandRCE.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NGCEandRCE.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L269-L270" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    return self.ngce(pred, labels) + self.rce(pred, labels)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NLNL"><code class="flex name class">
+<span>class <span class="ident">NLNL</span></span>
+<span>(</span><span>train_loader, num_classes, ln_neg=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L284-L317" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NLNL(FastaiLoss):
+    def __init__(self, train_loader, num_classes, ln_neg=1):
+        super(NLNL, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.ln_neg = ln_neg
+        weight = torch.FloatTensor(num_classes).zero_() + 1.
+        if not hasattr(train_loader.dataset, &#39;targets&#39;):
+            weight = [1] * num_classes
+            weight = torch.FloatTensor(weight)
+        else:
+            for i in range(num_classes):
+                weight[i] = (torch.from_numpy(np.array(train_loader.dataset.targets)) == i).sum()
+            weight = 1 / (weight / weight.max())
+        self.weight = weight.to(self.device)
+        self.criterion = torch.nn.CrossEntropyLoss(weight=self.weight)
+        self.criterion_nll = torch.nn.NLLLoss()
+
+    def forward(self, pred, labels):
+        labels_neg = (labels.unsqueeze(-1).repeat(1, self.ln_neg)
+                      + torch.LongTensor(len(labels), self.ln_neg).to(self.device).random_(1, self.num_classes)) % self.num_classes
+        labels_neg = torch.autograd.Variable(labels_neg)
+
+        assert labels_neg.max() &lt;= self.num_classes-1
+        assert labels_neg.min() &gt;= 0
+        assert (labels_neg != labels.unsqueeze(-1).repeat(1, self.ln_neg)).sum() == len(labels)*self.ln_neg
+
+        s_neg = torch.log(torch.clamp(1. - F.softmax(pred, 1), min=1e-5, max=1.))
+        s_neg *= self.weight[labels].unsqueeze(-1).expand(s_neg.size()).to(self.device)
+        labels = labels * 0 - 100
+        loss = self.criterion(pred, labels) * float((labels &gt;= 0).sum())
+        loss_neg = self.criterion_nll(s_neg.repeat(self.ln_neg, 1), labels_neg.t().contiguous().view(-1)) * float((labels_neg &gt;= 0).sum())
+        loss = ((loss+loss_neg) / (float((labels &gt;= 0).sum())+float((labels_neg[:, 0] &gt;= 0).sum())))
+        return loss</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NLNL.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NLNL.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NLNL.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L302-L317" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    labels_neg = (labels.unsqueeze(-1).repeat(1, self.ln_neg)
+                  + torch.LongTensor(len(labels), self.ln_neg).to(self.device).random_(1, self.num_classes)) % self.num_classes
+    labels_neg = torch.autograd.Variable(labels_neg)
+
+    assert labels_neg.max() &lt;= self.num_classes-1
+    assert labels_neg.min() &gt;= 0
+    assert (labels_neg != labels.unsqueeze(-1).repeat(1, self.ln_neg)).sum() == len(labels)*self.ln_neg
+
+    s_neg = torch.log(torch.clamp(1. - F.softmax(pred, 1), min=1e-5, max=1.))
+    s_neg *= self.weight[labels].unsqueeze(-1).expand(s_neg.size()).to(self.device)
+    labels = labels * 0 - 100
+    loss = self.criterion(pred, labels) * float((labels &gt;= 0).sum())
+    loss_neg = self.criterion_nll(s_neg.repeat(self.ln_neg, 1), labels_neg.t().contiguous().view(-1)) * float((labels_neg &gt;= 0).sum())
+    loss = ((loss+loss_neg) / (float((labels &gt;= 0).sum())+float((labels_neg[:, 0] &gt;= 0).sum())))
+    return loss</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedCrossEntropy"><code class="flex name class">
+<span>class <span class="ident">NormalizedCrossEntropy</span></span>
+<span>(</span><span>num_classes, scale=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L101-L112" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NormalizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.log_softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        nce = -1 * torch.sum(label_one_hot * pred, dim=1) / (- pred.sum(dim=1))
+        return self.scale * nce.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedCrossEntropy.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedCrossEntropy.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedCrossEntropy.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L108-L112" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.log_softmax(pred, dim=1)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    nce = -1 * torch.sum(label_one_hot * pred, dim=1) / (- pred.sum(dim=1))
+    return self.scale * nce.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedFocalLoss"><code class="flex name class">
+<span>class <span class="ident">NormalizedFocalLoss</span></span>
+<span>(</span><span>scale=1.0, gamma=0, num_classes=10, alpha=None, size_average=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L360-L381" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NormalizedFocalLoss(FastaiLoss):
+    def __init__(self, scale=1.0, gamma=0, num_classes=10, alpha=None, size_average=True):
+        super(NormalizedFocalLoss, self).__init__(num_classes=num_classes)
+        self.gamma = gamma
+        self.size_average = size_average
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, input, target):
+        target = target.view(-1, 1)
+        logpt = F.log_softmax(input, dim=1)
+        normalizor = torch.sum(-1 * (1 - logpt.data.exp()) ** self.gamma * logpt, dim=1)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = torch.autograd.Variable(logpt.data.exp())
+        loss = -1 * (1-pt)**self.gamma * logpt
+        loss = self.scale * loss / normalizor
+
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedFocalLoss.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedFocalLoss.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedFocalLoss.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, input, target) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L368-L381" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, input, target):
+    target = target.view(-1, 1)
+    logpt = F.log_softmax(input, dim=1)
+    normalizor = torch.sum(-1 * (1 - logpt.data.exp()) ** self.gamma * logpt, dim=1)
+    logpt = logpt.gather(1, target)
+    logpt = logpt.view(-1)
+    pt = torch.autograd.Variable(logpt.data.exp())
+    loss = -1 * (1-pt)**self.gamma * logpt
+    loss = self.scale * loss / normalizor
+
+    if self.size_average:
+        return loss.mean()
+    else:
+        return loss.sum()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy"><code class="flex name class">
+<span>class <span class="ident">NormalizedGeneralizedCrossEntropy</span></span>
+<span>(</span><span>num_classes, scale=1.0, q=0.7)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L130-L145" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NormalizedGeneralizedCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0, q=0.7):
+        super(NormalizedGeneralizedCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.q = q
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        numerators = 1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)
+        denominators = self.num_classes - pred.pow(self.q).sum(dim=1)
+        ngce = numerators / denominators
+        return self.scale * ngce.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L138-L145" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    numerators = 1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)
+    denominators = self.num_classes - pred.pow(self.q).sum(dim=1)
+    ngce = numerators / denominators
+    return self.scale * ngce.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedMeanAbsoluteError"><code class="flex name class">
+<span>class <span class="ident">NormalizedMeanAbsoluteError</span></span>
+<span>(</span><span>num_classes, scale=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L169-L182" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NormalizedMeanAbsoluteError(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedMeanAbsoluteError, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+        return
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        normalizor = 1 / (2 * (self.num_classes - 1))
+        mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+        return self.scale * normalizor * mae.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L177-L182" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    normalizor = 1 / (2 * (self.num_classes - 1))
+    mae = 1. - torch.sum(label_one_hot * pred, dim=1)
+    return self.scale * normalizor * mae.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedReverseCrossEntropy"><code class="flex name class">
+<span>class <span class="ident">NormalizedReverseCrossEntropy</span></span>
+<span>(</span><span>num_classes, scale=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L84-L98" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class NormalizedReverseCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(NormalizedReverseCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        normalizor = 1 / 4 * (self.num_classes - 1)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+        return self.scale * normalizor * rce.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L91-L98" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+    normalizor = 1 / 4 * (self.num_classes - 1)
+    rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+    return self.scale * normalizor * rce.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.ReverseCrossEntropy"><code class="flex name class">
+<span>class <span class="ident">ReverseCrossEntropy</span></span>
+<span>(</span><span>num_classes, scale=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L68-L81" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class ReverseCrossEntropy(FastaiLoss):
+    def __init__(self, num_classes, scale=1.0):
+        super(ReverseCrossEntropy, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+        return self.scale * rce.mean()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.ReverseCrossEntropy.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.ReverseCrossEntropy.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.ReverseCrossEntropy.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L75-L81" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    pred = F.softmax(pred, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+    rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+    return self.scale * rce.mean()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.APL_losses.SCELoss"><code class="flex name class">
+<span>class <span class="ident">SCELoss</span></span>
+<span>(</span><span>alpha, beta, num_classes=10)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L43-L65" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class SCELoss(FastaiLoss):
+    def __init__(self, alpha, beta, num_classes=10):
+        super(SCELoss, self).__init__(num_classes=num_classes)
+        self.device = device
+        self.alpha = alpha
+        self.beta = beta
+        self.num_classes = num_classes
+        self.cross_entropy = torch.nn.CrossEntropyLoss()
+
+    def forward(self, pred, labels):
+        # CCE
+        ce = self.cross_entropy(pred, labels)
+
+        # RCE
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+
+        # Loss
+        loss = self.alpha * ce + self.beta * rce.mean()
+        return loss</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.SCELoss.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="radiology_ai.APL_losses.SCELoss.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.APL_losses.SCELoss.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, pred, labels) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/APL_losses.py#L52-L65" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def forward(self, pred, labels):
+    # CCE
+    ce = self.cross_entropy(pred, labels)
+
+    # RCE
+    pred = F.softmax(pred, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.nn.functional.one_hot(labels.long(), self.num_classes).float().to(self.device)
+    label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+    rce = (-1*torch.sum(pred * torch.log(label_one_hot), dim=1))
+
+    # Loss
+    loss = self.alpha * ce + self.beta * rce.mean()
+    return loss</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
+data-gaCategoryParameter="radiology_ai.APL_losses">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radiology_ai" href="index.html">radiology_ai</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.DMILoss" href="#radiology_ai.APL_losses.DMILoss">DMILoss</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.DMILoss.dump_patches" href="#radiology_ai.APL_losses.DMILoss.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.DMILoss.forward" href="#radiology_ai.APL_losses.DMILoss.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.DMILoss.training" href="#radiology_ai.APL_losses.DMILoss.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.FastaiLoss" href="#radiology_ai.APL_losses.FastaiLoss">FastaiLoss</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.FastaiLoss.activation" href="#radiology_ai.APL_losses.FastaiLoss.activation">activation</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FastaiLoss.decodes" href="#radiology_ai.APL_losses.FastaiLoss.decodes">decodes</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FastaiLoss.dump_patches" href="#radiology_ai.APL_losses.FastaiLoss.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FastaiLoss.forward" href="#radiology_ai.APL_losses.FastaiLoss.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FastaiLoss.training" href="#radiology_ai.APL_losses.FastaiLoss.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.FocalLoss" href="#radiology_ai.APL_losses.FocalLoss">FocalLoss</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.FocalLoss.dump_patches" href="#radiology_ai.APL_losses.FocalLoss.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FocalLoss.forward" href="#radiology_ai.APL_losses.FocalLoss.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.FocalLoss.training" href="#radiology_ai.APL_losses.FocalLoss.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.GCEandMAE" href="#radiology_ai.APL_losses.GCEandMAE">GCEandMAE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.GCEandMAE.dump_patches" href="#radiology_ai.APL_losses.GCEandMAE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandMAE.forward" href="#radiology_ai.APL_losses.GCEandMAE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandMAE.training" href="#radiology_ai.APL_losses.GCEandMAE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.GCEandNCE" href="#radiology_ai.APL_losses.GCEandNCE">GCEandNCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.GCEandNCE.dump_patches" href="#radiology_ai.APL_losses.GCEandNCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandNCE.forward" href="#radiology_ai.APL_losses.GCEandNCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandNCE.training" href="#radiology_ai.APL_losses.GCEandNCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.GCEandRCE" href="#radiology_ai.APL_losses.GCEandRCE">GCEandRCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.GCEandRCE.dump_patches" href="#radiology_ai.APL_losses.GCEandRCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandRCE.forward" href="#radiology_ai.APL_losses.GCEandRCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GCEandRCE.training" href="#radiology_ai.APL_losses.GCEandRCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.GeneralizedCrossEntropy" href="#radiology_ai.APL_losses.GeneralizedCrossEntropy">GeneralizedCrossEntropy</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.GeneralizedCrossEntropy.dump_patches" href="#radiology_ai.APL_losses.GeneralizedCrossEntropy.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GeneralizedCrossEntropy.forward" href="#radiology_ai.APL_losses.GeneralizedCrossEntropy.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.GeneralizedCrossEntropy.training" href="#radiology_ai.APL_losses.GeneralizedCrossEntropy.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.MAEandRCE" href="#radiology_ai.APL_losses.MAEandRCE">MAEandRCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.MAEandRCE.dump_patches" href="#radiology_ai.APL_losses.MAEandRCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.MAEandRCE.forward" href="#radiology_ai.APL_losses.MAEandRCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.MAEandRCE.training" href="#radiology_ai.APL_losses.MAEandRCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.MeanAbsoluteError" href="#radiology_ai.APL_losses.MeanAbsoluteError">MeanAbsoluteError</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.MeanAbsoluteError.dump_patches" href="#radiology_ai.APL_losses.MeanAbsoluteError.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.MeanAbsoluteError.forward" href="#radiology_ai.APL_losses.MeanAbsoluteError.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.MeanAbsoluteError.training" href="#radiology_ai.APL_losses.MeanAbsoluteError.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NCEandMAE" href="#radiology_ai.APL_losses.NCEandMAE">NCEandMAE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NCEandMAE.dump_patches" href="#radiology_ai.APL_losses.NCEandMAE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NCEandMAE.forward" href="#radiology_ai.APL_losses.NCEandMAE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NCEandMAE.training" href="#radiology_ai.APL_losses.NCEandMAE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NCEandRCE" href="#radiology_ai.APL_losses.NCEandRCE">NCEandRCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NCEandRCE.dump_patches" href="#radiology_ai.APL_losses.NCEandRCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NCEandRCE.forward" href="#radiology_ai.APL_losses.NCEandRCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NCEandRCE.training" href="#radiology_ai.APL_losses.NCEandRCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NFLandMAE" href="#radiology_ai.APL_losses.NFLandMAE">NFLandMAE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NFLandMAE.dump_patches" href="#radiology_ai.APL_losses.NFLandMAE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandMAE.forward" href="#radiology_ai.APL_losses.NFLandMAE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandMAE.training" href="#radiology_ai.APL_losses.NFLandMAE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NFLandNCE" href="#radiology_ai.APL_losses.NFLandNCE">NFLandNCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NFLandNCE.dump_patches" href="#radiology_ai.APL_losses.NFLandNCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandNCE.forward" href="#radiology_ai.APL_losses.NFLandNCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandNCE.training" href="#radiology_ai.APL_losses.NFLandNCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NFLandRCE" href="#radiology_ai.APL_losses.NFLandRCE">NFLandRCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NFLandRCE.dump_patches" href="#radiology_ai.APL_losses.NFLandRCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandRCE.forward" href="#radiology_ai.APL_losses.NFLandRCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NFLandRCE.training" href="#radiology_ai.APL_losses.NFLandRCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NGCEandMAE" href="#radiology_ai.APL_losses.NGCEandMAE">NGCEandMAE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NGCEandMAE.dump_patches" href="#radiology_ai.APL_losses.NGCEandMAE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandMAE.forward" href="#radiology_ai.APL_losses.NGCEandMAE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandMAE.training" href="#radiology_ai.APL_losses.NGCEandMAE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NGCEandNCE" href="#radiology_ai.APL_losses.NGCEandNCE">NGCEandNCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NGCEandNCE.dump_patches" href="#radiology_ai.APL_losses.NGCEandNCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandNCE.forward" href="#radiology_ai.APL_losses.NGCEandNCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandNCE.training" href="#radiology_ai.APL_losses.NGCEandNCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NGCEandRCE" href="#radiology_ai.APL_losses.NGCEandRCE">NGCEandRCE</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NGCEandRCE.dump_patches" href="#radiology_ai.APL_losses.NGCEandRCE.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandRCE.forward" href="#radiology_ai.APL_losses.NGCEandRCE.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NGCEandRCE.training" href="#radiology_ai.APL_losses.NGCEandRCE.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NLNL" href="#radiology_ai.APL_losses.NLNL">NLNL</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NLNL.dump_patches" href="#radiology_ai.APL_losses.NLNL.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NLNL.forward" href="#radiology_ai.APL_losses.NLNL.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NLNL.training" href="#radiology_ai.APL_losses.NLNL.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NormalizedCrossEntropy" href="#radiology_ai.APL_losses.NormalizedCrossEntropy">NormalizedCrossEntropy</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NormalizedCrossEntropy.dump_patches" href="#radiology_ai.APL_losses.NormalizedCrossEntropy.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedCrossEntropy.forward" href="#radiology_ai.APL_losses.NormalizedCrossEntropy.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedCrossEntropy.training" href="#radiology_ai.APL_losses.NormalizedCrossEntropy.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NormalizedFocalLoss" href="#radiology_ai.APL_losses.NormalizedFocalLoss">NormalizedFocalLoss</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NormalizedFocalLoss.dump_patches" href="#radiology_ai.APL_losses.NormalizedFocalLoss.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedFocalLoss.forward" href="#radiology_ai.APL_losses.NormalizedFocalLoss.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedFocalLoss.training" href="#radiology_ai.APL_losses.NormalizedFocalLoss.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy" href="#radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy">NormalizedGeneralizedCrossEntropy</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.dump_patches" href="#radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.forward" href="#radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.training" href="#radiology_ai.APL_losses.NormalizedGeneralizedCrossEntropy.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NormalizedMeanAbsoluteError" href="#radiology_ai.APL_losses.NormalizedMeanAbsoluteError">NormalizedMeanAbsoluteError</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.dump_patches" href="#radiology_ai.APL_losses.NormalizedMeanAbsoluteError.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.forward" href="#radiology_ai.APL_losses.NormalizedMeanAbsoluteError.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedMeanAbsoluteError.training" href="#radiology_ai.APL_losses.NormalizedMeanAbsoluteError.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.NormalizedReverseCrossEntropy" href="#radiology_ai.APL_losses.NormalizedReverseCrossEntropy">NormalizedReverseCrossEntropy</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.dump_patches" href="#radiology_ai.APL_losses.NormalizedReverseCrossEntropy.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.forward" href="#radiology_ai.APL_losses.NormalizedReverseCrossEntropy.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.NormalizedReverseCrossEntropy.training" href="#radiology_ai.APL_losses.NormalizedReverseCrossEntropy.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.ReverseCrossEntropy" href="#radiology_ai.APL_losses.ReverseCrossEntropy">ReverseCrossEntropy</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.ReverseCrossEntropy.dump_patches" href="#radiology_ai.APL_losses.ReverseCrossEntropy.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.ReverseCrossEntropy.forward" href="#radiology_ai.APL_losses.ReverseCrossEntropy.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.ReverseCrossEntropy.training" href="#radiology_ai.APL_losses.ReverseCrossEntropy.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.APL_losses.SCELoss" href="#radiology_ai.APL_losses.SCELoss">SCELoss</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.APL_losses.SCELoss.dump_patches" href="#radiology_ai.APL_losses.SCELoss.dump_patches">dump_patches</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.SCELoss.forward" href="#radiology_ai.APL_losses.SCELoss.forward">forward</a></code></li>
+<li><code><a title="radiology_ai.APL_losses.SCELoss.training" href="#radiology_ai.APL_losses.SCELoss.training">training</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

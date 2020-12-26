@@ -2,30 +2,19 @@
 
 from tqdm import tqdm
 import gc
+import os
+import shutil
 
 import pydicom
 from PIL import Image
 
 from torch.utils.data import Dataset
 import torchvision.transforms as tfms
-from fastai.data.all import *
-from fastai.medical.imaging import *
+from fastcore.transform import Transform
+from fastai.data.all import Path
+from fastai.medical.imaging import PILDicom
 
 from preprocessing.misc import *
-
-def dcm_scale(dcm):
-    """ Transform from raw pixel data to scaled one and inversing (if the case) """
-    
-    if dcm.PhotometricInterpretation == 'MONOCHROME1':
-        return (dcm.scaled_px.max() - dcm.scaled_px) / (2**dcm.BitsStored - 1)
-    else:
-        return dcm.scaled_px / (2**dcm.BitsStored - 1)
-
-def dcmread_scale(fn):
-    """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
-
-    dcm = pydicom.dcmread(fn)
-    return dcm_scale(dcm)
 
 
 class PILDicom_scaled(PILDicom):
@@ -41,7 +30,7 @@ class PILDicom_scaled(PILDicom):
         return cls(im.convert(mode) if mode else im)
 
 
-class HistScaled(Transform):
+class HistScaled_Dicom(Transform):
     """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
 
     def __init__(self, bins=None):

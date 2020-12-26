@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>radiology_ai.preprocessing.transforms API documentation</title>
+<meta name="description" content="Fastai Transformations to be used on training" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/preprocessing/transforms.html">
+<link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radiology_ai.preprocessing.transforms</code></h1>
+</header>
+<section id="section-intro">
+<p>Fastai Transformations to be used on training</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L0-L267" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; Fastai Transformations to be used on training &#34;&#34;&#34;
+
+import numpy as np
+
+from fastai.vision.core import *
+from fastcore.transform import Transform
+
+from PIL import Image
+
+import cv2
+
+
+class HistScaled(Transform):
+    &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
+
+    def __init__(self, bins=None):
+        super().__init__()
+        self.bins = bins
+
+    def encodes(self, sample:PILImage):
+        return Image.fromarray(
+            (
+                sample._tensor_cls(sample) / 255.
+            )
+            .hist_scaled(brks=self.bins).numpy() * 255
+        )
+
+
+class CLAHE_Transform(Transform):
+    &#34;&#34;&#34; Implement CLAHE transformation for Adaptative Histogram Equalization &#34;&#34;&#34;
+    
+    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
+        super().__init__()
+        self.grayscale = grayscale
+        self.np_input = np_input
+        self.np_output = np_output
+
+        self.PIL_cls = PIL_cls
+
+        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+    
+    def encodes(self, sample:(PILImage,np.ndarray)):
+        if self.np_input:
+            img = sample
+        else:
+            if self.grayscale:
+                img = np.array(sample.convert(&#39;L&#39;))
+            else:
+                img = cv2.cvtColor(np.array(sample.convert(&#39;RGB&#39;)), cv2.COLOR_RGB2BGR)
+            
+        clahe_out = self.clahe.apply(img)
+        
+        if self.np_output:
+            return clahe_out
+        else:
+            return self.PIL_cls.create(clahe_out)
+
+
+class KneeLocalizer(Transform):
+    &#34;&#34;&#34; Transformation which finds out where is the knee and cut out the rest of the image
+    Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
+    
+    ```
+    @inproceedings{tiulpin2017novel,
+        title={A novel method for automatic localization of joint area on knee plain radiographs},
+        author={Tiulpin, Aleksei and Thevenot, Jerome and Rahtu, Esa and Saarakkala, Simo},
+        booktitle={Scandinavian Conference on Image Analysis},
+        pages={290--301},
+        year={2017},
+        organization={Springer}
+    }
+    ```
+    &#34;&#34;&#34;
+    def __init__(self, svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False):
+        super().__init__()
+        self.win_size = (64, 64)
+        self.win_stride = (64, 64)
+        self.block_size = (16, 16)
+        self.block_stride = (8, 8)
+        self.cell_size = (8, 8)
+        self.padding = (0, 0)
+        self.nbins = 9
+        self.scales = [1.25, 1.5, 2, 2.5]
+
+        self.svm_w, self.svm_b = np.load(svm_model_path, encoding=&#39;bytes&#39;, allow_pickle=True)
+        
+        self.resize = resize
+
+        self.PIL_cls = PIL_cls
+
+        self.debug = debug
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
+
+        if len(img.shape) &gt; 2:
+          img = np.squeeze(img, 0)
+        R, C = img.shape[-2:]
+
+        # We will store the coordinates of the top left and
+        # the bottom right corners of the bounding box
+        hog = cv2.HOGDescriptor(self.win_size,
+                                self.block_size,
+                                self.block_stride,
+                                self.cell_size,
+                                self.nbins)
+
+        # displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
+        x_prop = self.get_joint_x_proposals(img)
+        y_prop = self.get_joint_y_proposals(img)
+        best_score = -np.inf
+
+        for y_coord in y_prop:
+            for x_coord in x_prop:
+                for scale in self.scales:
+                    # Check if fits on image
+                    if x_coord - R / scale / 2 &gt;= 0 and x_coord + R / scale / 2 &lt;= C and y_coord - R / scale / 2 &gt;= 0 and y_coord + R / scale / 2 &lt;= R :
+                        # Candidate ROI
+                        roi = np.array([x_coord - R / scale / 2,
+                                        y_coord - R / scale / 2,
+                                        R / scale, R / scale], dtype=np.int)
+                        x1, y1 = roi[0], roi[1]
+                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                        patch = cv2.resize(img[y1:y2, x1:x2], self.win_size)
+
+                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
+                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+
+                        if score &gt; best_score:
+                            best_score = score
+                            roi_R = ((x1, y1), (x2,y2))
+
+                            if self.debug:
+                                print()
+                                plt.imshow(patch, cmap=plt.cm.bone)
+                                plt.title(f&#39;{score:.2f}{(x1, y1), (x2,y2)}&#39;)
+                                plt.show()
+
+        if self.resize:
+            img = cv2.resize(
+                img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
+                dsize=(self.resize, self.resize)
+            )
+        else:
+            img = img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+
+        if self.np_output:
+            return img
+        else:
+            value = self.PIL_cls.create(img)
+            # value = Image.fromarray(
+            #     img
+            # )
+            return value
+
+
+    def smooth_line(self, line, av_points):
+        smooth = np.convolve(
+            line,
+            np.ones((av_points, )) / av_points
+        )[(av_points - 1):-(av_points - 1)]
+
+        return smooth
+
+    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+        &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
+
+        R, C = img.shape[-2:]
+
+        # Sum the middle if the leg is along the X-axis
+        segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
+                            int(C / 3):int(C - C / 3)], axis=1)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+
+        # Find the absolute of the derivative smoothed
+        derv_segm_line = np.abs(
+            self.smooth_line(
+                np.diff(
+                    segm_line
+                ),
+                av_derv_points
+            )
+        )
+
+        # Get top tau % of the peaks
+        peaks = np.argsort(derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
+        
+        return peaks[::step] + int(R * margin)
+
+    
+    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+        &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
+
+        R, C = img.shape[-2:]
+
+        # Sum the middle if the leg is along the Y-axis
+        segm_line = np.sum(img[int(R / 3):int(R - R / 3),
+                               int(C * margin):int(C * (1 - margin))], axis=0)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+
+        # Get top tau % of the peaks
+        peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
+        # print(peaks)
+        return peaks[::step] + int(C * margin)
+
+
+class XRayPreprocess(Transform):
+    &#34;&#34;&#34; Preprocess the X-ray image using histogram clipping and global contrast normalization. &#34;&#34;&#34;
+
+    def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
+        self.cut_min = cut_min
+        self.cut_max = cut_max
+        self.only_non_zero = only_non_zero
+        self.scale = scale
+
+        self.PIL_cls = PIL_cls
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
+        
+        if len(img.shape) &gt; 2:
+          img = np.squeeze(img, 0)
+
+        if self.only_non_zero:
+            percentile_img = img[img != 0]
+
+        lim1, lim2 = np.percentile(
+            percentile_img if self.only_non_zero and len(percentile_img) &gt; 0 else img,
+            [self.cut_min, self.cut_max]
+        )
+
+        img[img &lt; lim1] = lim1
+        img[img &gt; lim2] = lim2
+
+        img -= int(lim1)
+
+        if self.scale:
+            img = img.astype(np.float32)
+            if lim2:
+                img /= lim2
+            img *= 255
+
+        if self.np_output:
+            return img.astype(&#39;uint8&#39;)
+        else:
+            value = self.PIL_cls.create(img.astype(&#39;uint8&#39;))
+            # value = Image.fromarray(
+            #     img.astype(&#39;uint8&#39;)
+            # )
+            return value</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.CLAHE_Transform"><code class="flex name class">
+<span>class <span class="ident">CLAHE_Transform</span></span>
+<span>(</span><span>PIL_cls, clipLimit=2.0, tileGridSize=(8, 8), grayscale=True, np_input=False, np_output=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Implement CLAHE transformation for Adaptative Histogram Equalization</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L29-L56" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class CLAHE_Transform(Transform):
+    &#34;&#34;&#34; Implement CLAHE transformation for Adaptative Histogram Equalization &#34;&#34;&#34;
+    
+    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
+        super().__init__()
+        self.grayscale = grayscale
+        self.np_input = np_input
+        self.np_output = np_output
+
+        self.PIL_cls = PIL_cls
+
+        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+    
+    def encodes(self, sample:(PILImage,np.ndarray)):
+        if self.np_input:
+            img = sample
+        else:
+            if self.grayscale:
+                img = np.array(sample.convert(&#39;L&#39;))
+            else:
+                img = cv2.cvtColor(np.array(sample.convert(&#39;RGB&#39;)), cv2.COLOR_RGB2BGR)
+            
+        clahe_out = self.clahe.apply(img)
+        
+        if self.np_output:
+            return clahe_out
+        else:
+            return self.PIL_cls.create(clahe_out)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastcore.transform.Transform</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.CLAHE_Transform.decodes"><code class="name flex">
+<span>def <span class="ident">decodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.CLAHE_Transform.encodes"><code class="name flex">
+<span>def <span class="ident">encodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.CLAHE_Transform.setups"><code class="name flex">
+<span>def <span class="ident">setups</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.HistScaled"><code class="flex name class">
+<span>class <span class="ident">HistScaled</span></span>
+<span>(</span><span>bins=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L13-L26" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class HistScaled(Transform):
+    &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
+
+    def __init__(self, bins=None):
+        super().__init__()
+        self.bins = bins
+
+    def encodes(self, sample:PILImage):
+        return Image.fromarray(
+            (
+                sample._tensor_cls(sample) / 255.
+            )
+            .hist_scaled(brks=self.bins).numpy() * 255
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastcore.transform.Transform</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.HistScaled.decodes"><code class="name flex">
+<span>def <span class="ident">decodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.HistScaled.encodes"><code class="name flex">
+<span>def <span class="ident">encodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.HistScaled.setups"><code class="name flex">
+<span>def <span class="ident">setups</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer"><code class="flex name class">
+<span>class <span class="ident">KneeLocalizer</span></span>
+<span>(</span><span>svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transformation which finds out where is the knee and cut out the rest of the image
+Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://github.com/MIPT-Oulu/KneeLocalizer</a></p>
+<pre><code>@inproceedings{tiulpin2017novel,
+    title={A novel method for automatic localization of joint area on knee plain radiographs},
+    author={Tiulpin, Aleksei and Thevenot, Jerome and Rahtu, Esa and Saarakkala, Simo},
+    booktitle={Scandinavian Conference on Image Analysis},
+    pages={290--301},
+    year={2017},
+    organization={Springer}
+}
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L59-L215" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class KneeLocalizer(Transform):
+    &#34;&#34;&#34; Transformation which finds out where is the knee and cut out the rest of the image
+    Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
+    
+    ```
+    @inproceedings{tiulpin2017novel,
+        title={A novel method for automatic localization of joint area on knee plain radiographs},
+        author={Tiulpin, Aleksei and Thevenot, Jerome and Rahtu, Esa and Saarakkala, Simo},
+        booktitle={Scandinavian Conference on Image Analysis},
+        pages={290--301},
+        year={2017},
+        organization={Springer}
+    }
+    ```
+    &#34;&#34;&#34;
+    def __init__(self, svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False):
+        super().__init__()
+        self.win_size = (64, 64)
+        self.win_stride = (64, 64)
+        self.block_size = (16, 16)
+        self.block_stride = (8, 8)
+        self.cell_size = (8, 8)
+        self.padding = (0, 0)
+        self.nbins = 9
+        self.scales = [1.25, 1.5, 2, 2.5]
+
+        self.svm_w, self.svm_b = np.load(svm_model_path, encoding=&#39;bytes&#39;, allow_pickle=True)
+        
+        self.resize = resize
+
+        self.PIL_cls = PIL_cls
+
+        self.debug = debug
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
+
+        if len(img.shape) &gt; 2:
+          img = np.squeeze(img, 0)
+        R, C = img.shape[-2:]
+
+        # We will store the coordinates of the top left and
+        # the bottom right corners of the bounding box
+        hog = cv2.HOGDescriptor(self.win_size,
+                                self.block_size,
+                                self.block_stride,
+                                self.cell_size,
+                                self.nbins)
+
+        # displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
+        x_prop = self.get_joint_x_proposals(img)
+        y_prop = self.get_joint_y_proposals(img)
+        best_score = -np.inf
+
+        for y_coord in y_prop:
+            for x_coord in x_prop:
+                for scale in self.scales:
+                    # Check if fits on image
+                    if x_coord - R / scale / 2 &gt;= 0 and x_coord + R / scale / 2 &lt;= C and y_coord - R / scale / 2 &gt;= 0 and y_coord + R / scale / 2 &lt;= R :
+                        # Candidate ROI
+                        roi = np.array([x_coord - R / scale / 2,
+                                        y_coord - R / scale / 2,
+                                        R / scale, R / scale], dtype=np.int)
+                        x1, y1 = roi[0], roi[1]
+                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                        patch = cv2.resize(img[y1:y2, x1:x2], self.win_size)
+
+                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
+                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+
+                        if score &gt; best_score:
+                            best_score = score
+                            roi_R = ((x1, y1), (x2,y2))
+
+                            if self.debug:
+                                print()
+                                plt.imshow(patch, cmap=plt.cm.bone)
+                                plt.title(f&#39;{score:.2f}{(x1, y1), (x2,y2)}&#39;)
+                                plt.show()
+
+        if self.resize:
+            img = cv2.resize(
+                img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
+                dsize=(self.resize, self.resize)
+            )
+        else:
+            img = img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+
+        if self.np_output:
+            return img
+        else:
+            value = self.PIL_cls.create(img)
+            # value = Image.fromarray(
+            #     img
+            # )
+            return value
+
+
+    def smooth_line(self, line, av_points):
+        smooth = np.convolve(
+            line,
+            np.ones((av_points, )) / av_points
+        )[(av_points - 1):-(av_points - 1)]
+
+        return smooth
+
+    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+        &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
+
+        R, C = img.shape[-2:]
+
+        # Sum the middle if the leg is along the X-axis
+        segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
+                            int(C / 3):int(C - C / 3)], axis=1)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+
+        # Find the absolute of the derivative smoothed
+        derv_segm_line = np.abs(
+            self.smooth_line(
+                np.diff(
+                    segm_line
+                ),
+                av_derv_points
+            )
+        )
+
+        # Get top tau % of the peaks
+        peaks = np.argsort(derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
+        
+        return peaks[::step] + int(R * margin)
+
+    
+    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+        &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
+
+        R, C = img.shape[-2:]
+
+        # Sum the middle if the leg is along the Y-axis
+        segm_line = np.sum(img[int(R / 3):int(R - R / 3),
+                               int(C * margin):int(C * (1 - margin))], axis=0)
+    
+        # Smooth the segmentation line
+        segm_line = self.smooth_line(segm_line, av_points)
+
+        # Get top tau % of the peaks
+        peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
+        # print(peaks)
+        return peaks[::step] + int(C * margin)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastcore.transform.Transform</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.decodes"><code class="name flex">
+<span>def <span class="ident">decodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.encodes"><code class="name flex">
+<span>def <span class="ident">encodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_x_proposals"><code class="name flex">
+<span>def <span class="ident">get_joint_x_proposals</span></span>(<span>self, img, av_points=2, av_derv_points=11, margin=0.25, step=10)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return X-coordinates of the bone approximate locations</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L200-L215" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+    &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
+
+    R, C = img.shape[-2:]
+
+    # Sum the middle if the leg is along the Y-axis
+    segm_line = np.sum(img[int(R / 3):int(R - R / 3),
+                           int(C * margin):int(C * (1 - margin))], axis=0)
+
+    # Smooth the segmentation line
+    segm_line = self.smooth_line(segm_line, av_points)
+
+    # Get top tau % of the peaks
+    peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
+    # print(peaks)
+    return peaks[::step] + int(C * margin)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_y_proposals"><code class="name flex">
+<span>def <span class="ident">get_joint_y_proposals</span></span>(<span>self, img, av_points=2, av_derv_points=11, margin=0.25, step=10)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return Y-coordinates of the joint approximate locations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L172-L197" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+    &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
+
+    R, C = img.shape[-2:]
+
+    # Sum the middle if the leg is along the X-axis
+    segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
+                        int(C / 3):int(C - C / 3)], axis=1)
+
+    # Smooth the segmentation line
+    segm_line = self.smooth_line(segm_line, av_points)
+
+    # Find the absolute of the derivative smoothed
+    derv_segm_line = np.abs(
+        self.smooth_line(
+            np.diff(
+                segm_line
+            ),
+            av_derv_points
+        )
+    )
+
+    # Get top tau % of the peaks
+    peaks = np.argsort(derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
+    
+    return peaks[::step] + int(R * margin)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.setups"><code class="name flex">
+<span>def <span class="ident">setups</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.smooth_line"><code class="name flex">
+<span>def <span class="ident">smooth_line</span></span>(<span>self, line, av_points)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L164-L170" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def smooth_line(self, line, av_points):
+    smooth = np.convolve(
+        line,
+        np.ones((av_points, )) / av_points
+    )[(av_points - 1):-(av_points - 1)]
+
+    return smooth</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.XRayPreprocess"><code class="flex name class">
+<span>class <span class="ident">XRayPreprocess</span></span>
+<span>(</span><span>PIL_cls, cut_min=5.0, cut_max=99.0, only_non_zero=True, scale=True, np_input=False, np_output=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Preprocess the X-ray image using histogram clipping and global contrast normalization.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/preprocessing\transforms.py#L218-L268" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class XRayPreprocess(Transform):
+    &#34;&#34;&#34; Preprocess the X-ray image using histogram clipping and global contrast normalization. &#34;&#34;&#34;
+
+    def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
+        self.cut_min = cut_min
+        self.cut_max = cut_max
+        self.only_non_zero = only_non_zero
+        self.scale = scale
+
+        self.PIL_cls = PIL_cls
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
+        
+        if len(img.shape) &gt; 2:
+          img = np.squeeze(img, 0)
+
+        if self.only_non_zero:
+            percentile_img = img[img != 0]
+
+        lim1, lim2 = np.percentile(
+            percentile_img if self.only_non_zero and len(percentile_img) &gt; 0 else img,
+            [self.cut_min, self.cut_max]
+        )
+
+        img[img &lt; lim1] = lim1
+        img[img &gt; lim2] = lim2
+
+        img -= int(lim1)
+
+        if self.scale:
+            img = img.astype(np.float32)
+            if lim2:
+                img /= lim2
+            img *= 255
+
+        if self.np_output:
+            return img.astype(&#39;uint8&#39;)
+        else:
+            value = self.PIL_cls.create(img.astype(&#39;uint8&#39;))
+            # value = Image.fromarray(
+            #     img.astype(&#39;uint8&#39;)
+            # )
+            return value</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastcore.transform.Transform</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.XRayPreprocess.decodes"><code class="name flex">
+<span>def <span class="ident">decodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.XRayPreprocess.encodes"><code class="name flex">
+<span>def <span class="ident">encodes</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.XRayPreprocess.setups"><code class="name flex">
+<span>def <span class="ident">setups</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dictionary-like object; <code>__getitem__</code> matches keys of types using <code>issubclass</code></p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
+data-gaCategoryParameter="radiology_ai.preprocessing.transforms">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radiology_ai.preprocessing" href="index.html">radiology_ai.preprocessing</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.CLAHE_Transform" href="#radiology_ai.preprocessing.transforms.CLAHE_Transform">CLAHE_Transform</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.CLAHE_Transform.decodes" href="#radiology_ai.preprocessing.transforms.CLAHE_Transform.decodes">decodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.CLAHE_Transform.encodes" href="#radiology_ai.preprocessing.transforms.CLAHE_Transform.encodes">encodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.CLAHE_Transform.setups" href="#radiology_ai.preprocessing.transforms.CLAHE_Transform.setups">setups</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.HistScaled" href="#radiology_ai.preprocessing.transforms.HistScaled">HistScaled</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.HistScaled.decodes" href="#radiology_ai.preprocessing.transforms.HistScaled.decodes">decodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.HistScaled.encodes" href="#radiology_ai.preprocessing.transforms.HistScaled.encodes">encodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.HistScaled.setups" href="#radiology_ai.preprocessing.transforms.HistScaled.setups">setups</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer" href="#radiology_ai.preprocessing.transforms.KneeLocalizer">KneeLocalizer</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.decodes" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.decodes">decodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.encodes" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.encodes">encodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_x_proposals" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_x_proposals">get_joint_x_proposals</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_y_proposals" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.get_joint_y_proposals">get_joint_y_proposals</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.setups" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.setups">setups</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.smooth_line" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.smooth_line">smooth_line</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.XRayPreprocess" href="#radiology_ai.preprocessing.transforms.XRayPreprocess">XRayPreprocess</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.XRayPreprocess.decodes" href="#radiology_ai.preprocessing.transforms.XRayPreprocess.decodes">decodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.XRayPreprocess.encodes" href="#radiology_ai.preprocessing.transforms.XRayPreprocess.encodes">encodes</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.XRayPreprocess.setups" href="#radiology_ai.preprocessing.transforms.XRayPreprocess.setups">setups</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

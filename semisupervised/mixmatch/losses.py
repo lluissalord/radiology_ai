@@ -7,7 +7,7 @@ import numpy as np
 from fastai.basics import BaseLoss
 
 from semisupervised.losses import SemiLoss
-from utils import categorical_to_one_hot
+from utils.misc import categorical_to_one_hot
 
 class MixMatchLoss(BaseLoss):
     """ Loss for MixMatch process """
