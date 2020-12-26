@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>radiology_ai API documentation</title>
+<meta name="description" content="Radiology AI …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/">
+<link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>radiology_ai</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="radiology-ai">Radiology AI</h1>
+<p>This is an OpenSource project collaborating with a healthcare mutual insurance company (data provider). The aim of this project is to build a pipeline to classify knee frontal radiography images according to Schatzker classification (from 0 to 6) from DICOM files. However, as first approach it used a binary classification of fractured knee (Schatzker classification different than 0).</p>
+<p>Medical imaging projects as this one have several features that should be taken into account:</p>
+<ol>
+<li>
+<p>Lack of datasets/samples for specific task</p>
+</li>
+<li>
+<p>Annotation requires expertise on traumatology field, hence it is limited</p>
+</li>
+<li>
+<p>Data is highly imbalanced towards non-fractured knees</p>
+</li>
+<li>
+<p>Medical images require special treatments</p>
+</li>
+</ol>
+<p>In order to tackle these issues we implemented the following methods on <a href="https://pytorch.org/">PyTorch</a> using <a href="https://docs.fast.ai/">Fastai</a> platform:</p>
+<ul>
+<li>
+<p>[x] <strong>Transfer Learning</strong> on several steps (first ImageNet and then using DICOM metadata for pretraining model)</p>
+</li>
+<li>
+<p>[x] <strong>Self-Supervised Learning</strong> (<a href="https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html"><code>pytorch-lightning</code></a> package) for state-of-the-art transfer learning</p>
+</li>
+<li>
+<p>[x] <strong>Semi-Supervised Learning</strong> (<a href="https://arxiv.org/abs/1905.02249">MixMatch</a> and <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> own implementations) to be able to train model without full dataset annotated</p>
+</li>
+<li>
+<p>[x] <strong>DataLoader sampler</strong> which allows to have a minimum of samples of all the labels in each batch</p>
+</li>
+<li>
+<p>[x] Use of specific losses to be robust to <strong>imbalance</strong> datasets</p>
+</li>
+<li>
+<p>[x] Preprocesses to <strong>transform DICOM files</strong> into images independently of its metadata</p>
+</li>
+<li>
+<p>[x] <strong>Adaptative equalization of histogram</strong> to normalize bimodal data</p>
+</li>
+<li>
+<p>[x] <a href="https://github.com/MIPT-Oulu/KneeLocalizer"><strong>Knee localization</strong></a> to center-crop images on relevant part</p>
+</li>
+<li>
+<p>[ ] Active Learning to select most interesting files to annotate</p>
+</li>
+<li>
+<p>[ ] Model interpretation with GradCAM or Layer Relevance Propagation</p>
+</li>
+<li>
+<p>[ ] Organize experiments for Hyperparameters search (MLFlow or Ax-BoTorch)</p>
+</li>
+<li>
+<p>[ ] Use channels for different views of the radiography</p>
+</li>
+<li>
+<p>[ ] Preprocesses to transform DICOM files into images independently of its metadata</p>
+</li>
+</ul>
+<hr>
+<h2 id="installation">Installation</h2>
+<p>Add conda-forge channel:
+<code>conda config --add channels conda-forge</code></p>
+<p>Create environment:
+<code>conda create -n radiology_ai python=3.6 --yes -q</code>
+<code>conda activate <a title="radiology_ai" href="#radiology_ai">radiology_ai</a></code></p>
+<p>Install environment:
+<code>conda install -n radiology_ai -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm kornia scikit-image scikit-learn pandas numpy ipykernel ipywidgets xlrd tensorboard openpyxl pytorch-lightning --yes -q</code></p>
+<p>Install EfficientNet for Pytorch and Pytorch Ligthning Bolts
+<code>pip install efficientnet_pytorch opencv-python</code></p>
+<p>Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning)
+<code>pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade</code></p>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ol>
+<li>
+<p>AttributeError: '_FakeLoader' object has no attribute 'persistent_workers'
+<code>pip install --upgrade fastai</code></p>
+</li>
+<li>
+<p>Progress bar issues using VSCode
+<code>conda install "ipython&gt;=6.0.0"</code></p>
+</li>
+</ol>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/a8b6c9500b6a311bc47a8a6d6a7bb427ce9074d1/__init__.py#L0-L5" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+.. include:: README.md
+
+&#34;&#34;&#34;
+
+__pdoc__ = {}</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="radiology_ai.APL_losses" href="APL_losses.html">radiology_ai.APL_losses</a></code></dt>
+<dd>
+<div class="desc"><p>Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels …</p></div>
+</dd>
+<dt><code class="name"><a title="radiology_ai.preprocessing" href="preprocessing/index.html">radiology_ai.preprocessing</a></code></dt>
+<dd>
+<div class="desc"><p>Preprocessing functions, <code>Transforms</code> and <code>Pytorch Dataset</code> allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks</p></div>
+</dd>
+<dt><code class="name"><a title="radiology_ai.semisupervised" href="semisupervised/index.html">radiology_ai.semisupervised</a></code></dt>
+<dd>
+<div class="desc"><p>Classes and functions use across different Semi-Supervised algorithms</p></div>
+</dd>
+<dt><code class="name"><a title="radiology_ai.utils" href="utils/index.html">radiology_ai.utils</a></code></dt>
+<dd>
+<div class="desc"><p>Utility functions</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
+data-gaCategoryParameter="radiology_ai">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#radiology-ai">Radiology AI</a><ul>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="radiology_ai.APL_losses" href="APL_losses.html">radiology_ai.APL_losses</a></code></li>
+<li><code><a title="radiology_ai.preprocessing" href="preprocessing/index.html">radiology_ai.preprocessing</a></code></li>
+<li><code><a title="radiology_ai.semisupervised" href="semisupervised/index.html">radiology_ai.semisupervised</a></code></li>
+<li><code><a title="radiology_ai.utils" href="utils/index.html">radiology_ai.utils</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
