@@ -60,6 +60,13 @@ Install Pytorch Lignthning Bolts (due to an issue not yet solved on release bett
 `pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade`
 
 ---
+
+## API Documentation
+
+API Documentation on [lluissalord.github.io/radiology_ai/](https://lluissalord.github.io/radiology_ai/)
+
+---
+
 ## Troubleshooting
 
 1. AttributeError: '_FakeLoader' object has no attribute 'persistent_workers'
