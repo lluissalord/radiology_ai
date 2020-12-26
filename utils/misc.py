@@ -7,6 +7,7 @@ import os
 
 import torch
 
+from fastai.callback.core import Callback
 
 class GradientClipping(Callback):
     "Gradient clipping during training."

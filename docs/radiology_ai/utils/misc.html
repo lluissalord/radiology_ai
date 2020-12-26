@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/a8b6c9500b6a311bc47a8a6d6a7bb427ce9074d1/utils\misc.py#L0-L52" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L0-L64" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Miscellaneous utility functions &#34;&#34;&#34;
 
@@ -45,6 +45,18 @@ import numpy as np
 import os
 
 import torch
+
+from fastai.callback.core import Callback
+
+class GradientClipping(Callback):
+    &#34;Gradient clipping during training.&#34;
+    def __init__(self, clip:float = 0.):
+        super().__init__()
+        self.clip = clip
+
+    def after_backward(self):
+        &#34;Clip the gradient before the optimizer step.&#34;
+        if self.clip: nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)
 
 
 def categorical_to_one_hot(x, n_out):
@@ -107,7 +119,7 @@ def seed_everything(use_seed=0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/a8b6c9500b6a311bc47a8a6d6a7bb427ce9074d1/utils\misc.py#L20-L32" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L32-L44" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def TestColSplitter(col=&#39;Dataset&#39;):
     &#34;Split `items` (supposed to be a dataframe) by value in `col`&#34;
@@ -132,7 +144,7 @@ def seed_everything(use_seed=0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/a8b6c9500b6a311bc47a8a6d6a7bb427ce9074d1/utils\misc.py#L11-L17" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L23-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def categorical_to_one_hot(x, n_out):
     &#34;&#34;&#34; Transform categorical tensor to one hot encoding &#34;&#34;&#34;
@@ -151,7 +163,7 @@ def seed_everything(use_seed=0):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/a8b6c9500b6a311bc47a8a6d6a7bb427ce9074d1/utils\misc.py#L35-L53" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L47-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def seed_everything(use_seed=0):
     seed = use_seed if use_seed else random.randint(1,1000000)
@@ -177,6 +189,54 @@ def seed_everything(use_seed=0):
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="radiology_ai.utils.misc.GradientClipping"><code class="flex name class">
+<span>class <span class="ident">GradientClipping</span></span>
+<span>(</span><span>clip: float = 0.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gradient clipping during training.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L12-L20" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class GradientClipping(Callback):
+    &#34;Gradient clipping during training.&#34;
+    def __init__(self, clip:float = 0.):
+        super().__init__()
+        self.clip = clip
+
+    def after_backward(self):
+        &#34;Clip the gradient before the optimizer step.&#34;
+        if self.clip: nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.callback.core.Callback</li>
+<li>fastcore.foundation.GetAttr</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.utils.misc.GradientClipping.after_backward"><code class="name flex">
+<span>def <span class="ident">after_backward</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Clip the gradient before the optimizer step.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/utils\misc.py#L18-L20" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def after_backward(self):
+    &#34;Clip the gradient before the optimizer step.&#34;
+    if self.clip: nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -199,6 +259,16 @@ data-gaCategoryParameter="radiology_ai.utils.misc">
 <li><code><a title="radiology_ai.utils.misc.TestColSplitter" href="#radiology_ai.utils.misc.TestColSplitter">TestColSplitter</a></code></li>
 <li><code><a title="radiology_ai.utils.misc.categorical_to_one_hot" href="#radiology_ai.utils.misc.categorical_to_one_hot">categorical_to_one_hot</a></code></li>
 <li><code><a title="radiology_ai.utils.misc.seed_everything" href="#radiology_ai.utils.misc.seed_everything">seed_everything</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="radiology_ai.utils.misc.GradientClipping" href="#radiology_ai.utils.misc.GradientClipping">GradientClipping</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.utils.misc.GradientClipping.after_backward" href="#radiology_ai.utils.misc.GradientClipping.after_backward">after_backward</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

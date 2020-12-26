@@ -10,6 +10,7 @@ from fastai.data.core import TfmdDL
 
 class AllLabelsInBatchDL(TfmdDL):
     """ DataLoader which allows to have a minimum of samples of all the labels in each batch """
+
     def __init__(self, dataset=None, min_samples=1, **kwargs):
         super().__init__(dataset=dataset, **kwargs)
         if self.bs < len(self.vocab):
@@ -48,6 +49,8 @@ class AllLabelsInBatchDL(TfmdDL):
 
 
 class SelfSupervisedDataset(Dataset):
+    """ Dataset to be used on Self Supervised Learning with Python Lightining """
+
     def __init__(self, df, validation = False, transform=None, path_col='Original_Filename', prefix='', suffix='.png'):
 
         self.transform = transform
