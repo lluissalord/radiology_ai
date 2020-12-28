@@ -130,7 +130,7 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
     if type(blocks) is not list:
         blocks = [blocks]
 
-    for block in blocks:
+    for block in tqdm(blocks, desc='Blocks'):
         block = str(block)
 
         # Search for the block folder path
