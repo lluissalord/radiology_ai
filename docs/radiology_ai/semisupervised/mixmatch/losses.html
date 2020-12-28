@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L0-L87" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L0-L87" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Loss class for MixMatch algorith &#34;&#34;&#34;
 
@@ -142,7 +142,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L83-L88" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L83-L88" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_rampup(current, rampup_length):
     if rampup_length == 0:
@@ -166,7 +166,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L12-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L12-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class MixMatchLoss(BaseLoss):
     &#34;&#34;&#34; Loss for MixMatch process &#34;&#34;&#34;
@@ -260,7 +260,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L51-L67" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L51-L67" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
     &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
@@ -289,7 +289,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L34-L49" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L34-L49" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
     &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
@@ -317,7 +317,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L81-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L81-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
 </details>
@@ -330,7 +330,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L75-L79" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L75-L79" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def decodes(self, x):
     dec = x.argmax(dim=self.axis)
@@ -347,7 +347,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/b7c33fd01ba487e780f388021e8ad711c37c5b7b/semisupervised\mixmatch\losses.py#L69-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\mixmatch\losses.py#L69-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def w_scheduling(self, epoch):
     &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
