@@ -53,11 +53,16 @@ Create environment:
 Install environment:
 `conda install -n radiology_ai -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm kornia scikit-image scikit-learn pandas numpy ipykernel ipywidgets xlrd tensorboard openpyxl pytorch-lightning --yes -q`
 
-Install EfficientNet for Pytorch and Pytorch Ligthning Bolts
+Install EfficientNet for Pytorch and Pytorch Ligthning Bolts:
 `pip install efficientnet_pytorch opencv-python`
 
-Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning)
+Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning):
 `pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade`
+
+Install fastai2_extensions:
+~~`pip install fastai2_extensions palettable`~~
+As currently this is not compatible with our transformation better use this command `pip install https://github.com/lluissalord/fastai2_extensions/archive/fix_itms_tfms.zip palettable`
+
 
 ---
 
