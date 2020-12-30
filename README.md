@@ -38,8 +38,6 @@ In order to tackle these issues we implemented the following methods on [PyTorch
 
 - [ ] Use channels for different views of the radiography
 
-- [ ] Preprocesses to transform DICOM files into images independently of its metadata
-
 ---
 ## Installation
 
