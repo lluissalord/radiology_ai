@@ -30,9 +30,9 @@ In order to tackle these issues we implemented the following methods on [PyTorch
 
 - [x] [**Knee localization**](https://github.com/MIPT-Oulu/KneeLocalizer) to center-crop images on relevant part
 
-- [ ] Active Learning to select most interesting files to annotate
+- [x] Model interpretation with GradCAM or Layer Relevance Propagation
 
-- [ ] Model interpretation with GradCAM or Layer Relevance Propagation
+- [ ] Active Learning to select most interesting files to annotate
 
 - [ ] Organize experiments for Hyperparameters search (MLFlow or Ax-BoTorch)
 
