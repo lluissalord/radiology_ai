@@ -626,6 +626,10 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
         ])
 
     df = df.reset_index(drop=True)
+
+    # TODO: Think about how to handle various Targets
+    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
+    df = df[df.Target.notnull()].groupby('ID').agg('max').reset_index()
     return df
 
 
