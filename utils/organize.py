@@ -622,7 +622,7 @@ def concat_templates(src_folder, excel=True, csv_sep=';'):
 
         df = pd.concat([
             df,
-            pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
+            pd.read_excel(label_path, dtype=dtype, engine='openpyxl') if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
         ])
 
     df = df.reset_index(drop=True)
