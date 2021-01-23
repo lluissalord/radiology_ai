@@ -71,12 +71,7 @@ class MixMatchLoss(BaseLoss):
 
         return self.lambda_u * linear_rampup(epoch)
 
-    # def decodes(self, x):    return x.argmax(dim=self.axis)
-    def decodes(self, x):
-        dec = x.argmax(dim=self.axis)
-        if len(dec.size()) == 1:
-            dec = torch.zeros(len(dec), self.n_out).scatter_(1, dec.cpu().view(-1,1).long(), 1)
-        return dec
+    def decodes(self, x):    return x.argmax(dim=self.axis)
 
     def activation(self, x): return F.softmax(x, dim=self.axis)
 
