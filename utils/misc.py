@@ -17,7 +17,7 @@ class GradientClipping(Callback):
 
     def after_backward(self):
         "Clip the gradient before the optimizer step."
-        if self.clip: nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)
+        if self.clip: torch.nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)
 
 
 def categorical_to_one_hot(x, n_out):

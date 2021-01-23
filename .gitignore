@@ -1,5 +1,5 @@
 # Data directory
-data/
+sources/
 result/
 runs/
 lightning_logs/
