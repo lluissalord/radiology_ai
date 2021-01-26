@@ -57,9 +57,8 @@ Install EfficientNet for Pytorch and Pytorch Ligthning Bolts:
 Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning):
 `pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade`
 
-Install fastai2_extensions:
-~~`pip install fastai2_extensions palettable`~~
-As currently this is not compatible with our transformation better use this command `pip install https://github.com/lluissalord/fastai2_extensions/archive/fix_itms_tfms.zip palettable`
+Install fastai2_extensions (renamed as amalgam) to use gradCAM visualizations:
+`pip install git+https://github.com/Synopsis/amalgam.git`
 
 
 ---
