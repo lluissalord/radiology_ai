@@ -17,7 +17,7 @@ import pydicom
 from utils.dicom import *
 
 
-def check_metadata_label(raw_path, metadata_labels, label='ap'):
+def check_metadata_label(raw_path, metadata_labels, label='ap', exact_match=True):
     """ Check if the path matches with the desired label on metadata_labels """
 
     if 'Final_pred' in metadata_labels.columns:
@@ -26,7 +26,10 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
         pred_col = 'Pred'
 
     try:
-        return metadata_labels.loc[raw_path, pred_col] == label
+        if exact_match:
+            return metadata_labels.loc[raw_path, pred_col] == label
+        else:
+            return metadata_labels.loc[raw_path, pred_col].str.contains(label)
     except KeyError:
         # Probably these are cases which have wrong metadata out of 'ap', 'lat', 'two'
         # However, we try if it can be a case of wrong path sep and only take the filename
@@ -38,7 +41,7 @@ def check_metadata_label(raw_path, metadata_labels, label='ap'):
         ) | metadata_labels.index.str.endswith(
             filename + '.png'
         )
-        return (metadata_labels.loc[row_match, pred_col] == label).any()
+        return (metadata_labels.loc[row_match, pred_col].str.contains(label)).any()
 
 
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True):
@@ -159,7 +162,7 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
     save_name_relation_file(relation_df, relation_filepath, sep=',')
 
 
-def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False):
+def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, label_exact_match=True, check_DICOM_dict=None, debug=False):
     """ Organize folders and files to set all the desired DICOM files into the correct folder """
 
     # In case not reseting the folders, then the current relation is required
@@ -190,7 +193,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             
             # Check if current file is frontal (ap) image
             if metadata_labels is not None:
-                if check_metadata_label(filepath, metadata_labels, label='ap'):
+                if check_metadata_label(filepath, metadata_labels, label='ap', exact_match=label_exact_match):
                     correct_filepaths.append(filepath)
             else:
                 # Read and check DICOM
