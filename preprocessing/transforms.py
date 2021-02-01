@@ -266,3 +266,120 @@ class XRayPreprocess(Transform):
             #     img.astype('uint8')
             # )
             return value
+
+
+class BackgroundPreprocess(Transform):
+    """ Background cleaning preprocess. Consist on the following steps:
+    1. OTSU binary thresholding from a Blur image
+    2. Apply morphology to remove isolated extraneous noise on mask
+    3. Dilate mask to be confidently not removing any interesting part
+    4. Find contours of the intersting part, which will be the centered biggest zone
+    5. Apply Hull convex to be more confident to not remove any interesting part
+    6. Bitwise input image with mask to only mantain the masked zone"""
+
+    def __init__(self, PIL_cls, np_input=False, np_output=False, premask_blur_kernel=5, morph_kernel=15, dilate_kernel=5, blur_kernel=7, center_width_scale=1/3, inpaint_radius=3, debug=False):
+        super().__init__()
+        self.PIL_cls = PIL_cls
+
+        self.premask_blur_kernel = premask_blur_kernel 
+        self.morph_kernel = morph_kernel
+        self.dilate_kernel = dilate_kernel
+        self.blur_kernel = blur_kernel
+
+        self.center_width_scale = center_width_scale
+
+        self.inpaint_radius = inpaint_radius
+
+        self.debug = debug
+
+        self.np_input = np_input
+        self.np_output = np_output
+
+    def encodes(self, x:(PILImage,np.ndarray)):
+
+        if self.np_input:
+            img = x
+        else:
+            img = ToTensor()(x).numpy()
+
+        if len(img.shape) > 2:
+          img = np.squeeze(img, 0)
+        R, C = img.shape[-2:]
+
+        # threshold input image as mask
+        mask = cv2.threshold(
+            cv2.GaussianBlur(img, (self.premask_blur_kernel, self.premask_blur_kernel), 0)
+            , 0, 255, cv2.THRESH_OTSU)[1]
+        # mask_black = cv2.threshold(img, 3, 255, cv2.THRESH_BINARY_INV)[1]
+
+        result = copy(img[:])
+        if self.debug:
+            boxes = copy(img[:])
+
+        # apply morphology to remove isolated extraneous noise
+        kernel = np.ones((self.morph_kernel,self.morph_kernel), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+        # Dilate mask to be confidently not removing any interesting part
+        kernel = np.ones((self.dilate_kernel,self.dilate_kernel), np.uint8)
+        mask = cv2.dilate(mask, kernel, iterations=5)
+
+        mask_inpaint = np.ones_like(mask) * 255
+
+        # Find contours of the intersting part, which will be the biggest zone 
+        cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+        biggest_c = []
+        biggest_area = 0
+        for c in cnts:
+            x,y,w,h = cv2.boundingRect(c)
+            ar = w / float(h)
+            area = w * h / (float(mask.shape[0]) * mask.shape[1])
+            center_width = x + w // 2
+            left_limit = mask.shape[1] // 2 - int(self.center_width_scale * mask.shape[1] / 2)
+            right_limit = mask.shape[1] // 2 + int(self.center_width_scale * mask.shape[1] / 2)
+            if area > biggest_area and center_width >= left_limit and center_width <= right_limit:
+                biggest_c = c
+                biggest_area = area
+
+        # Only modify image if there is an area that matched, otherwise do not modify
+        if len(biggest_c) != 0:
+            # cv2.drawContours(mask_inpaint, [biggest_c], -1, (0,0,0), -1)
+
+            hull = cv2.convexHull(biggest_c)
+            cv2.drawContours(mask_inpaint, [hull], -1, (0,0,0), -1)
+            
+            if self.debug:
+                # x,y,w,h = cv2.boundingRect(biggest_c)
+                x,y,w,h = cv2.boundingRect(hull)
+                cv2.rectangle(boxes, (x,y),(x+w,y+h), (0,255,0), 1)
+
+            # Blur mask to soft edges
+            mask_inpaint = cv2.GaussianBlur(mask_inpaint, (self.blur_kernel, self.blur_kernel), 0)
+
+            # Only masked only background which is not already black
+            mask_inpaint = mask_inpaint# - mask_black
+
+            # Inpaint background to get a soft background
+            # result = cv2.inpaint(result, mask_inpaint, self.inpaint_radius, cv2.INPAINT_TELEA)
+            result = cv2.bitwise_and(result, result, mask = 255 - mask_inpaint)
+        
+        if self.debug:
+            print()
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(15, 15))
+            ax1.imshow(img, cmap=plt.cm.bone)
+            ax2.imshow(result, cmap=plt.cm.bone)
+            ax3.imshow(boxes, cmap=plt.cm.bone)
+            ax4.imshow(mask_inpaint)
+            fig.suptitle(f'kernels (P,M,D,B) ({self.premask_blur_kernel},{self.morph_kernel},{self.dilate_kernel},{self.blur_kernel}) - CWS {self.center_width_scale:.2f} - Inpaint {self.inpaint_radius}')
+            fig.show()
+
+        if self.np_output:
+            return result
+        else:
+            value = self.PIL_cls.create(result)
+            # value = Image.fromarray(
+            #     img
+            # )
+            return value
