@@ -52,8 +52,8 @@ def default_check_DICOM_dict():
     """ Get default values for check DICOM dictionary """
 
     check_DICOM_dict = {
-        'SeriesDescription': ['RODILLA AP', 'RODILLAS AP'],
-        'BodyPartExamined': ['LOWER LIMB', 'KNEE']
+        'SeriesDescription': ['RODILLA AP', 'RODILLAS AP', 'X106aL Tibia AP'],
+        'BodyPartExamined': ['LOWER LIMB', 'KNEE', 'EXTREMITY']
     }
 
     return check_DICOM_dict
