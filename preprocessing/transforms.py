@@ -50,6 +50,9 @@ class CLAHE_Transform(Transform):
             
         clahe_out = self.clahe.apply(img)
         
+        if not self.grayscale:
+            clahe_out = cv2.cvtColor(clahe_out, cv2.COLOR_BGR2RGB)
+
         if self.np_output:
             return clahe_out
         else:
