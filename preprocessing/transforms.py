@@ -145,7 +145,7 @@ class KneeLocalizer(Transform):
 
         # Approximate the scales to not include left/right or top/bottom black stripes
         # First check if there is top/bottom black stripes, otherwise check it for left/right ones
-        mask_black = cv2.threshold(img, 1, 255, cv2.THRESH_BINARY)[1]
+        mask_black = cv2.threshold(img, 3, 255, cv2.THRESH_BINARY)[1]
         
         # apply morphology to remove isolated extraneous noise
         kernel = np.ones((5,5), np.uint8)
@@ -354,7 +354,6 @@ class KneeLocalizer(Transform):
             fig.show()
 
         if best_score == -np.inf:
-            print('no_candidates')
             img = cv2.resize(
                 roi_img,
                 dsize=(self.resize, self.resize)
