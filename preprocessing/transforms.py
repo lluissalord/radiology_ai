@@ -6,6 +6,7 @@ from fastai.vision.core import *
 from fastcore.transform import Transform
 
 from PIL import Image
+import matplotlib.pyplot as plt
 
 import cv2
 
@@ -520,7 +521,7 @@ class BackgroundPreprocess(Transform):
     5. Repeat previous step with inverse resulting mask (taking into account also previous parent contours)
     6. Bitwise input image with mask to remove background"""
 
-    def __init__(self, PIL_cls, np_input=False, np_output=False, morph_kernel=3, inpaint_morph_kernel=15, thresh_limit_multiplier=0.6, min_thresh=120, min_area=0.02, max_area=0.75, debug=False):
+    def __init__(self, PIL_cls, np_input=False, np_output=False, morph_kernel=15, inpaint_morph_kernel=15, thresh_limit_multiplier=0.6, min_thresh=120, min_density=0.2, min_area=0.02, max_area=0.5, debug=False):
         super().__init__()
         self.PIL_cls = PIL_cls
 
@@ -531,6 +532,7 @@ class BackgroundPreprocess(Transform):
 
         self.thresh_limit_multiplier = thresh_limit_multiplier
         self.min_thresh = min_thresh
+        self.min_density = min_density
 
         self.min_area = min_area
         self.max_area = max_area
@@ -594,9 +596,27 @@ class BackgroundPreprocess(Transform):
 
             # Check are is between limits
             if area > self.min_area and area < self.max_area:
-                median = np.median(img[y:y+h,x:x+w])
-                # Check median of countour area in input image is below threshold limits
-                if median < self.min_thresh and median < ret * self.thresh_limit_multiplier:
+                
+                temp = np.zeros(mask.shape, np.uint8)
+                cv2.drawContours(temp,[c],0,255,-1)
+                match = np.where(temp == 255)
+                mask_matched = mask[match].flatten()
+                img_matched = img[match].flatten()
+
+                density = mask_matched.sum() / (255.0 * len(mask_matched))
+                # if self.debug:
+                #     rows = 1
+                #     cols = 2
+                #     fig, (ax1, ax2) = plt.subplots(rows,cols, figsize=(5*cols, 5*rows))
+                #     ax1.imshow(temp, cmap=plt.cm.bone)
+                #     ax2.imshow(mask[y:y+h,x:x+w], cmap=plt.cm.bone)
+                #     fig.suptitle(f'{area, x,y,w,h, density}')
+                #     fig.tight_layout()
+                #     fig.show()
+
+                median = np.median(img_matched)
+                # Check density and median of countour area in input image is below threshold limits
+                if density > self.min_density and median < self.min_thresh and median < ret * self.thresh_limit_multiplier:
                     biggest_cs.append(c)
 
         # Only modify image if there is any area that matched, otherwise do not modify
@@ -671,7 +691,9 @@ class BackgroundPreprocess(Transform):
         
         if self.debug:
             print()
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(15, 15))
+            rows = 2
+            cols = 2
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(rows,cols, figsize=(5*cols, 5*rows))
             ax1.imshow(img, cmap=plt.cm.bone)
             ax2.imshow(result, cmap=plt.cm.bone)
             ax3.imshow(mask, cmap=plt.cm.bone)
