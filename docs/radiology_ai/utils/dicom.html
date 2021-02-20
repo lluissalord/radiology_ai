@@ -35,12 +35,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L0-L117" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L0-L119" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; DICOM utilities for checking/filtering depending on metadata &#34;&#34;&#34;
 
 import os
 import pandas as pd
+
+from pathlib import Path
 
 from tqdm.auto import tqdm
 
@@ -89,8 +91,8 @@ def default_check_DICOM_dict():
     &#34;&#34;&#34; Get default values for check DICOM dictionary &#34;&#34;&#34;
 
     check_DICOM_dict = {
-        &#39;SeriesDescription&#39;: [&#39;RODILLA AP&#39;, &#39;RODILLAS AP&#39;],
-        &#39;BodyPartExamined&#39;: [&#39;LOWER LIMB&#39;, &#39;KNEE&#39;]
+        &#39;SeriesDescription&#39;: [&#39;RODILLA AP&#39;, &#39;RODILLAS AP&#39;, &#39;X106aL Tibia AP&#39;],
+        &#39;BodyPartExamined&#39;: [&#39;LOWER LIMB&#39;, &#39;KNEE&#39;, &#39;EXTREMITY&#39;]
     }
 
     return check_DICOM_dict
@@ -172,7 +174,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L100-L118" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L102-L120" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
     &#34;&#34;&#34; Check the DICOM file if it is has the feature required &#34;&#34;&#34;
@@ -203,14 +205,14 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L49-L57" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L51-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def default_check_DICOM_dict():
     &#34;&#34;&#34; Get default values for check DICOM dictionary &#34;&#34;&#34;
 
     check_DICOM_dict = {
-        &#39;SeriesDescription&#39;: [&#39;RODILLA AP&#39;, &#39;RODILLAS AP&#39;],
-        &#39;BodyPartExamined&#39;: [&#39;LOWER LIMB&#39;, &#39;KNEE&#39;]
+        &#39;SeriesDescription&#39;: [&#39;RODILLA AP&#39;, &#39;RODILLAS AP&#39;, &#39;X106aL Tibia AP&#39;],
+        &#39;BodyPartExamined&#39;: [&#39;LOWER LIMB&#39;, &#39;KNEE&#39;, &#39;EXTREMITY&#39;]
     }
 
     return check_DICOM_dict</code></pre>
@@ -224,7 +226,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L60-L70" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L62-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def df_check_DICOM(df, check_DICOM_dict):
     &#34;&#34;&#34; Filter DataFrame on the rows that match the filter specified on `check_DICOM_dict` &#34;&#34;&#34;
@@ -247,7 +249,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L8-L46" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L10-L48" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def filter_fnames(
     fnames,
@@ -298,7 +300,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L83-L97" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L85-L99" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_each_case_samples(df, all_keys, max_samples_per_case=5):
     &#34;&#34;&#34; Extract all the different cases on `all_keys` and creating a DataFrame with the number set for all the cases &#34;&#34;&#34;
@@ -325,7 +327,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\dicom.py#L73-L80" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\dicom.py#L75-L82" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sample_df_check_DICOM(df, check_DICOM_dict, max_samples_per_case=5):
     &#34;&#34;&#34; Get a random sample of the filtered DataFrame determined by `check_DICOM_dict` appearing all the cases there &#34;&#34;&#34;

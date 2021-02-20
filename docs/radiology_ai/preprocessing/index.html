@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
 <title>radiology_ai.preprocessing API documentation</title>
-<meta name="description" content="Preprocessing functions, `Transforms` and `Pytorch Dataset` allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks" />
+<meta name="description" content="Preprocessing functions, `Transforms` and `Pytorch Dataset` allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
@@ -32,12 +32,26 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </header>
 <section id="section-intro">
 <p>Preprocessing functions, <code>Transforms</code> and <code>Pytorch Dataset</code> allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks</p>
+<h2 id="preprocessing">Preprocessing</h2>
+<p>Raw images could be used by a deep learning model, however we can benefit from preprocessing. On this project the main three preprocess transformation are:</p>
+<ul>
+<li><strong>KneeLocalizer</strong>: Center image only on region of interest (ROI) which normalize dataset.</li>
+<li><strong>BackgroundPreprocess</strong>: Cleaning background and noisy parts which helps avoid model memorization due to characteristic background/noise.</li>
+<li><strong>CLAHE Transform</strong>: Grayscale/Color histogram normalization which helps CNN model training.</li>
+</ul>
+<p>See below some examples these transformations:</p>
+<p><img alt="&quot;Preprocess steps 1&quot;" src="https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps.svg" title="Preprocess steps 1">
+<img alt="&quot;Preprocess steps 2&quot;" src="https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps_2.svg" title="Preprocess steps 2"></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/preprocessing\__init__.py#L0-L0" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\__init__.py#L0-L4" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34; Preprocessing functions, `Transforms` and `Pytorch Dataset` allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks&#34;&#34;&#34;</code></pre>
+<pre><code class="python">&#34;&#34;&#34; 
+Preprocessing functions, `Transforms` and `Pytorch Dataset` allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks
+
+.. include:: README.md
+&#34;&#34;&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -71,7 +85,9 @@ data-gaCategoryParameter="radiology_ai.preprocessing">
 </div>
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#preprocessing">Preprocessing</a></li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>

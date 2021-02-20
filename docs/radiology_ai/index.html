@@ -50,59 +50,47 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 </ol>
 <p>In order to tackle these issues we implemented the following methods on <a href="https://pytorch.org/">PyTorch</a> using <a href="https://docs.fast.ai/">Fastai</a> platform:</p>
 <ul>
-<li>
-<p>[x] <strong>Transfer Learning</strong> on several steps (first ImageNet and then using DICOM metadata for pretraining model)</p>
-</li>
-<li>
-<p>[x] <strong>Self-Supervised Learning</strong> (<a href="https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html"><code>pytorch-lightning</code></a> package) for state-of-the-art transfer learning</p>
-</li>
-<li>
-<p>[x] <strong>Semi-Supervised Learning</strong> (<a href="https://arxiv.org/abs/1905.02249">MixMatch</a> and <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> own implementations) to be able to train model without full dataset annotated</p>
-</li>
-<li>
-<p>[x] <strong>DataLoader sampler</strong> which allows to have a minimum of samples of all the labels in each batch</p>
-</li>
-<li>
-<p>[x] Use of specific losses to be robust to <strong>imbalance</strong> datasets</p>
-</li>
-<li>
-<p>[x] Preprocesses to <strong>transform DICOM files</strong> into images independently of its metadata</p>
-</li>
-<li>
-<p>[x] <strong>Adaptative equalization of histogram</strong> to normalize bimodal data</p>
-</li>
-<li>
-<p>[x] <a href="https://github.com/MIPT-Oulu/KneeLocalizer"><strong>Knee localization</strong></a> to center-crop images on relevant part</p>
-</li>
-<li>
-<p>[ ] Active Learning to select most interesting files to annotate</p>
-</li>
-<li>
-<p>[ ] Model interpretation with GradCAM or Layer Relevance Propagation</p>
-</li>
+<li>Algorithm based:</li>
+<li>[x] <strong>Transfer Learning</strong> on several steps (first ImageNet and then using DICOM metadata for pretraining model)</li>
+<li>[x] <strong>Self-Supervised Learning</strong> (<a href="https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html"><code>pytorch-lightning</code></a> package) for state-of-the-art transfer learning</li>
+<li>[x] <strong>Semi-Supervised Learning</strong> (<a href="https://arxiv.org/abs/1905.02249">MixMatch</a> and <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> own implementations) to be able to train model without full dataset annotated</li>
 <li>
 <p>[ ] Organize experiments for Hyperparameters search (MLFlow or Ax-BoTorch)</p>
 </li>
 <li>
-<p>[ ] Use channels for different views of the radiography</p>
+<p>Data based:</p>
+</li>
+<li>[x] <strong>DataLoader sampler</strong> which allows to have a minimum of samples of all the labels in each batch</li>
+<li>[x] Use of specific losses to be robust to <strong>imbalance</strong> datasets</li>
+<li>
+<p>[ ] Active Learning to select most interesting files to annotate</p>
 </li>
 <li>
-<p>[ ] Preprocesses to transform DICOM files into images independently of its metadata</p>
+<p>Image processing:</p>
 </li>
+<li>[x] Preprocesses to <strong>transform DICOM files</strong> into images independently of its metadata</li>
+<li>[x] <strong>Adaptative equalization of histogram</strong> to normalize bimodal data</li>
+<li>[x] Improve <a href="https://github.com/MIPT-Oulu/KneeLocalizer"><strong>Knee localization</strong></a> to center-crop images on relevant part</li>
+<li>[x] Clean background to avoid overfitting on noise</li>
+<li>[x] Model interpretation with GradCAM or Layer Relevance Propagation</li>
+<li>[ ] Use several channels for different views of the radiography</li>
 </ul>
 <hr>
 <h2 id="installation">Installation</h2>
-<p>Add conda-forge channel:
+<p>Add conda-forge channel:<br>
 <code>conda config --add channels conda-forge</code></p>
-<p>Create environment:
+<p>Create environment:<br>
 <code>conda create -n radiology_ai python=3.6 --yes -q</code>
 <code>conda activate <a title="radiology_ai" href="#radiology_ai">radiology_ai</a></code></p>
-<p>Install environment:
-<code>conda install -n radiology_ai -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm kornia scikit-image scikit-learn pandas numpy ipykernel ipywidgets xlrd tensorboard openpyxl pytorch-lightning --yes -q</code></p>
-<p>Install EfficientNet for Pytorch and Pytorch Ligthning Bolts
+<p>Install environment:<br>
+<code>conda install -n radiology_ai --override-channels -c main -c conda-forge -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm=2.8.4 kornia=0.3.0 scikit-image scikit-learn pandas ipykernel ipywidgets tensorboard openpyxl --yes -q</code></p>
+<p>Install EfficientNet for Pytorch and Pytorch Ligthning Bolts:<br>
 <code>pip install efficientnet_pytorch opencv-python</code></p>
-<p>Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning)
-<code>pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade</code></p>
+<p>Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning):<br>
+~~<code>pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade</code>~~<br>
+<code>pip install https://github.com/lluissalord/pytorch-lightning-bolts/archive/issue_436_simCLR_IndexError.zip --upgrade</code></p>
+<p>Install fastai2_extensions (renamed as amalgam) to use gradCAM visualizations:<br>
+<code>pip install git+https://github.com/Synopsis/amalgam.git</code></p>
 <hr>
 <h2 id="api-documentation">API Documentation</h2>
 <p>API Documentation on <a href="https://lluissalord.github.io/radiology_ai/">lluissalord.github.io/radiology_ai/</a></p>
@@ -110,21 +98,33 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <h2 id="troubleshooting">Troubleshooting</h2>
 <ol>
 <li>
-<p>AttributeError: '_FakeLoader' object has no attribute 'persistent_workers'
+<p>AttributeError: '_FakeLoader' object has no attribute 'persistent_workers':<br>
 <code>pip install --upgrade fastai</code></p>
 </li>
 <li>
-<p>Progress bar issues using VSCode
+<p>Progress bar issues using VSCode:<br>
 <code>conda install "ipython&gt;=6.0.0"</code></p>
 </li>
 </ol>
+<h2 id="preprocessing">Preprocessing</h2>
+<p>Raw images could be used by a deep learning model, however we can benefit from preprocessing. On this project the main three preprocess transformation are:</p>
+<ul>
+<li><strong>KneeLocalizer</strong>: Center image only on region of interest (ROI) which normalize dataset.</li>
+<li><strong>BackgroundPreprocess</strong>: Cleaning background and noisy parts which helps avoid model memorization due to characteristic background/noise.</li>
+<li><strong>CLAHE Transform</strong>: Grayscale/Color histogram normalization which helps CNN model training.</li>
+</ul>
+<p>See below some examples these transformations:</p>
+<p><img alt="&quot;Preprocess steps 1&quot;" src="https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps.svg" title="Preprocess steps 1">
+<img alt="&quot;Preprocess steps 2&quot;" src="https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps_2.svg" title="Preprocess steps 2"></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/__init__.py#L0-L5" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/__init__.py#L0-L7" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 .. include:: README.md
+
+.. include:: preprocessing/README.md
 
 &#34;&#34;&#34;
 
@@ -140,7 +140,7 @@ __pdoc__ = {}</code></pre>
 </dd>
 <dt><code class="name"><a title="radiology_ai.preprocessing" href="preprocessing/index.html">radiology_ai.preprocessing</a></code></dt>
 <dd>
-<div class="desc"><p>Preprocessing functions, <code>Transforms</code> and <code>Pytorch Dataset</code> allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks</p></div>
+<div class="desc"><p>Preprocessing functions, <code>Transforms</code> and <code>Pytorch Dataset</code> allowing to treat DICOM files and improve CT scan interpretations for Deep Neural Networks …</p></div>
 </dd>
 <dt><code class="name"><a title="radiology_ai.semisupervised" href="semisupervised/index.html">radiology_ai.semisupervised</a></code></dt>
 <dd>
@@ -171,6 +171,7 @@ data-gaCategoryParameter="radiology_ai">
 <li><a href="#installation">Installation</a></li>
 <li><a href="#api-documentation">API Documentation</a></li>
 <li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#preprocessing">Preprocessing</a></li>
 </ul>
 </li>
 </ul>

@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L0-L751" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L0-L758" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Functions required for organizing files for proper annotation &#34;&#34;&#34;
 
@@ -56,7 +56,7 @@ import pydicom
 from utils.dicom import *
 
 
-def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;):
+def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;, exact_match=True):
     &#34;&#34;&#34; Check if the path matches with the desired label on metadata_labels &#34;&#34;&#34;
 
     if &#39;Final_pred&#39; in metadata_labels.columns:
@@ -65,7 +65,10 @@ def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;):
         pred_col = &#39;Pred&#39;
 
     try:
-        return metadata_labels.loc[raw_path, pred_col] == label
+        if exact_match:
+            return metadata_labels.loc[raw_path, pred_col] == label
+        else:
+            return metadata_labels.loc[raw_path, pred_col].str.contains(label)
     except KeyError:
         # Probably these are cases which have wrong metadata out of &#39;ap&#39;, &#39;lat&#39;, &#39;two&#39;
         # However, we try if it can be a case of wrong path sep and only take the filename
@@ -77,7 +80,7 @@ def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;):
         ) | metadata_labels.index.str.endswith(
             filename + &#39;.png&#39;
         )
-        return (metadata_labels.loc[row_match, pred_col] == label).any()
+        return (metadata_labels.loc[row_match, pred_col].str.contains(label)).any()
 
 
 def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True):
@@ -198,7 +201,7 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
     save_name_relation_file(relation_df, relation_filepath, sep=&#39;,&#39;)
 
 
-def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix=&#39;IMG_&#39;, force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False):
+def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix=&#39;IMG_&#39;, force_extension=None, copy=True, metadata_labels=None, label_exact_match=True, check_DICOM_dict=None, debug=False):
     &#34;&#34;&#34; Organize folders and files to set all the desired DICOM files into the correct folder &#34;&#34;&#34;
 
     # In case not reseting the folders, then the current relation is required
@@ -229,7 +232,7 @@ def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, gro
             
             # Check if current file is frontal (ap) image
             if metadata_labels is not None:
-                if check_metadata_label(filepath, metadata_labels, label=&#39;ap&#39;):
+                if check_metadata_label(filepath, metadata_labels, label=&#39;ap&#39;, exact_match=label_exact_match):
                     correct_filepaths.append(filepath)
             else:
                 # Read and check DICOM
@@ -661,10 +664,14 @@ def concat_templates(src_folder, excel=True, csv_sep=&#39;;&#39;):
 
         df = pd.concat([
             df,
-            pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
+            pd.read_excel(label_path, dtype=dtype, engine=&#39;openpyxl&#39;) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
         ])
 
     df = df.reset_index(drop=True)
+
+    # TODO: Think about how to handle various Targets
+    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
+    df = df[df.Target.notnull()].groupby(&#39;ID&#39;).agg(&#39;max&#39;).reset_index()
     return df
 
 
@@ -806,7 +813,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L676-L688" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L683-L695" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_new_relation(relation_df, src_path, src_filename, new_filename):
     &#34;&#34;&#34; Add a new relation on the relation DataFrame &#34;&#34;&#34;
@@ -831,7 +838,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L556-L562" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L559-L565" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_data_in_template(template_file, sep=None):
     &#34;&#34;&#34; Check if there is data different than null in each template &#34;&#34;&#34;
@@ -850,7 +857,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L710-L724" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L717-L731" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_generic_path(path):
     &#34;&#34;&#34; Check if path exists even if folder name modified adding suffix &#34;&#34;&#34;
@@ -870,16 +877,16 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 </details>
 </dd>
 <dt id="radiology_ai.utils.organize.check_metadata_label"><code class="name flex">
-<span>def <span class="ident">check_metadata_label</span></span>(<span>raw_path, metadata_labels, label='ap')</span>
+<span>def <span class="ident">check_metadata_label</span></span>(<span>raw_path, metadata_labels, label='ap', exact_match=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Check if the path matches with the desired label on metadata_labels</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L20-L41" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L20-L44" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;):
+<pre><code class="python">def check_metadata_label(raw_path, metadata_labels, label=&#39;ap&#39;, exact_match=True):
     &#34;&#34;&#34; Check if the path matches with the desired label on metadata_labels &#34;&#34;&#34;
 
     if &#39;Final_pred&#39; in metadata_labels.columns:
@@ -888,7 +895,10 @@ def check_relation(relation_df, check_path=True, check_raw=True):
         pred_col = &#39;Pred&#39;
 
     try:
-        return metadata_labels.loc[raw_path, pred_col] == label
+        if exact_match:
+            return metadata_labels.loc[raw_path, pred_col] == label
+        else:
+            return metadata_labels.loc[raw_path, pred_col].str.contains(label)
     except KeyError:
         # Probably these are cases which have wrong metadata out of &#39;ap&#39;, &#39;lat&#39;, &#39;two&#39;
         # However, we try if it can be a case of wrong path sep and only take the filename
@@ -900,7 +910,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
         ) | metadata_labels.index.str.endswith(
             filename + &#39;.png&#39;
         )
-        return (metadata_labels.loc[row_match, pred_col] == label).any()</code></pre>
+        return (metadata_labels.loc[row_match, pred_col].str.contains(label)).any()</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.utils.organize.check_relation"><code class="name flex">
@@ -911,7 +921,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L727-L752" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L734-L759" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_relation(relation_df, check_path=True, check_raw=True):
     &#34;&#34;&#34; Check that the relation on the relation DataFrame is preserved &#34;&#34;&#34;
@@ -949,7 +959,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L588-L629" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L591-L636" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def concat_templates(src_folder, excel=True, csv_sep=&#39;;&#39;):
     &#34;&#34;&#34; Concatenate all the template into a DataFrame &#34;&#34;&#34;
@@ -988,10 +998,14 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 
         df = pd.concat([
             df,
-            pd.read_excel(label_path, dtype=dtype) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
+            pd.read_excel(label_path, dtype=dtype, engine=&#39;openpyxl&#39;) if excel else pd.read_csv(label_path, sep=csv_sep, dtype=dtype)
         ])
 
     df = df.reset_index(drop=True)
+
+    # TODO: Think about how to handle various Targets
+    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
+    df = df[df.Target.notnull()].groupby(&#39;ID&#39;).agg(&#39;max&#39;).reset_index()
     return df</code></pre>
 </details>
 </dd>
@@ -1003,7 +1017,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L270-L272" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L273-L275" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def expand_list(l, n):
     &#34;&#34;&#34; Expand a list `l` to repeat its elements till reaching length of `n` &#34;&#34;&#34;
@@ -1018,7 +1032,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L326-L468" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L329-L471" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def generate_template(dst_folder, groups, subgroup_length, filename_prefix=&#39;IMG_&#39;, excel=True, csv_sep=&#39;;&#39;, able_overwrite=False):
     &#34;&#34;&#34; Generates template files for each group of DICOM files using the filename as ID &#34;&#34;&#34;
@@ -1173,7 +1187,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L299-L323" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L302-L326" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_final_dst(dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None):
     &#34;&#34;&#34; Relates source filepaths with destination paths depending on shuffle groups and subgroup length &#34;&#34;&#34;
@@ -1210,7 +1224,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L663-L673" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L670-L680" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_last_id(relation_df, prefix=&#39;IMG_&#39;):
     &#34;&#34;&#34; Get the ID of the last filename from current relation of files &#34;&#34;&#34;
@@ -1233,7 +1247,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L471-L538" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L474-L541" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def modify_template(dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=&#39;;&#39;):
     &#34;&#34;&#34; Modify all the templates on dst_folder applying `modify_func` on each DataFrame &#34;&#34;&#34;
@@ -1313,7 +1327,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L118-L159" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L121-L162" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_extension=&#39;xlsx&#39;):
     &#34;&#34;&#34; Move blocks of files to the new folder (person name) &#34;&#34;&#34;
@@ -1367,7 +1381,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L44-L75" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L47-L78" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def move_file(src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True):
     &#34;&#34;&#34; Move or copy file to the destination folder with folder name &#34;&#34;&#34;
@@ -1411,7 +1425,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L78-L115" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L81-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def move_relation(relation_filepath, copy=True, to_raw=True):
     &#34;&#34;&#34; Move or copy files to/from raw destination from/to final destination based on relation file &#34;&#34;&#34;
@@ -1461,7 +1475,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L646-L655" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L653-L662" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def open_name_relation_file(filepath, sep=&#39;,&#39;):
     &#34;&#34;&#34; Extract DataFrame from file containing the relation between original and new files &#34;&#34;&#34;
@@ -1476,16 +1490,16 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 </details>
 </dd>
 <dt id="radiology_ai.utils.organize.organize_folders"><code class="name flex">
-<span>def <span class="ident">organize_folders</span></span>(<span>src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False)</span>
+<span>def <span class="ident">organize_folders</span></span>(<span>src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, label_exact_match=True, check_DICOM_dict=None, debug=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Organize folders and files to set all the desired DICOM files into the correct folder</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L162-L268" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L165-L271" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix=&#39;IMG_&#39;, force_extension=None, copy=True, metadata_labels=None, check_DICOM_dict=None, debug=False):
+<pre><code class="python">def organize_folders(src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix=&#39;IMG_&#39;, force_extension=None, copy=True, metadata_labels=None, label_exact_match=True, check_DICOM_dict=None, debug=False):
     &#34;&#34;&#34; Organize folders and files to set all the desired DICOM files into the correct folder &#34;&#34;&#34;
 
     # In case not reseting the folders, then the current relation is required
@@ -1516,7 +1530,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
             
             # Check if current file is frontal (ap) image
             if metadata_labels is not None:
-                if check_metadata_label(filepath, metadata_labels, label=&#39;ap&#39;):
+                if check_metadata_label(filepath, metadata_labels, label=&#39;ap&#39;, exact_match=label_exact_match):
                     correct_filepaths.append(filepath)
             else:
                 # Read and check DICOM
@@ -1602,7 +1616,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L565-L585" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L568-L588" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def read_template(template_file, sep=None, dtype=None):
     &#34;&#34;&#34; Read template idenpendently of the extension &#34;&#34;&#34;
@@ -1635,7 +1649,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L632-L643" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L639-L650" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def rename_patient(dicom_files):
     &#34;&#34;&#34; Modify metadata regarding Patient&#39;s Name and Patient&#39;s ID to set them as the filename &#34;&#34;&#34;
@@ -1659,7 +1673,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L658-L660" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L665-L667" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save_name_relation_file(relation_df, filepath, sep=&#39;,&#39;):
     &#34;&#34;&#34; Save file containing the relation between original and new files &#34;&#34;&#34;
@@ -1674,7 +1688,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L275-L296" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L278-L299" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def shuffle_group_folders(folders, groups, subgroup_length=None, start_num_subgrups=None):
     &#34;&#34;&#34; Generate dictionaries of the shuffled groups and subgroups related to folders &#34;&#34;&#34;
@@ -1708,7 +1722,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L541-L553" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L544-L556" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def sort_template_file(df, filename_prefix):
     &#34;&#34;&#34; Sort DataFrame based on template filename &#34;&#34;&#34;
@@ -1733,7 +1747,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/utils\organize.py#L691-L707" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/utils\organize.py#L698-L714" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_block_relation(relation_df, parent_folder, block, new_folder, sep=&#39;/&#39;):
     &#34;&#34;&#34; Replace the old folder names by the new folder only to the paths where the block appears &#34;&#34;&#34;

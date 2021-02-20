@@ -35,22 +35,27 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\utils.py#L0-L13" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\utils.py#L0-L18" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Utility functions for Semi-Supervised Learning &#34;&#34;&#34;
 
 import torch
 import pandas as pd
+import numpy as np
 
 def interleave(x, bs):
     &#34;&#34;&#34; Interleave to mix batch data &#34;&#34;&#34;
     s = list(x.shape)
-    return torch.reshape(torch.transpose(x.reshape([-1, bs] + s[1:]), 1, 0), [-1] + s[1:])
+    idx = np.argmax((np.array(s) != 1)) + 1
+    ret = torch.reshape(torch.transpose(x.reshape([-1, bs] + s[idx:]), 1, 0), s)
+    return ret
 
 def de_interleave(x, bs):
     &#34;&#34;&#34; Deinterleave to undo mix of batch data &#34;&#34;&#34;
     s = list(x.shape)
-    return torch.reshape(torch.transpose(x.reshape([bs, -1] + s[1:]), 1, 0), [-1] + s[1:])</code></pre>
+    idx = np.argmax((np.array(s) != 1)) + 1
+    ret = torch.reshape(torch.transpose(x.reshape([bs, -1] + s[idx:]), 1, 0), s)
+    return ret</code></pre>
 </details>
 </section>
 <section>
@@ -68,12 +73,14 @@ def de_interleave(x, bs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\utils.py#L11-L14" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\utils.py#L14-L19" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def de_interleave(x, bs):
     &#34;&#34;&#34; Deinterleave to undo mix of batch data &#34;&#34;&#34;
     s = list(x.shape)
-    return torch.reshape(torch.transpose(x.reshape([bs, -1] + s[1:]), 1, 0), [-1] + s[1:])</code></pre>
+    idx = np.argmax((np.array(s) != 1)) + 1
+    ret = torch.reshape(torch.transpose(x.reshape([bs, -1] + s[idx:]), 1, 0), s)
+    return ret</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.utils.interleave"><code class="name flex">
@@ -84,12 +91,14 @@ def de_interleave(x, bs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/7a45ef01c94957eee8f0bb9f1b102f2adc572b6f/semisupervised\utils.py#L6-L9" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\utils.py#L7-L12" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def interleave(x, bs):
     &#34;&#34;&#34; Interleave to mix batch data &#34;&#34;&#34;
     s = list(x.shape)
-    return torch.reshape(torch.transpose(x.reshape([-1, bs] + s[1:]), 1, 0), [-1] + s[1:])</code></pre>
+    idx = np.argmax((np.array(s) != 1)) + 1
+    ret = torch.reshape(torch.transpose(x.reshape([-1, bs] + s[idx:]), 1, 0), s)
+    return ret</code></pre>
 </details>
 </dd>
 </dl>
