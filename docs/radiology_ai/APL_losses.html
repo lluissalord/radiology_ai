@@ -43,7 +43,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L0-L428" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L0-L428" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels.
 
@@ -513,7 +513,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L417-L429" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L417-L429" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class DMILoss(FastaiLoss):
     def __init__(self, num_classes):
@@ -555,7 +555,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L422-L429" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L422-L429" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, output, target):
     outputs = F.softmax(output, dim=1)
@@ -597,7 +597,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L28-L40" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L28-L40" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FastaiLoss(torch.nn.Module):
     def __init__(self, num_classes):
@@ -665,7 +665,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L40-L40" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L40-L40" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def activation(self, x): return F.softmax(x, dim=-1)</code></pre>
 </details>
@@ -678,7 +678,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L33-L33" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L33-L33" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def decodes(self, x):    return x.argmax(dim=-1)</code></pre>
 </details>
@@ -691,7 +691,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/torch\nn\modules\module.py#L222-L223" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/torch\nn\modules\module.py#L222-L223" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def _forward_unimplemented(self, *input: Any) -&gt; None:
     raise NotImplementedError</code></pre>
@@ -709,7 +709,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L320-L357" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L320-L357" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FocalLoss(FastaiLoss):
     &#39;&#39;&#39;
@@ -776,7 +776,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L335-L357" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L335-L357" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, input, target):
     if input.dim() &gt; 2:
@@ -833,7 +833,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L207-L215" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L207-L215" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GCEandMAE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -871,7 +871,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L214-L215" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L214-L215" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.gce(pred, labels) + self.mae(pred, labels)</code></pre>
@@ -907,7 +907,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L229-L237" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L229-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GCEandNCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -945,7 +945,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L236-L237" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L236-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.gce(pred, labels) + self.nce(pred, labels)</code></pre>
@@ -981,7 +981,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L218-L226" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L218-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GCEandRCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -1019,7 +1019,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L225-L226" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L225-L226" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.gce(pred, labels) + self.rce(pred, labels)</code></pre>
@@ -1055,7 +1055,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L115-L127" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L115-L127" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class GeneralizedCrossEntropy(FastaiLoss):
     def __init__(self, num_classes, q=0.7):
@@ -1097,7 +1097,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L122-L127" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L122-L127" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -1137,7 +1137,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L273-L281" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L273-L281" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class MAEandRCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes):
@@ -1175,7 +1175,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L280-L281" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L280-L281" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.mae(pred, labels) + self.rce(pred, labels)</code></pre>
@@ -1211,7 +1211,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L148-L166" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L148-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class MeanAbsoluteError(FastaiLoss):
     def __init__(self, num_classes, scale=1.0):
@@ -1259,7 +1259,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L156-L166" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L156-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -1304,7 +1304,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L196-L204" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L196-L204" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NCEandMAE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes):
@@ -1342,7 +1342,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L203-L204" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L203-L204" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.nce(pred, labels) + self.mae(pred, labels)</code></pre>
@@ -1378,7 +1378,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L185-L193" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L185-L193" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NCEandRCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes):
@@ -1416,7 +1416,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L192-L193" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L192-L193" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.nce(pred, labels) + self.rce(pred, labels)</code></pre>
@@ -1452,7 +1452,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L395-L403" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L395-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NFLandMAE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, gamma=0.5):
@@ -1490,7 +1490,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L402-L403" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L402-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.nfl(pred, labels) + self.mae(pred, labels)</code></pre>
@@ -1526,7 +1526,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L384-L392" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L384-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NFLandNCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, gamma=0.5):
@@ -1564,7 +1564,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L391-L392" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L391-L392" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.nfl(pred, labels) + self.nce(pred, labels)</code></pre>
@@ -1600,7 +1600,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L406-L414" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L406-L414" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NFLandRCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, gamma=0.5):
@@ -1638,7 +1638,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L413-L414" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L413-L414" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.nfl(pred, labels) + self.rce(pred, labels)</code></pre>
@@ -1674,7 +1674,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L251-L259" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L251-L259" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NGCEandMAE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -1712,7 +1712,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L258-L259" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L258-L259" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.ngce(pred, labels) + self.mae(pred, labels)</code></pre>
@@ -1748,7 +1748,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L240-L248" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L240-L248" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NGCEandNCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -1786,7 +1786,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L247-L248" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L247-L248" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.ngce(pred, labels) + self.nce(pred, labels)</code></pre>
@@ -1822,7 +1822,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L262-L270" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L262-L270" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NGCEandRCE(FastaiLoss):
     def __init__(self, alpha, beta, num_classes, q=0.7):
@@ -1860,7 +1860,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L269-L270" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L269-L270" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     return self.ngce(pred, labels) + self.rce(pred, labels)</code></pre>
@@ -1896,7 +1896,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L284-L317" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L284-L317" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NLNL(FastaiLoss):
     def __init__(self, train_loader, num_classes, ln_neg=1):
@@ -1959,7 +1959,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L302-L317" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L302-L317" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     labels_neg = (labels.unsqueeze(-1).repeat(1, self.ln_neg)
@@ -2009,7 +2009,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L101-L112" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L101-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NormalizedCrossEntropy(FastaiLoss):
     def __init__(self, num_classes, scale=1.0):
@@ -2050,7 +2050,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L108-L112" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L108-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.log_softmax(pred, dim=1)
@@ -2089,7 +2089,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L360-L381" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L360-L381" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NormalizedFocalLoss(FastaiLoss):
     def __init__(self, scale=1.0, gamma=0, num_classes=10, alpha=None, size_average=True):
@@ -2140,7 +2140,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L368-L381" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L368-L381" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, input, target):
     target = target.view(-1, 1)
@@ -2188,7 +2188,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L130-L145" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L130-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NormalizedGeneralizedCrossEntropy(FastaiLoss):
     def __init__(self, num_classes, scale=1.0, q=0.7):
@@ -2233,7 +2233,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L138-L145" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L138-L145" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -2275,7 +2275,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L169-L182" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L169-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NormalizedMeanAbsoluteError(FastaiLoss):
     def __init__(self, num_classes, scale=1.0):
@@ -2318,7 +2318,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L177-L182" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L177-L182" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -2358,7 +2358,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L84-L98" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L84-L98" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class NormalizedReverseCrossEntropy(FastaiLoss):
     def __init__(self, num_classes, scale=1.0):
@@ -2402,7 +2402,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L91-L98" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L91-L98" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -2444,7 +2444,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L68-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L68-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class ReverseCrossEntropy(FastaiLoss):
     def __init__(self, num_classes, scale=1.0):
@@ -2487,7 +2487,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L75-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L75-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     pred = F.softmax(pred, dim=1)
@@ -2528,7 +2528,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L43-L65" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L43-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SCELoss(FastaiLoss):
     def __init__(self, alpha, beta, num_classes=10):
@@ -2580,7 +2580,7 @@ parameters converted too when you call :meth:<code>to</code>, etc.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/APL_losses.py#L52-L65" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/APL_losses.py#L52-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def forward(self, pred, labels):
     # CCE

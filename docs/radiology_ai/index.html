@@ -75,6 +75,10 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <li>[x] Model interpretation with GradCAM or Layer Relevance Propagation</li>
 <li>[ ] Use several channels for different views of the radiography</li>
 </ul>
+<p>See below some examples these preprocessing transformations:</p>
+<p><img alt="&quot;Preprocess steps 1&quot;" src="https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps.svg">
+<img alt="&quot;Preprocess steps 2&quot;" src="https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps_2.svg"></p>
+<p>For more information regarding the implemented preprocesses please see <a href="https://github.com/lluissalord/radiology_ai/tree/master/preprocessing">Preprocessing README</a> or the related API documentation <a href="https://lluissalord.github.io/radiology_ai/radiology_ai/preprocessing/index.html">here</a></p>
 <hr>
 <h2 id="installation">Installation</h2>
 <p>Add conda-forge channel:<br>
@@ -106,25 +110,13 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <code>conda install "ipython&gt;=6.0.0"</code></p>
 </li>
 </ol>
-<h2 id="preprocessing">Preprocessing</h2>
-<p>Raw images could be used by a deep learning model, however we can benefit from preprocessing. On this project the main three preprocess transformation are:</p>
-<ul>
-<li><strong>KneeLocalizer</strong>: Center image only on region of interest (ROI) which normalize dataset.</li>
-<li><strong>BackgroundPreprocess</strong>: Cleaning background and noisy parts which helps avoid model memorization due to characteristic background/noise.</li>
-<li><strong>CLAHE Transform</strong>: Grayscale/Color histogram normalization which helps CNN model training.</li>
-</ul>
-<p>See below some examples these transformations:</p>
-<p><img alt="&quot;Preprocess steps 1&quot;" src="https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps.svg">
-<img alt="&quot;Preprocess steps 2&quot;" src="https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps_2.svg"></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/__init__.py#L0-L7" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/__init__.py#L0-L5" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 .. include:: README.md
-
-.. include:: preprocessing/README.md
 
 &#34;&#34;&#34;
 
@@ -171,7 +163,6 @@ data-gaCategoryParameter="radiology_ai">
 <li><a href="#installation">Installation</a></li>
 <li><a href="#api-documentation">API Documentation</a></li>
 <li><a href="#troubleshooting">Troubleshooting</a></li>
-<li><a href="#preprocessing">Preprocessing</a></li>
 </ul>
 </li>
 </ul>

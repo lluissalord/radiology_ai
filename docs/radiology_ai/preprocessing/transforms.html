@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L0-L711" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L0-L711" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Fastai Transformations to be used on training &#34;&#34;&#34;
 
@@ -766,7 +766,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L89-L93" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L89-L93" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_in_dict_list(d, key, value):
     if key in d:
@@ -783,7 +783,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L80-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L80-L81" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_a_in_b(a, b):
     return a[2]*a[3] != b[2]*b[3] and a[0] &gt;= b[0] and a[1] &gt;= b[1] and a[0]+a[2] &lt;= b[0]+b[2] and a[1]+a[3] &lt;= b[1]+b[3]</code></pre>
@@ -797,7 +797,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L84-L86" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L84-L86" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_intersection(a, b):
     inter_box = intersection(a,b)
@@ -812,7 +812,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L71-L77" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L71-L77" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def intersection(a,b):
   x = max(a[0], b[0])
@@ -831,7 +831,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L63-L68" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L63-L68" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def union(a,b):
   x = min(a[0], b[0])
@@ -860,7 +860,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L516-L712" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L516-L712" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class BackgroundPreprocess(Transform):
     &#34;&#34;&#34; Background cleaning preprocess. Consist on the following steps:
@@ -1095,7 +1095,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L30-L60" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L30-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CLAHE_Transform(Transform):
     &#34;&#34;&#34; Implement CLAHE transformation for Adaptative Histogram Equalization &#34;&#34;&#34;
@@ -1164,7 +1164,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L14-L27" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L14-L27" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HistScaled(Transform):
     &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
@@ -1226,7 +1226,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L96-L460" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L96-L460" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class KneeLocalizer(Transform):
     &#34;&#34;&#34; Transformation which finds out where is the knee and cut out the rest of the image
@@ -1620,7 +1620,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L437-L460" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L437-L460" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
     &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
@@ -1656,7 +1656,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L388-L434" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L388-L434" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
     &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
@@ -1721,7 +1721,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L380-L386" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L380-L386" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def smooth_line(self, line, av_points):
     smooth = np.convolve(
@@ -1743,7 +1743,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5c7da2efc3675febb605718a2efe8b644a25eb66/preprocessing\transforms.py#L463-L513" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/preprocessing\transforms.py#L463-L513" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class XRayPreprocess(Transform):
     &#34;&#34;&#34; Preprocess the X-ray image using histogram clipping and global contrast normalization. &#34;&#34;&#34;
