@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L0-L165" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L0-L165" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Preprocessings used for DICOM treatments &#34;&#34;&#34;
 
@@ -223,7 +223,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L49-L166" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L49-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class DCMPreprocessDataset(Dataset):
     &#34;&#34;&#34; Dataset class for DCM preprocessing &#34;&#34;&#34;
@@ -358,7 +358,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L106-L112" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L106-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_dcm(self, idx):
     &#34;&#34;&#34; Get the DCM file &#34;&#34;&#34;
@@ -377,7 +377,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L114-L118" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L114-L118" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_dcm_by_name(self, img_name):
     if img_name[-4:] != &#39;.dcm&#39;:
@@ -394,7 +394,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L98-L104" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L98-L104" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_fname(self, idx):
     &#34;&#34;&#34; Get the filenames &#34;&#34;&#34;
@@ -413,7 +413,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L120-L124" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L120-L124" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def init_bins(self, n_samples=None):
     &#34;&#34;&#34; Initialize bins to equally distribute the histogram of the dataset &#34;&#34;&#34;
@@ -430,7 +430,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L126-L166" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L126-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def save(self, dst_folder, extension=&#39;png&#39;, overwrite=True, keep=False, clean_folder=False):
     &#34;&#34;&#34; Saves all preprocessed files converting them into image files &#34;&#34;&#34;
@@ -486,7 +486,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L33-L46" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L33-L46" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HistScaled_Dicom(Transform):
     &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
@@ -537,7 +537,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L20-L30" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L20-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class PILDicom_scaled(PILDicom):
     &#34;&#34;&#34; Generalization of PILDicom class making sure it is properly scaled taking into account DICOM metadata &#34;&#34;&#34;
@@ -567,7 +567,7 @@ class DCMPreprocessDataset(Dataset):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/preprocessing\dicom.py#L23-L30" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/preprocessing\dicom.py#L23-L30" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@classmethod
 def create(cls, fn:(Path,str,bytes), mode=None)-&gt;None:

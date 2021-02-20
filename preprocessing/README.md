@@ -9,5 +9,5 @@ Raw images could be used by a deep learning model, however we can benefit from p
 
 See below some examples these transformations:
 
-!["Preprocess steps 1"](https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps.svg "Preprocess steps 1")
-!["Preprocess steps 2"](https://github.com/lluissalord/radiology_ai/tree/master/docs/images/preprocess_steps_2.svg "Preprocess steps 2")
+!["Preprocess steps 1"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps.svg)
+!["Preprocess steps 2"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps_2.svg)

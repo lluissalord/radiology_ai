@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L0-L73" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L0-L73" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Loss class for FixMatch algorith &#34;&#34;&#34;
 
@@ -131,7 +131,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L11-L74" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L11-L74" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FixMatchLoss(BaseLoss):
     &#34;&#34;&#34; Loss for FixMatch process &#34;&#34;&#34;
@@ -212,7 +212,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L44-L65" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L44-L65" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
     &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
@@ -246,7 +246,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L26-L42" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L26-L42" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
     &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
@@ -275,7 +275,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L74-L74" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L74-L74" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
 </details>
@@ -288,7 +288,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L72-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L72-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def decodes(self, x):    return x.argmax(dim=1)</code></pre>
 </details>
@@ -301,7 +301,7 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/2fa99738c75e40ed0f0ee1aee1cf52af84b26202/semisupervised\fixmatch\losses.py#L67-L70" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/4d35bd66c3fc86944b3b2331dda59e3091f1e34f/semisupervised\fixmatch\losses.py#L67-L70" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def w_scheduling(self, epoch):
     &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
