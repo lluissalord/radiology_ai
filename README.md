@@ -33,6 +33,13 @@ In order to tackle these issues we implemented the following methods on [PyTorch
    - [x] Model interpretation with GradCAM or Layer Relevance Propagation
    - [ ] Use several channels for different views of the radiography
 
+See below some examples these preprocessing transformations:
+
+!["Preprocess steps 1"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps.svg)
+!["Preprocess steps 2"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/preprocess_steps_2.svg)
+
+For more information regarding the implemented preprocesses please see [Preprocessing README](https://github.com/lluissalord/radiology_ai/tree/master/preprocessing) or the related API documentation [here](https://lluissalord.github.io/radiology_ai/radiology_ai/preprocessing/index.html)
+
 ---
 
 ## Installation
