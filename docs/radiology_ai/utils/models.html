@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L0-L71" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L0-L71" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Model related utilities &#34;&#34;&#34;
 
@@ -126,7 +126,7 @@ class EMAModel(Callback):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L14-L28" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L14-L28" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=False, bn_final=False):
     if model is None:
@@ -160,7 +160,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L31-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L31-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class EMAModel(Callback):
     &#34;&#34;&#34; Evaluate model during validation with a EMA model
@@ -220,7 +220,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L43-L45" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L43-L45" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def after_batch(self):
     if not self.training: return
@@ -235,7 +235,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L38-L41" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L38-L41" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def after_create(self):
     self.shadow = self.get_model_state()
@@ -251,7 +251,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L50-L51" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L50-L51" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def after_validate(self):
     self.restore()</code></pre>
@@ -265,7 +265,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L61-L63" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L61-L63" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def apply_shadow(self):
     self.backup = self.get_model_state()
@@ -280,7 +280,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L47-L48" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L47-L48" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def before_validate(self):
     self.apply_shadow()</code></pre>
@@ -294,7 +294,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L68-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L68-L72" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_model_state(self):
     return {
@@ -311,7 +311,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L65-L66" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L65-L66" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def restore(self):
     self.model.load_state_dict(self.backup)</code></pre>
@@ -325,7 +325,7 @@ Based on <a href="https://raw.githubusercontent.com/valencebond/FixMatch_pytorch
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/5405f1baeaf8bcb2c1ad76b6f4f30ed53c491ba1/utils\models.py#L53-L59" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/utils\models.py#L53-L59" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def update_params(self):
     decay = self.alpha
