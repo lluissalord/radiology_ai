@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 import cv2
 
-
+import torch
 class HistScaled(Transform):
     """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
 
@@ -146,7 +146,7 @@ class KneeLocalizer(Transform):
 
         # Approximate the scales to not include left/right or top/bottom black stripes
         # First check if there is top/bottom black stripes, otherwise check it for left/right ones
-        mask_black = cv2.threshold(img, 3, 255, cv2.THRESH_BINARY)[1]
+        mask_black = cv2.threshold(img, 7, 255, cv2.THRESH_BINARY)[1]
         
         # apply morphology to remove isolated extraneous noise
         kernel = np.ones((5,5), np.uint8)
@@ -202,7 +202,7 @@ class KneeLocalizer(Transform):
                 c_candidates.append(c)
 
                 # Area conditions
-                if smallest_area <= area and area < 0.5:
+                if smallest_area <= area or area < 0.5:
                     continue
 
                 # Check that when filling current proposal then almost nothing is left
@@ -285,40 +285,46 @@ class KneeLocalizer(Transform):
         if self.debug:
             debug_info = []
 
-        # Loop across proposals and scales
-        for y_coord in y_prop:
-            for x_coord in x_prop:
-                for scale in self.scales:
-                    # Check if fits on image
-                    if x_coord - min_R_C / scale / 2 >= 0 and x_coord + min_R_C / scale / 2 <= C and y_coord - min_R_C / scale / 2 >= 0 and y_coord + min_R_C / scale / 2 <= R :
+        if y_prop != []:
+            # Loop across proposals and scales
+            for y_coord in y_prop:
+                for x_coord in x_prop:
+                    for scale in self.scales:
+                        # Check if fits on image
+                        if x_coord - min_R_C / scale / 2 >= 0 and x_coord + min_R_C / scale / 2 <= C and y_coord - min_R_C / scale / 2 >= 0 and y_coord + min_R_C / scale / 2 <= R :
 
-                        # Candidate ROI
-                        roi = np.array([x_coord - min_R_C / scale / 2,
-                                        y_coord - min_R_C / scale / 2,
-                                        min_R_C / scale, min_R_C / scale], dtype=np.int)
-                        x1, y1 = roi[0], roi[1]
-                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
-                        patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
+                            # Candidate ROI
+                            roi = np.array([x_coord - min_R_C / scale / 2,
+                                            y_coord - min_R_C / scale / 2,
+                                            min_R_C / scale, min_R_C / scale], dtype=np.int)
+                            x1, y1 = roi[0], roi[1]
+                            x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                            patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
 
-                        # Calculate score from SVM model
-                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
-                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+                            # Calculate score from SVM model
+                            hog_descr = hog.compute(patch, self.win_stride, self.padding)
+                            score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
 
-                        if self.debug:
-                            debug_info.append(
-                                {
-                                    'patch': patch,
-                                    'score': score,
-                                    'scale': scale,
-                                    'coords': ((x1, y1), (x2,y2)),
-                                }
-                            )
-                        
-                        # Check and save best score
-                        if score > best_score:
-                            best_score = score
-                            roi_R = ((x1, y1), (x2,y2))
+                            if self.debug:
+                                debug_info.append(
+                                    {
+                                        'patch': patch,
+                                        'score': score,
+                                        'scale': scale,
+                                        'coords': ((x1, y1), (x2,y2)),
+                                    }
+                                )
+                            
+                            # Check and save best score
+                            if score > best_score:
+                                best_score = score
+                                roi_R = ((x1, y1), (x2,y2))
+        else:
+            roi_img = img[:]
+            # self.PIL_cls.create(roi_img).save('sources/extra_images/failing.png', format='png', compress_level=0)
+            debug_info = []
 
+        # if self.debug or y_prop == []:
         if self.debug:
             print()
             cols = 4
@@ -353,6 +359,7 @@ class KneeLocalizer(Transform):
                         i += 1
             fig.tight_layout()
             fig.show()
+            plt.show()
 
         if best_score == -np.inf:
             img = cv2.resize(
@@ -417,21 +424,28 @@ class KneeLocalizer(Transform):
 
         # Filter for peaks with highest second derivate as it has to be a quick change of gradients
         derv_peaks = np.argsort(derv_derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
-        max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
-        min_cond = max(min(derv_peaks) - R // 20, 0)
 
-        # Get top tau % of the filtered peaks
-        peaks = np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][:int(0.1 * R * (1 - 2 * margin))] + min_cond
+        if len(derv_peaks) != 0:
+            max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
+            min_cond = max(min(derv_peaks) - R // 20, 0)
 
-        # Filter to only use peaks which are separated at least by a 5%
-        final_peaks = []
-        while len(peaks) != 0:
-            peak = peaks[0]
-            final_peaks.append(peak)
-            peaks = peaks[(peaks > peak + R // 25) | (peaks < peak - R // 25)]
+            # Get top tau % of the filtered peaks
+            peaks = np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][:int(0.1 * R * (1 - 2 * margin))] + min_cond
 
-        # return list(peaks[::step] + int(R * margin)) + [R // 2]
-        return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+            # Filter to only use peaks which are separated at least by a 5%
+            final_peaks = []
+            while len(peaks) != 0:
+                peak = peaks[0]
+                final_peaks.append(peak)
+                peaks = peaks[(peaks > peak + R // 25) | (peaks < peak - R // 25)]
+
+            # return list(peaks[::step] + int(R * margin)) + [R // 2]
+            return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+
+        # Sometimes if there has been some issues on previous steps it happens that there are no enough derv_peaks
+        # then it is best to not propose any
+        else:
+            return []
 
     
     def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
