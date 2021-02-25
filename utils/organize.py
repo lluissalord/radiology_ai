@@ -118,6 +118,27 @@ def move_relation(relation_filepath, copy=True, to_raw=True):
     check_relation(relation_df, check_path=not to_raw, check_raw=to_raw)
 
 
+def move_distribute_blocks(parent_folder, new_folders, blocks, relation_filepath, template_extension='xlsx'):
+    """ Move and distribute equal number of blocks of files to a list of new folders (person names) """
+
+    distribution = np.random.permutation(
+        np.tile(
+            np.random.permutation(new_folders),
+            len(blocks) // len(new_folders) + (len(blocks) % len(new_folders) != 0)
+        )[:len(blocks)]
+    )
+
+    for folder in np.unique(new_folders):
+        current_blocks = np.array(blocks)[np.where(distribution == folder)]
+        move_blocks(
+            parent_folder=parent_folder,
+            new_folder=folder,
+            blocks=current_blocks,
+            relation_filepath=relation_filepath,
+            template_extension=template_extension
+        )
+
+
 def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_extension='xlsx'):
     """ Move blocks of files to the new folder (person name) """
 
