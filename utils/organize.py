@@ -5,6 +5,7 @@ import os
 import shutil
 import random
 from pathlib import Path
+from collections.abc import Iterable
 
 from tqdm.auto import tqdm
 tqdm.pandas()
@@ -150,8 +151,9 @@ def move_blocks(parent_folder, new_folder, blocks, relation_filepath, template_e
     relation_df = open_name_relation_file(relation_filepath, sep=',')
 
     check_relation(relation_df, check_path=True, check_raw=False)
+    print('All in place!')
 
-    if type(blocks) is not list:
+    if not isinstance(blocks, Iterable):
         blocks = [blocks]
 
     for block in tqdm(blocks, desc='Blocks'):
@@ -757,6 +759,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 
     # Check current path
     if check_path:
+        print('Checking relation file are in the correct path...')
         if type(relation_df) is pd.DataFrame:
             check = relation_df['Path'].apply(check_generic_path)
         else:
@@ -768,6 +771,7 @@ def check_relation(relation_df, check_path=True, check_raw=True):
 
     # Check raw path
     if check_raw:
+        print('Checking relation file are in the raw path...')
         if type(relation_df) is pd.DataFrame:
             check = pd.Series(relation_df.index.map(lambda x: os.path.exists(x)), index=relation_df.index, dtype=bool)
         else:
@@ -777,4 +781,5 @@ def check_relation(relation_df, check_path=True, check_raw=True):
         if not check.all():
             raise ValueError(f'The following cases do not have correct `Original` on relation DataFrame:\n{relation_df.loc[~check]}')
 
+    print('All in place!')
     return True
