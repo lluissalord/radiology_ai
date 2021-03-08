@@ -129,7 +129,7 @@ def move_distribute_blocks(parent_folder, new_folders, blocks, relation_filepath
         )[:len(blocks)]
     )
 
-    for folder in np.unique(new_folders):
+    for folder in tqdm(np.unique(new_folders), desc='Distributions'):
         current_blocks = np.array(blocks)[np.where(distribution == folder)]
         move_blocks(
             parent_folder=parent_folder,
