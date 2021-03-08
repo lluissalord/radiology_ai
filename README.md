@@ -46,6 +46,14 @@ For more information regarding the implemented preprocesses please see [Preproce
 
 ## Installation
 
+### **Google Colab setup**
+
+All the notebooks are prepared to be directly used on Google Colab, then if you are going to be using Google Colab you do not have to worry at all.
+
+In case you would like to reuse code for setting up your notebook please look on `colab_pip_setup.ipynb` and/or `colab_conda_setup.ipynb`. This last one is for the automatic `conda` installations on Google Colab. The `gdcm` package which is required to read all kind of DICOM files can only be installed with `conda`. Hence `0_eda.ipynb` and `3_preprocess.ipynb` notebooks which read DICOM files requires of this kind of installation.
+
+### **Local installation**
+
 Add conda-forge channel:  
 `conda config --add channels conda-forge`
 
