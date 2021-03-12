@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from fastai.basics import BaseLoss
+from fastai.basics import BaseLoss, CrossEntropyLossFlat
 
 from semisupervised.losses import SemiLoss
 
@@ -35,9 +35,7 @@ class FixMatchLoss(BaseLoss):
         if torch.cuda.is_available():
             targets_x = targets_x.cuda()
 
-        Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=self.reduction)
-        if torch.cuda.is_available:
-            Lx_criterion_func = Lx_criterion_func.cuda()
+        Lx_criterion_func = CrossEntropyLossFlat(weight=self.weight, reduction=self.reduction)
 
         return Lx_criterion_func(logits_x, targets_x.long())
 
@@ -56,9 +54,7 @@ class FixMatchLoss(BaseLoss):
                 scores, lbs_u_guess = torch.max(probs, dim=1)
                 mask = scores.ge(self.label_threshold).float()
             
-            Lu_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction='none')
-            if torch.cuda.is_available:
-                Lu_criterion_func = Lu_criterion_func.cuda()
+            Lu_criterion_func = CrossEntropyLossFlat(weight=self.weight, reduction='none')
 
             return (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
         else:

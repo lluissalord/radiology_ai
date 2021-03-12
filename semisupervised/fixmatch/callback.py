@@ -18,11 +18,11 @@ class FixMatchCallback(Callback):
 
         # Only process if is trainig
         if not self.training: return
-        
+
         # Extract a batch of unlabel images and repeat twice the transformation (different results due to randomness)
         raw_inputs_u = self.unlabel_dl.one_batch()[0]
-        inputs_u_weak = self.weak_transform_dl.after_batch(raw_inputs_u.detach())
-        inputs_u_strong = self.strong_transform_dl.after_batch(raw_inputs_u.detach())
+        inputs_u_weak = self.weak_transform_dl.after_batch(raw_inputs_u.clone().detach())
+        inputs_u_strong = self.strong_transform_dl.after_batch(raw_inputs_u.clone().detach())
 
         # Make suree the input has the right structure
         input_x = self.learn.xb

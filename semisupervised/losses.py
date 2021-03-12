@@ -83,7 +83,7 @@ class SemiLoss(object):
         else:
             loss = Lx + self.lambda_u * Lu
             # self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu, 'w': w}
- 
+
         return loss
 
     # @abstractmethod
