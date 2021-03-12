@@ -72,7 +72,7 @@ Install Pytorch Lignthning Bolts (due to an issue not yet solved on release bett
 `pip install https://github.com/lluissalord/pytorch-lightning-bolts/archive/issue_436_simCLR_IndexError.zip --upgrade`
 
 Install fastai2_extensions (renamed as amalgam) to use gradCAM visualizations:  
-`pip install git+https://github.com/Synopsis/amalgam.git`
+`pip install git+https://github.com/Synopsis/amalgam.git palettable`
 
 
 ---
