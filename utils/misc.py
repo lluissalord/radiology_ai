@@ -20,6 +20,41 @@ class GradientClipping(Callback):
         if self.clip: torch.nn.utils.clip_grad_norm_(self.learn.model.parameters(), self.clip)
 
 
+class DebuggingCallback(Callback):
+    order=101
+
+    def __init__(self, start_epoch=0):
+        self.start_epoch = start_epoch
+
+    def before_batch(self):
+        if self.start_epoch > self.epoch: return
+
+        if self.training:
+            print('TRAINING')
+        else:
+            print('EVALUATING')
+        try:
+            print('self.learn.xb (mean): ', self.learn.xb.mean())
+        except AttributeError:
+            print('self.learn.xb (mean): ', self.learn.xb[0].mean())
+        # print('self.learn.xb: ', self.learn.xb)
+        print('self.learn.yb: ', self.learn.yb)
+    
+    def after_pred(self):
+        if self.start_epoch > self.epoch: return
+
+        print('self.pred: ', self.pred)
+        with torch.no_grad():
+            try:
+                print('Lx_criterion: ', self.loss_func.Lx_criterion(self.pred, *self.yb, reduction='mean'))
+                print('Lu_criterion: ', self.loss_func.Lu_criterion(self.pred, *self.yb, reduction='mean'))
+            except:
+                pass
+
+            print('loss: ', self.loss_func(self.pred, *self.yb))
+        print('\n','-'*40,'\n')
+
+
 def categorical_to_one_hot(x, n_out):
     """ Transform categorical tensor to one hot encoding """
     zeros = torch.zeros(len(x), n_out)
