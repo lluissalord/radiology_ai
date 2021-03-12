@@ -27,7 +27,8 @@ def create_model(model_arq, n_out, model=None, pretrained=True, n_in=1, ema=Fals
 
     return model
 
-
+# TODO: This creates issue with a huge difference between training and validation
+# seems like the logits are one or two order of magnitude higher during validation
 class EMAModel(Callback):
     """ Evaluate model during validation with a EMA model
     Based on https://raw.githubusercontent.com/valencebond/FixMatch_pytorch/master/models/ema.py

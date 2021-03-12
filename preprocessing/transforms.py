@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from fastai.basics import *
 from fastai.vision.core import *
 from fastcore.transform import Transform
 
@@ -11,6 +12,41 @@ import matplotlib.pyplot as plt
 import cv2
 
 import torch
+
+
+class TensorPNGFloatBW(TensorImage):
+    "Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloatBW`"
+    _show_args,_open_args = {'cmap':'bone'},{'mode': 'L'}
+
+
+class PILPNGFloatBW(PILImageBW):
+    _open_args,_tensor_cls,_show_args = {},TensorPNGFloatBW,TensorPNGFloatBW._show_args
+    @classmethod
+    def create(cls, fn:(Path,str,bytes), mode=None)->None:
+        "Open a `PNG file` from path `fn` with float format without lossing information"
+        if isinstance(fn,(Path,str)): im = Image.fromarray(plt.imread(fn) * (2**16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)
+
+
+class TensorPNGFloat(TensorImage):
+    "Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloat`"
+    _show_args = {'cmap':'viridis'}
+
+
+class PILPNGFloat(PILImage):
+    _open_args,_tensor_cls,_show_args = {},TensorPNGFloat,TensorPNGFloat._show_args
+    @classmethod
+    def create(cls, fn:(Path,str,bytes), mode=None)->None:
+        "Open a `PNG file` from path `fn` with float format without lossing information"
+        if isinstance(fn,(Path,str)): im = Image.fromarray(plt.imread(fn) * (2**16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)
+
+
+# TODO: Adapt to uint16
 class HistScaled(Transform):
     """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
 
@@ -30,25 +66,37 @@ class HistScaled(Transform):
 class CLAHE_Transform(Transform):
     """ Implement CLAHE transformation for Adaptative Histogram Equalization """
     
-    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
+    def __init__(self, PIL_cls, clipLimit=4.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
         super().__init__()
         self.grayscale = grayscale
         self.np_input = np_input
         self.np_output = np_output
+    
+        self.clipLimit = clipLimit
 
         self.PIL_cls = PIL_cls
 
-        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+        self.clahe = cv2.createCLAHE(clipLimit=self.clipLimit, tileGridSize=tileGridSize)
     
     def encodes(self, sample:(PILImage,np.ndarray)):
         if self.np_input:
             img = sample
         else:
             if self.grayscale:
-                img = np.array(sample.convert('L'))
+                img = ToTensor()(x).numpy()
+
+                if len(img.shape) > 2:
+                    img = np.squeeze(img, 0)
             else:
                 img = cv2.cvtColor(np.array(sample.convert('RGB')), cv2.COLOR_RGB2BGR)
             
+        img = convert_adapted_type(img)
+        self.clahe.setClipLimit(
+            adapt_uint8_value_to_current(
+                self.clipLimit,
+                img
+            )
+        )
         clahe_out = self.clahe.apply(img)
         
         if not self.grayscale:
@@ -57,6 +105,7 @@ class CLAHE_Transform(Transform):
         if self.np_output:
             return clahe_out
         else:
+            # return self.PIL_cls.create(transform_to_float(clahe_out))
             return self.PIL_cls.create(clahe_out)
 
 
@@ -91,6 +140,69 @@ def add_in_dict_list(d, key, value):
         d[key].append(value)
     else:
         d[key] = [value]
+
+
+def adapt_uint8_value_to_current(value, source):
+    """ Get value adapted from uint8 format (0 - 255) to the current range """
+    
+    signed = (source < 0).any()
+
+    dtype = source.dtype.name
+    if dtype == 'uint8':
+        return value
+    elif signed:
+        raise NotImplementedError('Function `adapt_uint8_value_to_current` not prepared for source images with negative values')
+    elif dtype.startswith('uint'):
+        bits = int(dtype[4:])
+        return value * (2**bits - 1) // 255
+    elif dtype.startswith('int'):
+        bits = int(dtype[3:])
+        return value * (2**(bits - 1) - 1) // 255
+    elif dtype.startswith('float'):
+        max_val = source.flatten().max()
+        if max_val <= 1:
+            return value / 255
+        for bits in [8, 16, 32, 64]:
+            max_val_bits = (2**bits - 1)
+            if max_val <= max_val_bits:
+                return value * max_val_bits // 255
+        raise NotImplementedError('Function `adapt_uint8_value_to_current` is not prepared for images with more than 64 bits')
+
+
+def transform_to_uint8(img):
+    return (img[:] // adapt_uint8_value_to_current(1, img)).astype('uint8')
+
+
+def transform_to_float(img):
+    return (img[:] / (255 * adapt_uint8_value_to_current(1, img))).astype('float')
+
+
+def convert_adapted_type(img):
+    signed = (img < 0).any()
+    if signed:
+        raise NotImplementedError('Function `convert_adapted_type` not prepared for source images with negative values')
+
+    found = False
+    max_val = img.flatten().max()
+
+    if max_val <= 1:
+        astype = 'float'
+        found = True
+
+    for bits in [8, 16, 32, 64]:
+        max_val_bits = (2**bits - 1)
+        if max_val <= max_val_bits:
+            astype = f'uint{bits}'
+            found = True
+            break
+
+    if not found:
+        raise NotImplementedError('Function `convert_adapted_type` is not prepared for images with more than 64 bits')
+
+    if img.dtype.name.startswith(astype):
+        return img
+    else:
+        return img.astype(astype)
 
 
 class KneeLocalizer(Transform):
@@ -141,6 +253,9 @@ class KneeLocalizer(Transform):
         if len(img.shape) > 2:
           img = np.squeeze(img, 0)
 
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
+
         # At least score should be better than this
         best_score = -np.inf
 
@@ -170,8 +285,10 @@ class KneeLocalizer(Transform):
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = img[y1:y2, x1:x2]
+            roi_img_lossly = img_lossly[y1:y2, x1:x2]
         else:
             roi_img = img[:]
+            roi_img_lossly = img_lossly[:]
 
         # Check for external white zones and remove them
         # Generate a mask where background is identified
@@ -263,8 +380,10 @@ class KneeLocalizer(Transform):
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = roi_img[y1:y2, x1:x2]
+            roi_img_lossly = roi_img_lossly[y1:y2, x1:x2]
         else:
             roi_img = roi_img[:]
+            roi_img_lossly = roi_img_lossly[:]
 
         
         R, C = roi_img.shape[-2:]
@@ -321,6 +440,7 @@ class KneeLocalizer(Transform):
                                 roi_R = ((x1, y1), (x2,y2))
         else:
             roi_img = img[:]
+            roi_img_lossly = roi_img_lossly[:]
             # self.PIL_cls.create(roi_img).save('sources/extra_images/failing.png', format='png', compress_level=0)
             debug_info = []
 
@@ -362,22 +482,22 @@ class KneeLocalizer(Transform):
             plt.show()
 
         if best_score == -np.inf:
-            img = cv2.resize(
-                roi_img,
+            img_lossly = cv2.resize(
+                roi_img_lossly,
                 dsize=(self.resize, self.resize)
             )
         elif self.resize:
-            img = cv2.resize(
-                roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
+            img_lossly = cv2.resize(
+                roi_img_lossly[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
                 dsize=(self.resize, self.resize)
             )
         else:
-            img = roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+            img_lossly = roi_img_lossly[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
 
         if self.np_output:
-            return img
+            return img_lossly
         else:
-            value = self.PIL_cls.create(img)
+            value = self.PIL_cls.create(transform_to_float(img_lossly))
             # value = Image.fromarray(
             #     img
             # )
@@ -474,6 +594,7 @@ class KneeLocalizer(Transform):
         return list(np.array(final_peaks) + int(C * margin)) + [C // 2]
 
 
+# TODO: Adapt to uint16
 class XRayPreprocess(Transform):
     """ Preprocess the X-ray image using histogram clipping and global contrast normalization. """
 
@@ -565,7 +686,16 @@ class BackgroundPreprocess(Transform):
 
         if len(img.shape) > 2:
           img = np.squeeze(img, 0)
-        # R, C = img.shape[-2:]
+
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
+
+        # Copy images to be able to compare on debugging 
+        if self.debug:
+            result = img_lossly[:].copy()
+            boxes = img[:].copy()
+        else:
+            result = img_lossly[:]
 
         # threshold input image as mask with adaptative threshold
         mask = cv2.adaptiveThreshold(
@@ -576,13 +706,6 @@ class BackgroundPreprocess(Transform):
         ret, _ = cv2.threshold(
             img,
             0, 255, cv2.THRESH_OTSU)
-
-        # Copy images to be able to compare on debugging 
-        if self.debug:
-            result = img[:].copy()
-            boxes = img[:].copy()
-        else:
-            result = img
 
         # # apply morphology to remove isolated extraneous noise
         kernel = np.ones((self.morph_kernel,self.morph_kernel), np.uint8)
@@ -709,7 +832,7 @@ class BackgroundPreprocess(Transform):
             cols = 2
             fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(rows,cols, figsize=(5*cols, 5*rows))
             ax1.imshow(img, cmap=plt.cm.bone)
-            ax2.imshow(result, cmap=plt.cm.bone)
+            ax2.imshow(transform_to_uint8(result), cmap=plt.cm.bone)
             ax3.imshow(mask, cmap=plt.cm.bone)
             ax4.imshow(mask_inpaint)
             fig.suptitle(f'area {(self.min_area, self.max_area)} - th_limit ({self.thresh_limit_multiplier:2f}, {ret * self.thresh_limit_multiplier:.0f}) - kernels (M,IM) ({self.morph_kernel},{self.inpaint_morph_kernel})')
@@ -719,7 +842,7 @@ class BackgroundPreprocess(Transform):
         if self.np_output:
             return result
         else:
-            value = self.PIL_cls.create(result)
+            value = self.PIL_cls.create(transform_to_float(result))
             # value = Image.fromarray(
             #     img
             # )
