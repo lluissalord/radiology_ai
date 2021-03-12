@@ -6,13 +6,13 @@ import numpy as np
 
 from fastai.basics import BaseLoss, CrossEntropyLossFlat
 
-from semisupervised.losses import SemiLoss
+from semisupervised.losses import SemiLoss, SemiLossBase
 
-class FixMatchLoss(BaseLoss):
+class FixMatchLoss(SemiLossBase):
     """ Loss for FixMatch process """
 
-    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, reduction='mean', **kwargs):
-        super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
+    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, beta=0.98, *args, axis=-1, reduction='mean', **kwargs):
+        super().__init__(beta=0.98, loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
         self.axis = axis
         self.n_out = n_out
         self.bs = bs
@@ -22,6 +22,8 @@ class FixMatchLoss(BaseLoss):
         self.losses = {}
         self.weight = weight
         self.reduction = reduction
+
+        self.log_loss('w', self.lambda_u)
 
     def Lx_criterion(self, logits, targets, reduction='mean'):
         """ Supervised loss criterion """
@@ -37,7 +39,11 @@ class FixMatchLoss(BaseLoss):
 
         Lx_criterion_func = CrossEntropyLossFlat(weight=self.weight, reduction=self.reduction)
 
-        return Lx_criterion_func(logits_x, targets_x.long())
+        Lx = Lx_criterion_func(logits_x, targets_x.long())
+        
+        self.log_loss('Lx', Lx.clone().detach())
+
+        return Lx
 
     def Lu_criterion(self, logits, targets, reduction='mean'):
         """ Unsupervised loss criterion """
@@ -56,12 +62,19 @@ class FixMatchLoss(BaseLoss):
             
             Lu_criterion_func = CrossEntropyLossFlat(weight=self.weight, reduction='none')
 
-            return (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
+            Lu = (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
 
-    def w_scheduling(self, epoch):
+        self.log_loss('Lu', Lu.clone().detach().mean())
+
+        return Lu    
+
+    # def w_scheduling(self, epoch):
+    def w_scheduling(self):
         """ Scheduling of w paramater (unsupervised loss multiplier) """
+
+        # self.log_loss('w', self.lambda_u)
 
         return self.lambda_u
 

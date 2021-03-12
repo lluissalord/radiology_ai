@@ -7,6 +7,8 @@ import numpy as np
 
 from semisupervised.utils import de_interleave
 
+from fastai.basics import BaseLoss
+from fastai.callback.core import Callback
 
 class SuppressedConsistencyLoss(object):
     """ Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al. 
@@ -76,13 +78,13 @@ class SemiLoss(object):
         # Calculation of total loss
         if reduction == 'mean':
             loss = Lx + (self.lambda_u * Lu).mean()
-            # self.losses = {'loss': loss.mean(), 'Lx': Lx.mean(), 'Lu': Lu.mean(), 'w': w}
+            # self.losses = {'loss': loss.mean(), 'Lx': Lx.mean(), 'Lu': Lu.mean(), 'w': self.lambda_u}
         elif reduction=='sum':
             loss = Lx + (self.lambda_u * Lu).sum()
-            # self.losses = {'loss': loss.sum(), 'Lx': Lx.sum(), 'Lu': Lu.sum(), 'w': w}
+            # self.losses = {'loss': loss.sum(), 'Lx': Lx.sum(), 'Lu': Lu.sum(), 'w': self.lambda_u}
         else:
             loss = Lx + self.lambda_u * Lu
-            # self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu, 'w': w}
+            # self.losses = {'loss': loss, 'Lx': Lx, 'Lu': Lu, 'w': self.lambda_u}
 
         return loss
 
@@ -97,3 +99,28 @@ class SemiLoss(object):
     # @abstractmethod
     # def w_scheduling(self, epoch):
     #     pass
+
+class SemiLossBase(BaseLoss):
+
+    def __init__(self, beta=0.98, **kwargs):
+        super().__init__(**kwargs)
+        self.smooth_losses = {}
+        self.beta = beta
+
+    def log_loss(self, name, val):
+        if name in self.smooth_losses:
+            self.smooth_losses[name] = self.beta * val + (1 - self.beta) * self.smooth_losses[name]
+        else:
+            self.smooth_losses[name] = val
+
+    def Lx(self):
+        return self.smooth_losses['Lx'] if 'Lx' in self.smooth_losses else None
+        
+    def Lu(self):
+        return self.smooth_losses['Lu'] if 'Lu' in self.smooth_losses else None
+        
+    # def total_loss(self):
+    #     return self.smooth_losses['loss'] if 'loss' in self.smooth_losses else None
+
+    def w(self):
+        return self.smooth_losses['w'] if 'w' in self.smooth_losses else None
