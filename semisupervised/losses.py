@@ -102,16 +102,23 @@ class SemiLoss(object):
 
 class SemiLossBase(BaseLoss):
 
-    def __init__(self, beta=0.98, **kwargs):
+    def __init__(self, beta=0.98, max_len_losses=500, **kwargs):
         super().__init__(**kwargs)
         self.smooth_losses = {}
+        self.losses = {}
         self.beta = beta
+        self.max_len_losses = max_len_losses
 
     def log_loss(self, name, val):
         if name in self.smooth_losses:
-            self.smooth_losses[name] = self.beta * val + (1 - self.beta) * self.smooth_losses[name]
+            self.smooth_losses[name] = (1 - self.beta) * val + self.beta * self.smooth_losses[name]
+            self.losses[name].append(val)
+
+            if len(self.losses[name]) > self.max_len_losses:
+                del self.losses[name][0]
         else:
             self.smooth_losses[name] = val
+            self.losses[name] = [val]
 
     def Lx(self):
         return self.smooth_losses['Lx'] if 'Lx' in self.smooth_losses else None
