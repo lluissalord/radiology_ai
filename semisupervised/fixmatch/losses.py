@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from fastai.basics import BaseLoss, CrossEntropyLossFlat
+from fastai.basics import CrossEntropyLossFlat
 
 from semisupervised.losses import SemiLoss, SemiLossBase
 
