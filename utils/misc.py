@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from sklearn.model_selection import train_test_split
+
 import torch
 
 from fastai.callback.core import Callback
@@ -98,3 +100,82 @@ def seed_everything(use_seed=0):
     np.random.seed(seed)
 
     return seed
+
+
+def robust_split_data(df, test_size, target_col, seed=None):
+    """ Split stratified data, in case of failing due to minor class too low, move it to test """
+
+    filter_mask = pd.Series([True,] * len(df), index=df.index)
+    done = False
+    while not done:
+        # Try to split stratify if error due to not enough minor class, then it goes to test
+        try:
+            train_df, test_df = train_test_split(
+                df[filter_mask],
+                test_size=test_size,
+                shuffle=True,
+                stratify=df.loc[filter_mask, target_col],
+                random_state=seed
+            )
+            done = True
+        except ValueError as e:
+            if str(e).startswith('The least populated class'):
+                minor_class = df.loc[filter_mask, target_col].value_counts().index[-1]
+                filter_mask = (filter_mask) & (df[target_col] != minor_class)
+            else:
+                print('Test size is too low to use stratified, then split shuffling')
+                train_df, test_df = train_test_split(
+                    df[filter_mask],
+                    test_size=test_size,
+                    shuffle=True,
+                    random_state=seed
+                )
+                done = True
+
+    # Add minor classes which have not been initially included due to the error on train_test_split
+    test_df = pd.concat(
+        [
+            test_df,
+            df[~filter_mask]
+        ],
+        axis=0
+    ).sample(frac=1)
+
+    return train_df, test_df
+
+
+def imbalance_robust_split_data(df, positive_df, test_size, positive_test_size, target_col, seed=None):
+    """ Split between train and test according with the proportion of specified positives """
+
+    # First split positive examples
+    pos_train_df, pos_test_df = robust_split_data(positive_df, positive_test_size, target_col, seed=seed)
+
+    # Identify as negative examples the ones from `df` which are not in `positive_df`
+    negative_df = df.merge(positive_df, left_index=True, right_index=True, how='left', indicator=True, suffixes=('', '_'))
+    negative_df = negative_df[negative_df['_merge'] == 'left_only'][list(df.columns)]
+
+    # Split negative examples
+    neg_test_size = (len(df) * test_size - len(pos_test_df)) / (len(df) - len(pos_train_df))
+    neg_train_df, neg_test_df = train_test_split(
+                    negative_df,
+                    test_size=neg_test_size,
+                    shuffle=True,
+                    random_state=seed
+                )
+
+    # Join positive with negative examples and shuffle them
+    train_df = pd.concat(
+        [
+            pos_train_df,
+            neg_train_df
+        ]
+    ).sample(frac=1)
+
+    test_df = pd.concat(
+        [
+            pos_test_df,
+            neg_test_df
+        ]
+    ).sample(frac=1)
+
+    return train_df, test_df
