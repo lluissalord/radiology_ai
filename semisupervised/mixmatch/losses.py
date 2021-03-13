@@ -4,12 +4,10 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from fastai.basics import BaseLoss
-
-from semisupervised.losses import SemiLoss
+from semisupervised.losses import SemiLoss, SemiLossBase
 from utils.misc import categorical_to_one_hot
 
-class MixMatchLoss(BaseLoss):
+class MixMatchLoss(SemiLossBase):
     """ Loss for MixMatch process """
     y_int = False
 
@@ -31,6 +29,8 @@ class MixMatchLoss(BaseLoss):
             if torch.cuda.is_available:
                 self.weight = self.weight.cuda()
 
+        self.log_loss('w', self.lambda_u)
+
     def Lx_criterion(self, logits, targets, reduction='mean'):
         """ Supervised loss criterion """
 
@@ -42,11 +42,13 @@ class MixMatchLoss(BaseLoss):
 
         Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
         if self.reduction == 'mean':
-            return Lx.mean()
+            Lx = Lx.mean()
         elif self.reduction == 'sum':
-            return Lx.sum()
-        else:
-            return Lx
+            Lx = Lx.sum()
+
+        self.log_loss('Lx', Lx.clone().detach())
+
+        return Lx
 
     def Lu_criterion(self, logits, targets, reduction='mean'):
         """ Unsupervised loss criterion """
@@ -62,12 +64,16 @@ class MixMatchLoss(BaseLoss):
             probs_u = torch.softmax(logits_u, dim=1)
             
             # return torch.mean((probs_u - targets_u)**2, dim=1)
-            return (probs_u - targets_u)**2
+            Lu = (probs_u - targets_u)**2
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
+
+        self.log_loss('Lu', Lu.clone().detach().mean())
 
     def w_scheduling(self, epoch):
         """ Scheduling of w paramater (unsupervised loss multiplier) """
+
+        # self.log_loss('w', self.lambda_u * linear_rampup(epoch))
 
         return self.lambda_u * linear_rampup(epoch)
 
