@@ -41,7 +41,11 @@ class FixMatchLoss(SemiLossBase):
 
         Lx = Lx_criterion_func(logits_x, targets_x.long())
         
-        self.log_loss('Lx', Lx.clone().detach())
+        isTraining = len(logits) > self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss('Lx', Lx.clone().detach())
 
         return Lx
 
@@ -66,7 +70,11 @@ class FixMatchLoss(SemiLossBase):
         else:
             Lu = torch.zeros(1)
 
-        self.log_loss('Lu', Lu.clone().detach().mean())
+        isTraining = len(logits) > self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss('Lu', Lu.clone().detach().mean())
 
         return Lu    
 
