@@ -13,7 +13,7 @@ def get_optimizer(run_params):
         #     'wd': run_params['OPT_WD']
         # }
         # opt_func = SGD
-        opt_func = Adam
+        opt_func = opt.Adam
         opt_params = {}
     else:
 
