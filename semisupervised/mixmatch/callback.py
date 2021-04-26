@@ -26,8 +26,16 @@ class MixMatchCallback(Callback):
 
         # Extract a batch of unlabel images and repeat twice the transformation (different results due to randomness)
         raw_inputs_u = self.unlabel_dl.one_batch()[0]
-        inputs_u = self.transform_dl.after_batch(raw_inputs_u.clone().detach())
-        inputs_u2 = self.transform_dl.after_batch(raw_inputs_u.clone().detach())
+        if torch.cuda.is_available:
+            inputs_u = self.transform_dl.after_batch(
+                raw_inputs_u.clone().detach().cuda()
+            )
+            inputs_u2 = self.transform_dl.after_batch(
+                raw_inputs_u.clone().detach().cuda()
+            )
+        else:
+            inputs_u = self.transform_dl.after_batch(raw_inputs_u.clone().detach())
+            inputs_u2 = self.transform_dl.after_batch(raw_inputs_u.clone().detach())
 
         # Compute guessed labels of unlabel samples
         with torch.no_grad():

@@ -44,6 +44,8 @@ class FixMatchCallback(Callback):
         targets_u_weak = torch.zeros(inputs_u_weak.size()[:1] + target_x.size()[1:])
         targets_u_strong = torch.zeros(inputs_u_strong.size()[:1] + target_x.size()[1:])
         if torch.cuda.is_available:
+            inputs_u_weak = inputs_u_weak.cuda()
+            inputs_u_strong = inputs_u_strong.cuda()
             targets_u_weak = targets_u_weak.cuda()
             targets_u_strong = targets_u_strong.cuda()
 
