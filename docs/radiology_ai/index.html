@@ -83,20 +83,24 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <p>For more information regarding the implemented preprocesses please see <a href="https://github.com/lluissalord/radiology_ai/tree/master/preprocessing">Preprocessing README</a> or the related API documentation <a href="https://lluissalord.github.io/radiology_ai/radiology_ai/preprocessing/index.html">here</a></p>
 <hr>
 <h2 id="installation">Installation</h2>
+<h3 id="google-colab-setup"><strong>Google Colab setup</strong></h3>
+<p>All the notebooks are prepared to be directly used on Google Colab, then if you are going to be using Google Colab you do not have to worry at all.</p>
+<p>In case you would like to reuse code for setting up your notebook please look on <code>colab_pip_setup.ipynb</code> and/or <code>colab_conda_setup.ipynb</code>. This last one is for the automatic <code>conda</code> installations on Google Colab. The <code>gdcm</code> package which is required to read all kind of DICOM files can only be installed with <code>conda</code>. Hence <code>0_eda.ipynb</code> and <code>3_preprocess.ipynb</code> notebooks which read DICOM files requires of this kind of installation.</p>
+<h3 id="local-installation"><strong>Local installation</strong></h3>
 <p>Add conda-forge channel:<br>
 <code>conda config --add channels conda-forge</code></p>
 <p>Create environment:<br>
 <code>conda create -n radiology_ai python=3.6 --yes -q</code>
 <code>conda activate <a title="radiology_ai" href="#radiology_ai">radiology_ai</a></code></p>
 <p>Install environment:<br>
-<code>conda install -n radiology_ai --override-channels -c main -c conda-forge -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm=2.8.4 kornia=0.3.0 scikit-image scikit-learn pandas ipykernel ipywidgets tensorboard openpyxl --yes -q</code></p>
+<code>conda install -n radiology_ai --override-channels -c main -c conda-forge -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm=2.8.4 kornia=0.3.0 scikit-image scikit-learn pandas ipykernel ipywidgets tensorboard openpyxl black --yes -q</code></p>
 <p>Install EfficientNet for Pytorch and Pytorch Ligthning Bolts:<br>
 <code>pip install efficientnet_pytorch opencv-python</code></p>
 <p>Install Pytorch Lignthning Bolts (due to an issue not yet solved on release better to use this than pip install pytorch-lightning):<br>
 ~~<code>pip install git+https://github.com/PytorchLightning/pytorch-lightning-bolts.git@master --upgrade</code>~~<br>
 <code>pip install https://github.com/lluissalord/pytorch-lightning-bolts/archive/issue_436_simCLR_IndexError.zip --upgrade</code></p>
 <p>Install fastai2_extensions (renamed as amalgam) to use gradCAM visualizations:<br>
-<code>pip install git+https://github.com/Synopsis/amalgam.git</code></p>
+<code>pip install git+https://github.com/Synopsis/amalgam.git palettable</code></p>
 <hr>
 <h2 id="api-documentation">API Documentation</h2>
 <p>API Documentation on <a href="https://lluissalord.github.io/radiology_ai/">lluissalord.github.io/radiology_ai/</a></p>
@@ -115,7 +119,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/__init__.py#L0-L5" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/__init__.py#L0-L5" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 .. include:: README.md
@@ -128,9 +132,13 @@ __pdoc__ = {}</code></pre>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="radiology_ai.APL_losses" href="APL_losses.html">radiology_ai.APL_losses</a></code></dt>
+<dt><code class="name"><a title="radiology_ai.optimize" href="optimize.html">radiology_ai.optimize</a></code></dt>
 <dd>
-<div class="desc"><p>Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels …</p></div>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="radiology_ai.organize" href="organize/index.html">radiology_ai.organize</a></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 <dt><code class="name"><a title="radiology_ai.preprocessing" href="preprocessing/index.html">radiology_ai.preprocessing</a></code></dt>
 <dd>
@@ -140,9 +148,13 @@ __pdoc__ = {}</code></pre>
 <dd>
 <div class="desc"><p>Classes and functions use across different Semi-Supervised algorithms</p></div>
 </dd>
-<dt><code class="name"><a title="radiology_ai.utils" href="utils/index.html">radiology_ai.utils</a></code></dt>
+<dt><code class="name"><a title="radiology_ai.train" href="train/index.html">radiology_ai.train</a></code></dt>
 <dd>
-<div class="desc"><p>Utility functions</p></div>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="radiology_ai.train_script" href="train_script.html">radiology_ai.train_script</a></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -162,7 +174,11 @@ data-gaCategoryParameter="radiology_ai">
 <div class="toc">
 <ul>
 <li><a href="#radiology-ai">Radiology AI</a><ul>
-<li><a href="#installation">Installation</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#google-colab-setup">Google Colab setup</a></li>
+<li><a href="#local-installation">Local installation</a></li>
+</ul>
+</li>
 <li><a href="#api-documentation">API Documentation</a></li>
 <li><a href="#troubleshooting">Troubleshooting</a></li>
 </ul>
@@ -172,10 +188,12 @@ data-gaCategoryParameter="radiology_ai">
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="radiology_ai.APL_losses" href="APL_losses.html">radiology_ai.APL_losses</a></code></li>
+<li><code><a title="radiology_ai.optimize" href="optimize.html">radiology_ai.optimize</a></code></li>
+<li><code><a title="radiology_ai.organize" href="organize/index.html">radiology_ai.organize</a></code></li>
 <li><code><a title="radiology_ai.preprocessing" href="preprocessing/index.html">radiology_ai.preprocessing</a></code></li>
 <li><code><a title="radiology_ai.semisupervised" href="semisupervised/index.html">radiology_ai.semisupervised</a></code></li>
-<li><code><a title="radiology_ai.utils" href="utils/index.html">radiology_ai.utils</a></code></li>
+<li><code><a title="radiology_ai.train" href="train/index.html">radiology_ai.train</a></code></li>
+<li><code><a title="radiology_ai.train_script" href="train_script.html">radiology_ai.train_script</a></code></li>
 </ul>
 </li>
 </ul>

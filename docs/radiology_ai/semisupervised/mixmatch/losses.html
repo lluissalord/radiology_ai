@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L0-L82" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L0-L125" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Loss class for MixMatch algorith &#34;&#34;&#34;
 
@@ -43,17 +43,41 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from fastai.basics import BaseLoss
+from semisupervised.losses import SemiLoss, SemiLossBase
+from semisupervised.utils import categorical_to_one_hot
 
-from semisupervised.losses import SemiLoss
-from utils.misc import categorical_to_one_hot
 
-class MixMatchLoss(BaseLoss):
+class MixMatchLoss(SemiLossBase):
     &#34;&#34;&#34; Loss for MixMatch process &#34;&#34;&#34;
+
     y_int = False
 
-    def __init__(self, unlabel_dl, model, n_out, bs, lambda_u, weight=None, *args, axis=-1, reduction=&#39;mean&#39;, **kwargs):
-        super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
+    def __init__(
+        self,
+        unlabel_dl,
+        model,
+        n_out,
+        bs,
+        lambda_u,
+        weight=None,
+        *args,
+        axis=-1,
+        reduction=&#34;mean&#34;,
+        **kwargs
+    ):
+        super().__init__(
+            loss_cls=SemiLoss,
+            bs=bs,
+            lambda_u=lambda_u,
+            n_out=n_out,
+            Lx_criterion=self.Lx_criterion,
+            Lu_criterion=self.Lu_criterion,
+            flatten=False,
+            floatify=True,
+            *args,
+            axis=axis,
+            **kwargs
+        )
         self.axis = axis
         self.n_out = n_out
         self.unlabel_dl = unlabel_dl
@@ -65,33 +89,41 @@ class MixMatchLoss(BaseLoss):
         self.reduction = reduction
         self.weight = weight
         if weight is None:
-            self.weight = torch.as_tensor(1.).float()
+            self.weight = torch.as_tensor(1.0).float()
 
             if torch.cuda.is_available:
                 self.weight = self.weight.cuda()
 
-    def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        self.log_loss(&#34;w&#34;, self.lambda_u)
+
+    def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-        logits_x = logits[:self.bs]
-        targets_x = targets[:self.bs]
-        
+        logits_x = logits[: self.bs]
+        targets_x = targets[: self.bs]
+
         if len(targets_x.size()) == 1:
             targets_x = categorical_to_one_hot(targets_x, self.n_out)
 
         Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
-        if self.reduction == &#39;mean&#39;:
-            return Lx.mean()
-        elif self.reduction == &#39;sum&#39;:
-            return Lx.sum()
-        else:
-            return Lx
+        if self.reduction == &#34;mean&#34;:
+            Lx = Lx.mean()
+        elif self.reduction == &#34;sum&#34;:
+            Lx = Lx.sum()
 
-    def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+        return Lx
+
+    def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
 
-        logits_u = logits[self.bs:]
-        targets_u = targets[self.bs:]
+        logits_u = logits[self.bs :]
+        targets_u = targets[self.bs :]
 
         if len(targets_u.size()) == 1:
             targets_u = categorical_to_one_hot(targets_u, self.n_out)
@@ -99,20 +131,31 @@ class MixMatchLoss(BaseLoss):
         # Return zero if no logits are provided (when not training)
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
-            
+
             # return torch.mean((probs_u - targets_u)**2, dim=1)
-            return (probs_u - targets_u)**2
+            Lu = (probs_u - targets_u) ** 2
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
+
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())
 
     def w_scheduling(self, epoch):
         &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
 
+        # self.log_loss(&#39;w&#39;, self.lambda_u * linear_rampup(epoch))
+
         return self.lambda_u * linear_rampup(epoch)
 
-    def decodes(self, x):    return x.argmax(dim=self.axis)
+    def decodes(self, x):
+        return x.argmax(dim=self.axis)
 
-    def activation(self, x): return F.softmax(x, dim=self.axis)
+    def activation(self, x):
+        return F.softmax(x, dim=self.axis)
+
 
 def linear_rampup(current, rampup_length):
     if rampup_length == 0:
@@ -137,7 +180,7 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L78-L83" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L121-L126" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def linear_rampup(current, rampup_length):
     if rampup_length == 0:
@@ -161,14 +204,39 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L12-L76" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L11-L118" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class MixMatchLoss(BaseLoss):
+<pre><code class="python">class MixMatchLoss(SemiLossBase):
     &#34;&#34;&#34; Loss for MixMatch process &#34;&#34;&#34;
+
     y_int = False
 
-    def __init__(self, unlabel_dl, model, n_out, bs, lambda_u, weight=None, *args, axis=-1, reduction=&#39;mean&#39;, **kwargs):
-        super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
+    def __init__(
+        self,
+        unlabel_dl,
+        model,
+        n_out,
+        bs,
+        lambda_u,
+        weight=None,
+        *args,
+        axis=-1,
+        reduction=&#34;mean&#34;,
+        **kwargs
+    ):
+        super().__init__(
+            loss_cls=SemiLoss,
+            bs=bs,
+            lambda_u=lambda_u,
+            n_out=n_out,
+            Lx_criterion=self.Lx_criterion,
+            Lu_criterion=self.Lu_criterion,
+            flatten=False,
+            floatify=True,
+            *args,
+            axis=axis,
+            **kwargs
+        )
         self.axis = axis
         self.n_out = n_out
         self.unlabel_dl = unlabel_dl
@@ -180,33 +248,41 @@ def linear_rampup(current, rampup_length):
         self.reduction = reduction
         self.weight = weight
         if weight is None:
-            self.weight = torch.as_tensor(1.).float()
+            self.weight = torch.as_tensor(1.0).float()
 
             if torch.cuda.is_available:
                 self.weight = self.weight.cuda()
 
-    def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        self.log_loss(&#34;w&#34;, self.lambda_u)
+
+    def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-        logits_x = logits[:self.bs]
-        targets_x = targets[:self.bs]
-        
+        logits_x = logits[: self.bs]
+        targets_x = targets[: self.bs]
+
         if len(targets_x.size()) == 1:
             targets_x = categorical_to_one_hot(targets_x, self.n_out)
 
         Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
-        if self.reduction == &#39;mean&#39;:
-            return Lx.mean()
-        elif self.reduction == &#39;sum&#39;:
-            return Lx.sum()
-        else:
-            return Lx
+        if self.reduction == &#34;mean&#34;:
+            Lx = Lx.mean()
+        elif self.reduction == &#34;sum&#34;:
+            Lx = Lx.sum()
 
-    def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+        return Lx
+
+    def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
 
-        logits_u = logits[self.bs:]
-        targets_u = targets[self.bs:]
+        logits_u = logits[self.bs :]
+        targets_u = targets[self.bs :]
 
         if len(targets_u.size()) == 1:
             targets_u = categorical_to_one_hot(targets_u, self.n_out)
@@ -214,23 +290,34 @@ def linear_rampup(current, rampup_length):
         # Return zero if no logits are provided (when not training)
         if len(logits_u):
             probs_u = torch.softmax(logits_u, dim=1)
-            
+
             # return torch.mean((probs_u - targets_u)**2, dim=1)
-            return (probs_u - targets_u)**2
+            Lu = (probs_u - targets_u) ** 2
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
+
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())
 
     def w_scheduling(self, epoch):
         &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
 
+        # self.log_loss(&#39;w&#39;, self.lambda_u * linear_rampup(epoch))
+
         return self.lambda_u * linear_rampup(epoch)
 
-    def decodes(self, x):    return x.argmax(dim=self.axis)
+    def decodes(self, x):
+        return x.argmax(dim=self.axis)
 
-    def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
+    def activation(self, x):
+        return F.softmax(x, dim=self.axis)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li>semisupervised.losses.SemiLossBase</li>
 <li>fastai.losses.BaseLoss</li>
 </ul>
 <h3>Class variables</h3>
@@ -250,13 +337,13 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L51-L67" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L83-L105" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+<pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
     &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
 
-    logits_u = logits[self.bs:]
-    targets_u = targets[self.bs:]
+    logits_u = logits[self.bs :]
+    targets_u = targets[self.bs :]
 
     if len(targets_u.size()) == 1:
         targets_u = categorical_to_one_hot(targets_u, self.n_out)
@@ -264,11 +351,17 @@ def linear_rampup(current, rampup_length):
     # Return zero if no logits are provided (when not training)
     if len(logits_u):
         probs_u = torch.softmax(logits_u, dim=1)
-        
+
         # return torch.mean((probs_u - targets_u)**2, dim=1)
-        return (probs_u - targets_u)**2
+        Lu = (probs_u - targets_u) ** 2
     else:
-        return torch.zeros(1)</code></pre>
+        Lu = torch.zeros(1)
+
+    isTraining = len(logits) &gt; self.bs
+
+    # Only log loss if is on training
+    if isTraining:
+        self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.mixmatch.losses.MixMatchLoss.Lx_criterion"><code class="name flex">
@@ -279,24 +372,30 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L34-L49" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L60-L81" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+<pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
     &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-    logits_x = logits[:self.bs]
-    targets_x = targets[:self.bs]
-    
+    logits_x = logits[: self.bs]
+    targets_x = targets[: self.bs]
+
     if len(targets_x.size()) == 1:
         targets_x = categorical_to_one_hot(targets_x, self.n_out)
 
     Lx = -torch.sum(self.weight * F.log_softmax(logits_x, dim=1) * targets_x, dim=1)
-    if self.reduction == &#39;mean&#39;:
-        return Lx.mean()
-    elif self.reduction == &#39;sum&#39;:
-        return Lx.sum()
-    else:
-        return Lx</code></pre>
+    if self.reduction == &#34;mean&#34;:
+        Lx = Lx.mean()
+    elif self.reduction == &#34;sum&#34;:
+        Lx = Lx.sum()
+
+    isTraining = len(logits) &gt; self.bs
+
+    # Only log loss if is on training
+    if isTraining:
+        self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+    return Lx</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.mixmatch.losses.MixMatchLoss.activation"><code class="name flex">
@@ -307,9 +406,10 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L76-L76" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L117-L118" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
+<pre><code class="python">def activation(self, x):
+    return F.softmax(x, dim=self.axis)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.mixmatch.losses.MixMatchLoss.decodes"><code class="name flex">
@@ -320,9 +420,10 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L74-L74" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L114-L115" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def decodes(self, x):    return x.argmax(dim=self.axis)</code></pre>
+<pre><code class="python">def decodes(self, x):
+    return x.argmax(dim=self.axis)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.mixmatch.losses.MixMatchLoss.w_scheduling"><code class="name flex">
@@ -333,10 +434,12 @@ def linear_rampup(current, rampup_length):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\mixmatch\losses.py#L69-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\mixmatch\losses.py#L107-L112" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def w_scheduling(self, epoch):
     &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
+
+    # self.log_loss(&#39;w&#39;, self.lambda_u * linear_rampup(epoch))
 
     return self.lambda_u * linear_rampup(epoch)</code></pre>
 </details>

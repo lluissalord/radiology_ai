@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L0-L73" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L0-L124" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Loss class for FixMatch algorith &#34;&#34;&#34;
 
@@ -43,15 +43,43 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-from fastai.basics import BaseLoss
+from fastai.basics import CrossEntropyLossFlat
 
-from semisupervised.losses import SemiLoss
+from semisupervised.losses import SemiLoss, SemiLossBase
 
-class FixMatchLoss(BaseLoss):
+
+class FixMatchLoss(SemiLossBase):
     &#34;&#34;&#34; Loss for FixMatch process &#34;&#34;&#34;
 
-    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, reduction=&#39;mean&#39;, **kwargs):
-        super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
+    def __init__(
+        self,
+        unlabel_dl,
+        n_out,
+        bs,
+        mu,
+        lambda_u,
+        label_threshold=0.95,
+        weight=None,
+        beta=0.98,
+        *args,
+        axis=-1,
+        reduction=&#34;mean&#34;,
+        **kwargs
+    ):
+        super().__init__(
+            beta=0.98,
+            loss_cls=SemiLoss,
+            bs=bs,
+            lambda_u=lambda_u,
+            n_out=n_out,
+            Lx_criterion=self.Lx_criterion,
+            Lu_criterion=self.Lu_criterion,
+            flatten=False,
+            floatify=True,
+            *args,
+            axis=axis,
+            **kwargs
+        )
         self.axis = axis
         self.n_out = n_out
         self.bs = bs
@@ -62,55 +90,78 @@ class FixMatchLoss(BaseLoss):
         self.weight = weight
         self.reduction = reduction
 
-    def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        self.log_loss(&#34;w&#34;, self.lambda_u)
+
+    def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-        logits_x = logits[:self.bs]
-        targets_x = targets[:self.bs]
-        
+        logits_x = logits[: self.bs]
+        targets_x = targets[: self.bs]
+
         if len(targets_x.size()) == 2:
             targets_x = torch.argmax(targets_x, axis=1)
 
         if torch.cuda.is_available():
             targets_x = targets_x.cuda()
 
-        Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=self.reduction)
-        if torch.cuda.is_available:
-            Lx_criterion_func = Lx_criterion_func.cuda()
+        Lx_criterion_func = CrossEntropyLossFlat(
+            weight=self.weight, reduction=self.reduction
+        )
 
-        return Lx_criterion_func(logits_x, targets_x.long())
+        Lx = Lx_criterion_func(logits_x, targets_x.long())
 
-    def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+        return Lx
+
+    def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
-        
+
         # Return zero if no logits are provided (when not training)
-        if len(logits[self.bs:]):
-            
+        if len(logits[self.bs :]):
+
             # Split between logits of weak and strong transformation, according to batch size and mu
-            logits_u_w, logits_u_s = torch.split(logits[self.bs:], self.bs * self.mu)
+            logits_u_w, logits_u_s = torch.split(logits[self.bs :], self.bs * self.mu)
 
             # Calculate the guessed labels
             with torch.no_grad():
                 probs = torch.softmax(logits_u_w, dim=1)
                 scores, lbs_u_guess = torch.max(probs, dim=1)
                 mask = scores.ge(self.label_threshold).float()
-            
-            Lu_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=&#39;none&#39;)
-            if torch.cuda.is_available:
-                Lu_criterion_func = Lu_criterion_func.cuda()
 
-            return (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
+            Lu_criterion_func = CrossEntropyLossFlat(
+                weight=self.weight, reduction=&#34;none&#34;
+            )
+
+            Lu = Lu_criterion_func(logits_u_s, lbs_u_guess) * mask
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
 
-    def w_scheduling(self, epoch):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())
+
+        return Lu
+
+    # def w_scheduling(self, epoch):
+    def w_scheduling(self):
         &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
+
+        # self.log_loss(&#39;w&#39;, self.lambda_u)
 
         return self.lambda_u
 
-    def decodes(self, x):    return x.argmax(dim=1)
+    def decodes(self, x):
+        return x.argmax(dim=1)
 
-    def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
+    def activation(self, x):
+        return F.softmax(x, dim=self.axis)</code></pre>
 </details>
 </section>
 <section>
@@ -124,20 +175,47 @@ class FixMatchLoss(BaseLoss):
 <dl>
 <dt id="radiology_ai.semisupervised.fixmatch.losses.FixMatchLoss"><code class="flex name class">
 <span>class <span class="ident">FixMatchLoss</span></span>
-<span>(</span><span>unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, reduction='mean', **kwargs)</span>
+<span>(</span><span>unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, beta=0.98, *args, axis=-1, reduction='mean', **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Loss for FixMatch process</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L11-L74" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L12-L125" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class FixMatchLoss(BaseLoss):
+<pre><code class="python">class FixMatchLoss(SemiLossBase):
     &#34;&#34;&#34; Loss for FixMatch process &#34;&#34;&#34;
 
-    def __init__(self, unlabel_dl, n_out, bs, mu, lambda_u, label_threshold=0.95, weight=None, *args, axis=-1, reduction=&#39;mean&#39;, **kwargs):
-        super().__init__(loss_cls=SemiLoss, bs=bs, lambda_u=lambda_u, n_out=n_out, Lx_criterion=self.Lx_criterion, Lu_criterion=self.Lu_criterion, flatten=False, floatify=True, *args, axis=axis, **kwargs)
+    def __init__(
+        self,
+        unlabel_dl,
+        n_out,
+        bs,
+        mu,
+        lambda_u,
+        label_threshold=0.95,
+        weight=None,
+        beta=0.98,
+        *args,
+        axis=-1,
+        reduction=&#34;mean&#34;,
+        **kwargs
+    ):
+        super().__init__(
+            beta=0.98,
+            loss_cls=SemiLoss,
+            bs=bs,
+            lambda_u=lambda_u,
+            n_out=n_out,
+            Lx_criterion=self.Lx_criterion,
+            Lu_criterion=self.Lu_criterion,
+            flatten=False,
+            floatify=True,
+            *args,
+            axis=axis,
+            **kwargs
+        )
         self.axis = axis
         self.n_out = n_out
         self.bs = bs
@@ -148,58 +226,82 @@ class FixMatchLoss(BaseLoss):
         self.weight = weight
         self.reduction = reduction
 
-    def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        self.log_loss(&#34;w&#34;, self.lambda_u)
+
+    def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-        logits_x = logits[:self.bs]
-        targets_x = targets[:self.bs]
-        
+        logits_x = logits[: self.bs]
+        targets_x = targets[: self.bs]
+
         if len(targets_x.size()) == 2:
             targets_x = torch.argmax(targets_x, axis=1)
 
         if torch.cuda.is_available():
             targets_x = targets_x.cuda()
 
-        Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=self.reduction)
-        if torch.cuda.is_available:
-            Lx_criterion_func = Lx_criterion_func.cuda()
+        Lx_criterion_func = CrossEntropyLossFlat(
+            weight=self.weight, reduction=self.reduction
+        )
 
-        return Lx_criterion_func(logits_x, targets_x.long())
+        Lx = Lx_criterion_func(logits_x, targets_x.long())
 
-    def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+        return Lx
+
+    def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
         &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
-        
+
         # Return zero if no logits are provided (when not training)
-        if len(logits[self.bs:]):
-            
+        if len(logits[self.bs :]):
+
             # Split between logits of weak and strong transformation, according to batch size and mu
-            logits_u_w, logits_u_s = torch.split(logits[self.bs:], self.bs * self.mu)
+            logits_u_w, logits_u_s = torch.split(logits[self.bs :], self.bs * self.mu)
 
             # Calculate the guessed labels
             with torch.no_grad():
                 probs = torch.softmax(logits_u_w, dim=1)
                 scores, lbs_u_guess = torch.max(probs, dim=1)
                 mask = scores.ge(self.label_threshold).float()
-            
-            Lu_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=&#39;none&#39;)
-            if torch.cuda.is_available:
-                Lu_criterion_func = Lu_criterion_func.cuda()
 
-            return (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
+            Lu_criterion_func = CrossEntropyLossFlat(
+                weight=self.weight, reduction=&#34;none&#34;
+            )
+
+            Lu = Lu_criterion_func(logits_u_s, lbs_u_guess) * mask
         else:
-            return torch.zeros(1)
+            Lu = torch.zeros(1)
 
-    def w_scheduling(self, epoch):
+        isTraining = len(logits) &gt; self.bs
+
+        # Only log loss if is on training
+        if isTraining:
+            self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())
+
+        return Lu
+
+    # def w_scheduling(self, epoch):
+    def w_scheduling(self):
         &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
+
+        # self.log_loss(&#39;w&#39;, self.lambda_u)
 
         return self.lambda_u
 
-    def decodes(self, x):    return x.argmax(dim=1)
+    def decodes(self, x):
+        return x.argmax(dim=1)
 
-    def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
+    def activation(self, x):
+        return F.softmax(x, dim=self.axis)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li>semisupervised.losses.SemiLossBase</li>
 <li>fastai.losses.BaseLoss</li>
 </ul>
 <h3>Methods</h3>
@@ -212,30 +314,38 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L44-L65" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L82-L111" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+<pre><code class="python">def Lu_criterion(self, logits, targets, reduction=&#34;mean&#34;):
     &#34;&#34;&#34; Unsupervised loss criterion &#34;&#34;&#34;
-    
+
     # Return zero if no logits are provided (when not training)
-    if len(logits[self.bs:]):
-        
+    if len(logits[self.bs :]):
+
         # Split between logits of weak and strong transformation, according to batch size and mu
-        logits_u_w, logits_u_s = torch.split(logits[self.bs:], self.bs * self.mu)
+        logits_u_w, logits_u_s = torch.split(logits[self.bs :], self.bs * self.mu)
 
         # Calculate the guessed labels
         with torch.no_grad():
             probs = torch.softmax(logits_u_w, dim=1)
             scores, lbs_u_guess = torch.max(probs, dim=1)
             mask = scores.ge(self.label_threshold).float()
-        
-        Lu_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=&#39;none&#39;)
-        if torch.cuda.is_available:
-            Lu_criterion_func = Lu_criterion_func.cuda()
 
-        return (Lu_criterion_func(logits_u_s, lbs_u_guess) * mask)
+        Lu_criterion_func = CrossEntropyLossFlat(
+            weight=self.weight, reduction=&#34;none&#34;
+        )
+
+        Lu = Lu_criterion_func(logits_u_s, lbs_u_guess) * mask
     else:
-        return torch.zeros(1)</code></pre>
+        Lu = torch.zeros(1)
+
+    isTraining = len(logits) &gt; self.bs
+
+    # Only log loss if is on training
+    if isTraining:
+        self.log_loss(&#34;Lu&#34;, Lu.clone().detach().mean())
+
+    return Lu</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.fixmatch.losses.FixMatchLoss.Lx_criterion"><code class="name flex">
@@ -246,25 +356,33 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L26-L42" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L56-L80" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#39;mean&#39;):
+<pre><code class="python">def Lx_criterion(self, logits, targets, reduction=&#34;mean&#34;):
     &#34;&#34;&#34; Supervised loss criterion &#34;&#34;&#34;
 
-    logits_x = logits[:self.bs]
-    targets_x = targets[:self.bs]
-    
+    logits_x = logits[: self.bs]
+    targets_x = targets[: self.bs]
+
     if len(targets_x.size()) == 2:
         targets_x = torch.argmax(targets_x, axis=1)
 
     if torch.cuda.is_available():
         targets_x = targets_x.cuda()
 
-    Lx_criterion_func = torch.nn.CrossEntropyLoss(weight=self.weight, reduction=self.reduction)
-    if torch.cuda.is_available:
-        Lx_criterion_func = Lx_criterion_func.cuda()
+    Lx_criterion_func = CrossEntropyLossFlat(
+        weight=self.weight, reduction=self.reduction
+    )
 
-    return Lx_criterion_func(logits_x, targets_x.long())</code></pre>
+    Lx = Lx_criterion_func(logits_x, targets_x.long())
+
+    isTraining = len(logits) &gt; self.bs
+
+    # Only log loss if is on training
+    if isTraining:
+        self.log_loss(&#34;Lx&#34;, Lx.clone().detach())
+
+    return Lx</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.fixmatch.losses.FixMatchLoss.activation"><code class="name flex">
@@ -275,9 +393,10 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L74-L74" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L124-L125" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def activation(self, x): return F.softmax(x, dim=self.axis)</code></pre>
+<pre><code class="python">def activation(self, x):
+    return F.softmax(x, dim=self.axis)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.fixmatch.losses.FixMatchLoss.decodes"><code class="name flex">
@@ -288,23 +407,26 @@ class FixMatchLoss(BaseLoss):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L72-L72" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L121-L122" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def decodes(self, x):    return x.argmax(dim=1)</code></pre>
+<pre><code class="python">def decodes(self, x):
+    return x.argmax(dim=1)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.semisupervised.fixmatch.losses.FixMatchLoss.w_scheduling"><code class="name flex">
-<span>def <span class="ident">w_scheduling</span></span>(<span>self, epoch)</span>
+<span>def <span class="ident">w_scheduling</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Scheduling of w paramater (unsupervised loss multiplier)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\losses.py#L67-L70" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\losses.py#L114-L119" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def w_scheduling(self, epoch):
+<pre><code class="python">def w_scheduling(self):
     &#34;&#34;&#34; Scheduling of w paramater (unsupervised loss multiplier) &#34;&#34;&#34;
+
+    # self.log_loss(&#39;w&#39;, self.lambda_u)
 
     return self.lambda_u</code></pre>
 </details>

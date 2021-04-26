@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>radiology_ai.organize.data_files API documentation</title>
+<meta name="description" content="Functions required for organizing files for proper annotation" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/organize/data_files.html">
+<link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radiology_ai.organize.data_files</code></h1>
+</header>
+<section id="section-intro">
+<p>Functions required for organizing files for proper annotation</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L0-L374" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; Functions required for organizing files for proper annotation &#34;&#34;&#34;
+
+from glob import glob
+import os
+import shutil
+import random
+from pathlib import Path
+from collections.abc import Iterable
+
+from tqdm.auto import tqdm
+
+tqdm.pandas()
+
+import numpy as np
+import pandas as pd
+
+import pydicom
+
+from organize.dicom import *
+from organize.relation import *
+from organize.utils import *
+
+
+def move_file(
+    src_filepath,
+    filename,
+    dst_folder,
+    force_extension=None,
+    copy=True,
+    return_filepath=True,
+):
+    &#34;&#34;&#34; Move or copy file to the destination folder with folder name &#34;&#34;&#34;
+
+    # Define extension
+    _, src_extension = os.path.splitext(src_filepath)
+    dst_filename, dst_extension = os.path.splitext(filename)
+    if force_extension != False and force_extension is not None:
+        extension = force_extension
+    elif dst_extension != &#34;&#34; or force_extension == False:
+        extension = dst_extension
+    else:
+        extension = src_extension
+
+    # Define filename
+    filename = dst_filename + extension
+
+    # Define the destination path
+    dst_filepath = os.path.join(dst_folder, filename)
+
+    # Create the destination folder if not exists
+    if not os.path.exists(dst_folder):
+        os.makedirs(dst_folder)
+
+    if copy:
+        # Copy file with folder name
+        shutil.copyfile(src_filepath, dst_filepath)
+    else:
+        # Move file with folder name
+        shutil.move(src_filepath, dst_filepath)
+
+    if return_filepath:
+        return dst_filepath
+
+
+def move_relation(relation_filepath, copy=True, to_raw=True):
+    &#34;&#34;&#34; Move or copy files to/from raw destination from/to final destination based on relation file &#34;&#34;&#34;
+
+    # Open relation file where the move/copy will be based on
+    relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+
+    # Check source files
+    check_relation(relation_df, check_path=to_raw, check_raw=not to_raw)
+
+    if to_raw:
+        # Loop over all the files to move/copy them to the raw destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=os.path.join(x.Path, x.Filename + &#34;.dcm&#34;),
+                filename=x.Original_Filename,
+                dst_folder=os.path.split(x.name)[0],
+                force_extension=False,
+                copy=copy,
+                return_filepath=False,
+            ),
+            axis=1,
+        )
+    else:
+        # Loop over all the files to move/copy them to the final destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=x.name,
+                filename=x.Filename,
+                dst_folder=x.Path,
+                force_extension=&#34;.dcm&#34;,
+                copy=copy,
+                return_filepath=False,
+            ),
+            axis=1,
+        )
+
+    # Check destination files
+    check_relation(relation_df, check_path=not to_raw, check_raw=to_raw)
+
+
+def move_distribute_blocks(
+    parent_folder, new_folders, blocks, relation_filepath, template_extension=&#34;xlsx&#34;
+):
+    &#34;&#34;&#34; Move and distribute equal number of blocks of files to a list of new folders (person names) &#34;&#34;&#34;
+
+    distribution = np.random.permutation(
+        np.tile(
+            np.random.permutation(new_folders),
+            len(blocks) // len(new_folders) + (len(blocks) % len(new_folders) != 0),
+        )[: len(blocks)]
+    )
+
+    for folder in tqdm(np.unique(new_folders), desc=&#34;Distributions&#34;):
+        current_blocks = np.array(blocks)[np.where(distribution == folder)]
+        move_blocks(
+            parent_folder=parent_folder,
+            new_folder=folder,
+            blocks=current_blocks,
+            relation_filepath=relation_filepath,
+            template_extension=template_extension,
+        )
+
+
+def move_blocks(
+    parent_folder, new_folder, blocks, relation_filepath, template_extension=&#34;xlsx&#34;
+):
+    &#34;&#34;&#34; Move blocks of files to the new folder (person name) &#34;&#34;&#34;
+
+    # Create new folder if it does not exist
+    new_folder_path = os.path.join(parent_folder, new_folder)
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
+
+    relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+
+    check_relation(relation_df, check_path=True, check_raw=False)
+    print(&#34;All in place!&#34;)
+
+    if not isinstance(blocks, Iterable):
+        blocks = [blocks]
+
+    for block in tqdm(blocks, desc=&#34;Blocks&#34;):
+        block = str(block)
+
+        # Search for the block folder path
+        block_path = glob(os.path.join(parent_folder, &#34;*&#34;, block))[0]
+
+        # Move entire block folder
+        dst_folder = os.path.join(new_folder_path, block)
+        shutil.move(block_path, dst_folder)
+
+        # Search for the template of this folder and rename it appropiately
+        template_path = glob(os.path.join(dst_folder, f&#34;*.{template_extension}&#34;))[0]
+        new_template_filename = f&#34;{new_folder}_{block}.{template_extension}&#34;
+        os.rename(template_path, os.path.join(dst_folder, new_template_filename))
+
+        # Update the relation file with the new folder path
+        relation_df = update_block_relation(
+            relation_df, parent_folder, block, new_folder, sep=&#34;/&#34;
+        )
+
+    # Save relation file
+    save_name_relation_file(relation_df, relation_filepath, sep=&#34;,&#34;)
+
+
+def organize_folders(
+    src_folder,
+    dst_folder,
+    relation_filepath,
+    reset=False,
+    groups=None,
+    subgroup_length=None,
+    filename_prefix=&#34;IMG_&#34;,
+    force_extension=None,
+    copy=True,
+    metadata_labels=None,
+    label_exact_match=True,
+    check_DICOM_dict=None,
+    debug=False,
+):
+    &#34;&#34;&#34; Organize folders and files to set all the desired DICOM files into the correct folder &#34;&#34;&#34;
+
+    # In case not reseting the folders, then the current relation is required
+    if not reset:
+        relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+        if len(relation_df.index) == 0:
+            raise ValueError(
+                &#34;No reset is set, but there is no relation file or it is empty&#34;
+            )
+        if relation_df.index.duplicated(&#34;Original&#34;).any():
+            raise ValueError(
+                &#34;There is a duplicated value on relation file, please review it and modify it&#34;
+            )
+
+    # Look at all the DICOM files in the source folder, check them and move them appropiatly
+    folders = glob(os.path.join(src_folder, &#34;*&#34;))
+    correct_filepaths = []
+    for folder in tqdm(folders, desc=&#34;Check folders: &#34;):
+        # Find all files in the folder
+        filepaths = glob(os.path.join(folder, &#34;*&#34;))
+
+        # Open all the files as DICOM and check if they fullfil the condition to be used in the study
+        for filepath in filepaths:
+
+            # Normalize path to be equal without depending on the OS
+            filepath = os.path.normpath(filepath).replace(os.sep, &#34;/&#34;)
+
+            # If is no resetting and the file is already on the relation, then there is no need to check
+            if not reset:
+                if filepath in relation_df.index:
+                    continue
+
+            # Check if current file is frontal (ap) image
+            if metadata_labels is not None:
+                if check_metadata_label(
+                    filepath, metadata_labels, label=&#34;ap&#34;, exact_match=label_exact_match
+                ):
+                    correct_filepaths.append(filepath)
+            else:
+                # Read and check DICOM
+                dcm = pydicom.dcmread(filepath)
+                if check_DICOM(dcm, check_DICOM_dict, debug):
+                    correct_filepaths.append(filepath)
+
+    print(&#34;Preparing for organizing files...&#34;)
+    # Only proceed if there is files to move or resetting folders
+    if len(correct_filepaths) &gt; 0 or reset:
+
+        # TODO: Make sure that it continues from the last block
+        if not reset:
+            last_block = relation_df[&#34;Path&#34;].str.split(&#34;/&#34;).str[-1].astype(int).max()
+            start_num_subgrups = last_block + 1
+        else:
+            start_num_subgrups = 0
+
+        # Relates source filepaths with destination folder paths depending on shuffle groups and subgroup length
+        folders_dst = get_final_dst(
+            dst_folder, correct_filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        temp_relation_df = pd.DataFrame(
+            folders_dst.values(), index=folders_dst.keys(), columns=[&#34;Path&#34;]
+        )
+        temp_relation_df[&#34;Filename&#34;] = filename_prefix + str(-1)
+        temp_relation_df.index.rename(&#34;Original&#34;, inplace=True)
+
+        print(&#34;Groups and subgroups organized&#34;)
+        if debug:
+            print(temp_relation_df)
+
+        # Define relation DataFrame depending on reset
+        if reset:
+            # Clean destination folder
+            if os.path.isdir(dst_folder):
+                shutil.rmtree(dst_folder)
+
+            relation_df = temp_relation_df
+        else:
+            relation_df = pd.concat([relation_df, temp_relation_df], axis=0)
+
+        # Get last ID of the current files
+        current_id = get_last_id(relation_df, prefix=filename_prefix)
+
+        print(&#34;Current last id is: &#34;, current_id)
+
+        print(&#34;Number of correct filepaths: &#34;, len(correct_filepaths))
+
+        if debug:
+            print(&#34;Current filepaths:\n\n&#34;, correct_filepaths)
+
+        # Loop over the files that should be copied/moved
+        for filepath in tqdm(correct_filepaths, desc=&#34;Move files&#34;):
+
+            # Get the final destination folder
+            _, src_filename = os.path.split(filepath)
+            final_dst = relation_df.loc[filepath, &#34;Path&#34;]
+
+            # Set filename depending on numeration
+            filename = filename_prefix + str(current_id + 1)
+            current_id += 1
+
+            # Add new relation on the DataFrame
+            relation_df = add_new_relation(
+                relation_df, filepath, src_filename, filename
+            )
+
+            # Check raw relation before moving
+            check_relation(relation_df.loc[filepath], check_path=False, check_raw=True)
+
+            # Copy/Move the file to the final destination with
+            move_file(
+                filepath,
+                filename,
+                final_dst,
+                force_extension=force_extension,
+                copy=copy,
+            )
+
+            # Check new path relation before saving
+            check_relation(relation_df.loc[filepath], check_path=True, check_raw=False)
+
+            # Save the relation file
+            save_name_relation_file(relation_df, relation_filepath, sep=&#34;,&#34;)
+
+    return relation_df, len(correct_filepaths)
+
+
+def shuffle_group_folders(
+    folders, groups, subgroup_length=None, start_num_subgrups=None
+):
+    &#34;&#34;&#34; Generate dictionaries of the shuffled groups and subgroups related to folders &#34;&#34;&#34;
+    if subgroup_length is not None:
+        num_subgroups = len(folders) // subgroup_length + 1
+        start_num_subgrups = start_num_subgrups if start_num_subgrups is not None else 0
+        subgroups = list(range(start_num_subgrups, start_num_subgrups + num_subgroups))[
+            : len(folders)
+        ]
+        expanded_subgroups = expand_list(subgroups, len(folders))
+        random.shuffle(folders)
+        folders_subgroup = dict(zip(folders, expanded_subgroups))
+
+        random.shuffle(groups)
+        expanded_groups = expand_list(groups, len(subgroups))
+        subgroup_group = dict(zip(subgroups, expanded_groups))
+
+        return folders_subgroup, subgroup_group
+    else:
+        random.shuffle(groups)
+        random.shuffle(folders)
+        expanded_groups = expand_list(groups, len(folders))
+        folders_group = dict(zip(folders, expanded_groups))
+
+        return folders_group
+
+
+def get_final_dst(
+    dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None
+):
+    &#34;&#34;&#34; Relates source filepaths with destination paths depending on shuffle groups and subgroup length &#34;&#34;&#34;
+
+    folders_dst = {}
+    if groups is not None and subgroup_length is not None:
+        folders_subgroup, subgroup_group = shuffle_group_folders(
+            filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        for filepath in filepaths:
+            current_subgroup = folders_subgroup[filepath]
+            current_group = subgroup_group[current_subgroup]
+            relative_folder = os.path.join(current_group, str(current_subgroup))
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(
+                os.sep, &#34;/&#34;
+            )
+    elif groups is None and subgroup_length is None:
+        for filepath in filepaths:
+            folders_dst[filepath] = dst_folder
+    else:
+        if groups is None:
+            n_groups = len(filepaths) // subgroup_length + (
+                len(filepaths) % subgroup_length != 0
+            )
+            groups = [str(i) for i in range(n_groups)]
+            subgroup_length = None
+        folders_group = shuffle_group_folders(
+            filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        for filepath in filepaths:
+            current_group = folders_group[filepath]
+            relative_folder = current_group
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(
+                os.sep, &#34;/&#34;
+            )
+    return folders_dst</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="radiology_ai.organize.data_files.get_final_dst"><code class="name flex">
+<span>def <span class="ident">get_final_dst</span></span>(<span>dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Relates source filepaths with destination paths depending on shuffle groups and subgroup length</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L339-L375" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def get_final_dst(
+    dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None
+):
+    &#34;&#34;&#34; Relates source filepaths with destination paths depending on shuffle groups and subgroup length &#34;&#34;&#34;
+
+    folders_dst = {}
+    if groups is not None and subgroup_length is not None:
+        folders_subgroup, subgroup_group = shuffle_group_folders(
+            filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        for filepath in filepaths:
+            current_subgroup = folders_subgroup[filepath]
+            current_group = subgroup_group[current_subgroup]
+            relative_folder = os.path.join(current_group, str(current_subgroup))
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(
+                os.sep, &#34;/&#34;
+            )
+    elif groups is None and subgroup_length is None:
+        for filepath in filepaths:
+            folders_dst[filepath] = dst_folder
+    else:
+        if groups is None:
+            n_groups = len(filepaths) // subgroup_length + (
+                len(filepaths) % subgroup_length != 0
+            )
+            groups = [str(i) for i in range(n_groups)]
+            subgroup_length = None
+        folders_group = shuffle_group_folders(
+            filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        for filepath in filepaths:
+            current_group = folders_group[filepath]
+            relative_folder = current_group
+            folders_dst[filepath] = os.path.join(dst_folder, relative_folder).replace(
+                os.sep, &#34;/&#34;
+            )
+    return folders_dst</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.move_blocks"><code class="name flex">
+<span>def <span class="ident">move_blocks</span></span>(<span>parent_folder, new_folder, blocks, relation_filepath, template_extension='xlsx')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move blocks of files to the new folder (person name)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L128-L167" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def move_blocks(
+    parent_folder, new_folder, blocks, relation_filepath, template_extension=&#34;xlsx&#34;
+):
+    &#34;&#34;&#34; Move blocks of files to the new folder (person name) &#34;&#34;&#34;
+
+    # Create new folder if it does not exist
+    new_folder_path = os.path.join(parent_folder, new_folder)
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
+
+    relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+
+    check_relation(relation_df, check_path=True, check_raw=False)
+    print(&#34;All in place!&#34;)
+
+    if not isinstance(blocks, Iterable):
+        blocks = [blocks]
+
+    for block in tqdm(blocks, desc=&#34;Blocks&#34;):
+        block = str(block)
+
+        # Search for the block folder path
+        block_path = glob(os.path.join(parent_folder, &#34;*&#34;, block))[0]
+
+        # Move entire block folder
+        dst_folder = os.path.join(new_folder_path, block)
+        shutil.move(block_path, dst_folder)
+
+        # Search for the template of this folder and rename it appropiately
+        template_path = glob(os.path.join(dst_folder, f&#34;*.{template_extension}&#34;))[0]
+        new_template_filename = f&#34;{new_folder}_{block}.{template_extension}&#34;
+        os.rename(template_path, os.path.join(dst_folder, new_template_filename))
+
+        # Update the relation file with the new folder path
+        relation_df = update_block_relation(
+            relation_df, parent_folder, block, new_folder, sep=&#34;/&#34;
+        )
+
+    # Save relation file
+    save_name_relation_file(relation_df, relation_filepath, sep=&#34;,&#34;)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.move_distribute_blocks"><code class="name flex">
+<span>def <span class="ident">move_distribute_blocks</span></span>(<span>parent_folder, new_folders, blocks, relation_filepath, template_extension='xlsx')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move and distribute equal number of blocks of files to a list of new folders (person names)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L105-L125" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def move_distribute_blocks(
+    parent_folder, new_folders, blocks, relation_filepath, template_extension=&#34;xlsx&#34;
+):
+    &#34;&#34;&#34; Move and distribute equal number of blocks of files to a list of new folders (person names) &#34;&#34;&#34;
+
+    distribution = np.random.permutation(
+        np.tile(
+            np.random.permutation(new_folders),
+            len(blocks) // len(new_folders) + (len(blocks) % len(new_folders) != 0),
+        )[: len(blocks)]
+    )
+
+    for folder in tqdm(np.unique(new_folders), desc=&#34;Distributions&#34;):
+        current_blocks = np.array(blocks)[np.where(distribution == folder)]
+        move_blocks(
+            parent_folder=parent_folder,
+            new_folder=folder,
+            blocks=current_blocks,
+            relation_filepath=relation_filepath,
+            template_extension=template_extension,
+        )</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.move_file"><code class="name flex">
+<span>def <span class="ident">move_file</span></span>(<span>src_filepath, filename, dst_folder, force_extension=None, copy=True, return_filepath=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move or copy file to the destination folder with folder name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L24-L62" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def move_file(
+    src_filepath,
+    filename,
+    dst_folder,
+    force_extension=None,
+    copy=True,
+    return_filepath=True,
+):
+    &#34;&#34;&#34; Move or copy file to the destination folder with folder name &#34;&#34;&#34;
+
+    # Define extension
+    _, src_extension = os.path.splitext(src_filepath)
+    dst_filename, dst_extension = os.path.splitext(filename)
+    if force_extension != False and force_extension is not None:
+        extension = force_extension
+    elif dst_extension != &#34;&#34; or force_extension == False:
+        extension = dst_extension
+    else:
+        extension = src_extension
+
+    # Define filename
+    filename = dst_filename + extension
+
+    # Define the destination path
+    dst_filepath = os.path.join(dst_folder, filename)
+
+    # Create the destination folder if not exists
+    if not os.path.exists(dst_folder):
+        os.makedirs(dst_folder)
+
+    if copy:
+        # Copy file with folder name
+        shutil.copyfile(src_filepath, dst_filepath)
+    else:
+        # Move file with folder name
+        shutil.move(src_filepath, dst_filepath)
+
+    if return_filepath:
+        return dst_filepath</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.move_relation"><code class="name flex">
+<span>def <span class="ident">move_relation</span></span>(<span>relation_filepath, copy=True, to_raw=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move or copy files to/from raw destination from/to final destination based on relation file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L65-L102" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def move_relation(relation_filepath, copy=True, to_raw=True):
+    &#34;&#34;&#34; Move or copy files to/from raw destination from/to final destination based on relation file &#34;&#34;&#34;
+
+    # Open relation file where the move/copy will be based on
+    relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+
+    # Check source files
+    check_relation(relation_df, check_path=to_raw, check_raw=not to_raw)
+
+    if to_raw:
+        # Loop over all the files to move/copy them to the raw destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=os.path.join(x.Path, x.Filename + &#34;.dcm&#34;),
+                filename=x.Original_Filename,
+                dst_folder=os.path.split(x.name)[0],
+                force_extension=False,
+                copy=copy,
+                return_filepath=False,
+            ),
+            axis=1,
+        )
+    else:
+        # Loop over all the files to move/copy them to the final destination
+        relation_df.progress_apply(
+            lambda x: move_file(
+                src_filepath=x.name,
+                filename=x.Filename,
+                dst_folder=x.Path,
+                force_extension=&#34;.dcm&#34;,
+                copy=copy,
+                return_filepath=False,
+            ),
+            axis=1,
+        )
+
+    # Check destination files
+    check_relation(relation_df, check_path=not to_raw, check_raw=to_raw)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.organize_folders"><code class="name flex">
+<span>def <span class="ident">organize_folders</span></span>(<span>src_folder, dst_folder, relation_filepath, reset=False, groups=None, subgroup_length=None, filename_prefix='IMG_', force_extension=None, copy=True, metadata_labels=None, label_exact_match=True, check_DICOM_dict=None, debug=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Organize folders and files to set all the desired DICOM files into the correct folder</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L170-L308" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def organize_folders(
+    src_folder,
+    dst_folder,
+    relation_filepath,
+    reset=False,
+    groups=None,
+    subgroup_length=None,
+    filename_prefix=&#34;IMG_&#34;,
+    force_extension=None,
+    copy=True,
+    metadata_labels=None,
+    label_exact_match=True,
+    check_DICOM_dict=None,
+    debug=False,
+):
+    &#34;&#34;&#34; Organize folders and files to set all the desired DICOM files into the correct folder &#34;&#34;&#34;
+
+    # In case not reseting the folders, then the current relation is required
+    if not reset:
+        relation_df = open_name_relation_file(relation_filepath, sep=&#34;,&#34;)
+        if len(relation_df.index) == 0:
+            raise ValueError(
+                &#34;No reset is set, but there is no relation file or it is empty&#34;
+            )
+        if relation_df.index.duplicated(&#34;Original&#34;).any():
+            raise ValueError(
+                &#34;There is a duplicated value on relation file, please review it and modify it&#34;
+            )
+
+    # Look at all the DICOM files in the source folder, check them and move them appropiatly
+    folders = glob(os.path.join(src_folder, &#34;*&#34;))
+    correct_filepaths = []
+    for folder in tqdm(folders, desc=&#34;Check folders: &#34;):
+        # Find all files in the folder
+        filepaths = glob(os.path.join(folder, &#34;*&#34;))
+
+        # Open all the files as DICOM and check if they fullfil the condition to be used in the study
+        for filepath in filepaths:
+
+            # Normalize path to be equal without depending on the OS
+            filepath = os.path.normpath(filepath).replace(os.sep, &#34;/&#34;)
+
+            # If is no resetting and the file is already on the relation, then there is no need to check
+            if not reset:
+                if filepath in relation_df.index:
+                    continue
+
+            # Check if current file is frontal (ap) image
+            if metadata_labels is not None:
+                if check_metadata_label(
+                    filepath, metadata_labels, label=&#34;ap&#34;, exact_match=label_exact_match
+                ):
+                    correct_filepaths.append(filepath)
+            else:
+                # Read and check DICOM
+                dcm = pydicom.dcmread(filepath)
+                if check_DICOM(dcm, check_DICOM_dict, debug):
+                    correct_filepaths.append(filepath)
+
+    print(&#34;Preparing for organizing files...&#34;)
+    # Only proceed if there is files to move or resetting folders
+    if len(correct_filepaths) &gt; 0 or reset:
+
+        # TODO: Make sure that it continues from the last block
+        if not reset:
+            last_block = relation_df[&#34;Path&#34;].str.split(&#34;/&#34;).str[-1].astype(int).max()
+            start_num_subgrups = last_block + 1
+        else:
+            start_num_subgrups = 0
+
+        # Relates source filepaths with destination folder paths depending on shuffle groups and subgroup length
+        folders_dst = get_final_dst(
+            dst_folder, correct_filepaths, groups, subgroup_length, start_num_subgrups
+        )
+        temp_relation_df = pd.DataFrame(
+            folders_dst.values(), index=folders_dst.keys(), columns=[&#34;Path&#34;]
+        )
+        temp_relation_df[&#34;Filename&#34;] = filename_prefix + str(-1)
+        temp_relation_df.index.rename(&#34;Original&#34;, inplace=True)
+
+        print(&#34;Groups and subgroups organized&#34;)
+        if debug:
+            print(temp_relation_df)
+
+        # Define relation DataFrame depending on reset
+        if reset:
+            # Clean destination folder
+            if os.path.isdir(dst_folder):
+                shutil.rmtree(dst_folder)
+
+            relation_df = temp_relation_df
+        else:
+            relation_df = pd.concat([relation_df, temp_relation_df], axis=0)
+
+        # Get last ID of the current files
+        current_id = get_last_id(relation_df, prefix=filename_prefix)
+
+        print(&#34;Current last id is: &#34;, current_id)
+
+        print(&#34;Number of correct filepaths: &#34;, len(correct_filepaths))
+
+        if debug:
+            print(&#34;Current filepaths:\n\n&#34;, correct_filepaths)
+
+        # Loop over the files that should be copied/moved
+        for filepath in tqdm(correct_filepaths, desc=&#34;Move files&#34;):
+
+            # Get the final destination folder
+            _, src_filename = os.path.split(filepath)
+            final_dst = relation_df.loc[filepath, &#34;Path&#34;]
+
+            # Set filename depending on numeration
+            filename = filename_prefix + str(current_id + 1)
+            current_id += 1
+
+            # Add new relation on the DataFrame
+            relation_df = add_new_relation(
+                relation_df, filepath, src_filename, filename
+            )
+
+            # Check raw relation before moving
+            check_relation(relation_df.loc[filepath], check_path=False, check_raw=True)
+
+            # Copy/Move the file to the final destination with
+            move_file(
+                filepath,
+                filename,
+                final_dst,
+                force_extension=force_extension,
+                copy=copy,
+            )
+
+            # Check new path relation before saving
+            check_relation(relation_df.loc[filepath], check_path=True, check_raw=False)
+
+            # Save the relation file
+            save_name_relation_file(relation_df, relation_filepath, sep=&#34;,&#34;)
+
+    return relation_df, len(correct_filepaths)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.data_files.shuffle_group_folders"><code class="name flex">
+<span>def <span class="ident">shuffle_group_folders</span></span>(<span>folders, groups, subgroup_length=None, start_num_subgrups=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate dictionaries of the shuffled groups and subgroups related to folders</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\data_files.py#L311-L336" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def shuffle_group_folders(
+    folders, groups, subgroup_length=None, start_num_subgrups=None
+):
+    &#34;&#34;&#34; Generate dictionaries of the shuffled groups and subgroups related to folders &#34;&#34;&#34;
+    if subgroup_length is not None:
+        num_subgroups = len(folders) // subgroup_length + 1
+        start_num_subgrups = start_num_subgrups if start_num_subgrups is not None else 0
+        subgroups = list(range(start_num_subgrups, start_num_subgrups + num_subgroups))[
+            : len(folders)
+        ]
+        expanded_subgroups = expand_list(subgroups, len(folders))
+        random.shuffle(folders)
+        folders_subgroup = dict(zip(folders, expanded_subgroups))
+
+        random.shuffle(groups)
+        expanded_groups = expand_list(groups, len(subgroups))
+        subgroup_group = dict(zip(subgroups, expanded_groups))
+
+        return folders_subgroup, subgroup_group
+    else:
+        random.shuffle(groups)
+        random.shuffle(folders)
+        expanded_groups = expand_list(groups, len(folders))
+        folders_group = dict(zip(folders, expanded_groups))
+
+        return folders_group</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
+data-gaCategoryParameter="radiology_ai.organize.data_files">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radiology_ai.organize" href="index.html">radiology_ai.organize</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="radiology_ai.organize.data_files.get_final_dst" href="#radiology_ai.organize.data_files.get_final_dst">get_final_dst</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.move_blocks" href="#radiology_ai.organize.data_files.move_blocks">move_blocks</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.move_distribute_blocks" href="#radiology_ai.organize.data_files.move_distribute_blocks">move_distribute_blocks</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.move_file" href="#radiology_ai.organize.data_files.move_file">move_file</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.move_relation" href="#radiology_ai.organize.data_files.move_relation">move_relation</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.organize_folders" href="#radiology_ai.organize.data_files.organize_folders">organize_folders</a></code></li>
+<li><code><a title="radiology_ai.organize.data_files.shuffle_group_folders" href="#radiology_ai.organize.data_files.shuffle_group_folders">shuffle_group_folders</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

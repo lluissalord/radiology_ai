@@ -35,13 +35,14 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\utils.py#L0-L18" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\utils.py#L0-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Utility functions for Semi-Supervised Learning &#34;&#34;&#34;
 
 import torch
 import pandas as pd
 import numpy as np
+
 
 def interleave(x, bs):
     &#34;&#34;&#34; Interleave to mix batch data &#34;&#34;&#34;
@@ -50,12 +51,22 @@ def interleave(x, bs):
     ret = torch.reshape(torch.transpose(x.reshape([-1, bs] + s[idx:]), 1, 0), s)
     return ret
 
+
 def de_interleave(x, bs):
     &#34;&#34;&#34; Deinterleave to undo mix of batch data &#34;&#34;&#34;
     s = list(x.shape)
     idx = np.argmax((np.array(s) != 1)) + 1
     ret = torch.reshape(torch.transpose(x.reshape([bs, -1] + s[idx:]), 1, 0), s)
-    return ret</code></pre>
+    return ret
+
+
+def categorical_to_one_hot(x, n_out):
+    &#34;&#34;&#34; Transform categorical tensor to one hot encoding &#34;&#34;&#34;
+    zeros = torch.zeros(len(x), n_out)
+    if torch.cuda.is_available():
+        zeros = zeros.cuda()
+
+    return zeros.scatter_(1, x.view(-1, 1).long(), 1)</code></pre>
 </details>
 </section>
 <section>
@@ -65,6 +76,25 @@ def de_interleave(x, bs):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="radiology_ai.semisupervised.utils.categorical_to_one_hot"><code class="name flex">
+<span>def <span class="ident">categorical_to_one_hot</span></span>(<span>x, n_out)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transform categorical tensor to one hot encoding</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\utils.py#L24-L30" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def categorical_to_one_hot(x, n_out):
+    &#34;&#34;&#34; Transform categorical tensor to one hot encoding &#34;&#34;&#34;
+    zeros = torch.zeros(len(x), n_out)
+    if torch.cuda.is_available():
+        zeros = zeros.cuda()
+
+    return zeros.scatter_(1, x.view(-1, 1).long(), 1)</code></pre>
+</details>
+</dd>
 <dt id="radiology_ai.semisupervised.utils.de_interleave"><code class="name flex">
 <span>def <span class="ident">de_interleave</span></span>(<span>x, bs)</span>
 </code></dt>
@@ -73,7 +103,7 @@ def de_interleave(x, bs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\utils.py#L14-L19" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\utils.py#L16-L21" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def de_interleave(x, bs):
     &#34;&#34;&#34; Deinterleave to undo mix of batch data &#34;&#34;&#34;
@@ -91,7 +121,7 @@ def de_interleave(x, bs):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\utils.py#L7-L12" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\utils.py#L8-L13" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def interleave(x, bs):
     &#34;&#34;&#34; Interleave to mix batch data &#34;&#34;&#34;
@@ -123,6 +153,7 @@ data-gaCategoryParameter="radiology_ai.semisupervised.utils">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="radiology_ai.semisupervised.utils.categorical_to_one_hot" href="#radiology_ai.semisupervised.utils.categorical_to_one_hot">categorical_to_one_hot</a></code></li>
 <li><code><a title="radiology_ai.semisupervised.utils.de_interleave" href="#radiology_ai.semisupervised.utils.de_interleave">de_interleave</a></code></li>
 <li><code><a title="radiology_ai.semisupervised.utils.interleave" href="#radiology_ai.semisupervised.utils.interleave">interleave</a></code></li>
 </ul>

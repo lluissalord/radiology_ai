@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>radiology_ai.semisupervised API documentation</title>
-<meta name="description" content="Classes and functions use across different Semi-Supervised algorithms" />
+<title>radiology_ai.train.losses API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
@@ -21,43 +21,27 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 <style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
-<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/semisupervised/">
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/train/losses/">
 <link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
 </head>
 <body>
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>radiology_ai.semisupervised</code></h1>
+<h1 class="title">Module <code>radiology_ai.train.losses</code></h1>
 </header>
 <section id="section-intro">
-<p>Classes and functions use across different Semi-Supervised algorithms</p>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\__init__.py#L0-L0" class="git-link">Browse git</a>
-</summary>
-<pre><code class="python">&#34;&#34;&#34; Classes and functions use across different Semi-Supervised algorithms &#34;&#34;&#34;</code></pre>
-</details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="radiology_ai.semisupervised.fixmatch" href="fixmatch/index.html">radiology_ai.semisupervised.fixmatch</a></code></dt>
+<dt><code class="name"><a title="radiology_ai.train.losses.APL_losses" href="APL_losses.html">radiology_ai.train.losses.APL_losses</a></code></dt>
 <dd>
-<div class="desc"><p><a href="https://arxiv.org/abs/2001.07685">FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence</a> paper implemented for any dataset …</p></div>
+<div class="desc"><p>Robust loss functions for training accurate deep neural networks (DNNs) in the presence of noisy (incorrect) labels …</p></div>
 </dd>
-<dt><code class="name"><a title="radiology_ai.semisupervised.losses" href="losses.html">radiology_ai.semisupervised.losses</a></code></dt>
+<dt><code class="name"><a title="radiology_ai.train.losses.losses" href="losses.html">radiology_ai.train.losses.losses</a></code></dt>
 <dd>
-<div class="desc"><p>Loss classes required for Semi-Supervised Learning</p></div>
-</dd>
-<dt><code class="name"><a title="radiology_ai.semisupervised.mixmatch" href="mixmatch/index.html">radiology_ai.semisupervised.mixmatch</a></code></dt>
-<dd>
-<div class="desc"><p><a href="https://arxiv.org/abs/1905.02249">MixMatch: A Holistic Approach to Semi-Supervised Learning</a> paper implemented for any dataset using Fastai v2 …</p></div>
-</dd>
-<dt><code class="name"><a title="radiology_ai.semisupervised.utils" href="utils.html">radiology_ai.semisupervised.utils</a></code></dt>
-<dd>
-<div class="desc"><p>Utility functions for Semi-Supervised Learning</p></div>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -71,7 +55,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <nav id="sidebar">
 <div class="gcse-search" style="height: 70px"
 data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
-data-gaCategoryParameter="radiology_ai.semisupervised">
+data-gaCategoryParameter="radiology_ai.train.losses">
 </div>
 <h1>Index</h1>
 <div class="toc">
@@ -80,15 +64,13 @@ data-gaCategoryParameter="radiology_ai.semisupervised">
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="radiology_ai" href="../index.html">radiology_ai</a></code></li>
+<li><code><a title="radiology_ai.train" href="../index.html">radiology_ai.train</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="radiology_ai.semisupervised.fixmatch" href="fixmatch/index.html">radiology_ai.semisupervised.fixmatch</a></code></li>
-<li><code><a title="radiology_ai.semisupervised.losses" href="losses.html">radiology_ai.semisupervised.losses</a></code></li>
-<li><code><a title="radiology_ai.semisupervised.mixmatch" href="mixmatch/index.html">radiology_ai.semisupervised.mixmatch</a></code></li>
-<li><code><a title="radiology_ai.semisupervised.utils" href="utils.html">radiology_ai.semisupervised.utils</a></code></li>
+<li><code><a title="radiology_ai.train.losses.APL_losses" href="APL_losses.html">radiology_ai.train.losses.APL_losses</a></code></li>
+<li><code><a title="radiology_ai.train.losses.losses" href="losses.html">radiology_ai.train.losses.losses</a></code></li>
 </ul>
 </li>
 </ul>

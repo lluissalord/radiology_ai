@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>radiology_ai.organize.templates API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/atom-one-dark.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<link rel="preconnect" href="https://www.google.com">
+<script async src="https://cse.google.com/cse.js?cx=017837193012385208679:pey8ky8gdqw"></script>
+<style>
+.gsc-control-cse {padding:0 !important;margin-top:1em}
+body.gsc-overflow-hidden #sidebar {overflow: visible;}
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+<style>.homelink{display:block;font-size:2em;font-weight:bold;color:#555;padding-bottom:.5em;border-bottom:1px solid silver}.homelink:hover{color:inherit}.homelink img{max-width:20%;max-height:5em;margin:auto;margin-bottom:.3em}</style>
+<link rel="canonical" href="https://pdoc3.github.io/pdoc/doc/radiology_ai/organize/templates.html">
+<link rel="icon" href="https://pdoc3.github.io/pdoc/logo.png">
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>radiology_ai.organize.templates</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L0-L305" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">import os
+import pandas as pd
+from glob import glob
+
+from tqdm.auto import tqdm
+
+tqdm.pandas()
+
+
+def generate_template(
+    dst_folder,
+    groups,
+    subgroup_length,
+    filename_prefix=&#34;IMG_&#34;,
+    excel=True,
+    csv_sep=&#34;;&#34;,
+    able_overwrite=False,
+):
+    &#34;&#34;&#34; Generates template files for each group of DICOM files using the filename as ID &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xlsx&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    # Extract the length of the path from the destination folder
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
+
+    # Take into account if there are or not subgroups
+    prefix = &#34;&#34;
+    if subgroup_length is not None:
+        prefix += &#34;*/&#34;
+        if groups is None:
+            subgroup_length = None
+
+    if groups is not None:
+        prefix += &#34;*/&#34;
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(os.path.join(dst_folder, prefix))
+
+    # Loop on across the folders to generate de template file
+    for folderpath in tqdm(folderpaths, desc=&#34;Folders: &#34;):
+        # Get all the DICOM files
+        filepaths = glob(os.path.join(folderpath, &#34;*.dcm&#34;))
+
+        data = {}
+        # Extract file IDs from each filepath
+        data[&#34;ID&#34;] = list(
+            map(
+                lambda x: os.path.splitext(os.path.normpath(x).split(os.sep)[-1])[0],
+                filepaths,
+            )
+        )
+
+        # Create DataFrame from the data with the proposed structure
+        df = pd.DataFrame(
+            data,
+            columns=[
+                &#34;ID&#34;,
+                &#34;Target&#34;,
+                &#34;Difficulty&#34;,
+                &#34;Incorrect_image&#34;,
+                &#34;Not_enough_quality&#34;,
+            ],
+        )
+
+        # Look for Excel/CSV files in the folders
+        template_files = (
+            glob(os.path.join(folderpath + &#34;*.xls&#34;))
+            + glob(os.path.join(folderpath + &#34;*.xlsx&#34;))
+            + glob(os.path.join(folderpath + &#34;*.csv&#34;))
+        )
+
+        # If there are template then we have to check if there is data and if it has to be overwritten or not
+        template_file = None
+        if len(template_files) == 1:
+            template_file = template_files[0]
+
+            # Check if there is data on the template file
+            old_df, check_data = check_data_in_template(template_file)
+
+        elif len(template_files) &gt; 1:
+            raise ValueError(
+                f&#34;There are more than one template on the following folder, please remove the out-dated one:\n{folderpath}&#34;
+            )
+
+        # In case that there is no template files then we are sure that there is no data
+        else:
+            check_data = False
+
+        # Sort DataFrame by ID if possible
+        df = sort_template_file(df, filename_prefix)
+
+        # Split the path on all the folders
+        path_split = os.path.normpath(filepaths[0]).split(os.sep)
+
+        if subgroup_length is not None or groups is not None:
+            # Set template filename as the name of the folder just after the destination folder
+            template_name = path_split[dst_folder_length]
+        else:
+            # Set template filename as &#39;labels&#39;
+            template_name = &#34;labels&#34;
+
+        # If there are subgroups then it is added also the subfolder on the filename
+        if subgroup_length is not None:
+            template_name = template_name + &#34;_&#34; + path_split[-2]
+
+        # If there is data then we need to request permission to the user to overwrite
+        allow_overwrite = False
+        check_same_ids = True
+        if check_data:
+
+            # Check if old DataFrame match with current IDs
+            old_df = sort_template_file(old_df, filename_prefix)
+            check_same_ids = (df[&#34;ID&#34;] == old_df[&#34;ID&#34;]).all()
+            if check_same_ids:
+                if able_overwrite:
+                    # Ask user if want to overwrite file with data
+                    allow_input = input(
+                        f&#34;There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (n default): &#34;
+                    )
+                    if len(allow_input) != 0 and allow_input[0].lower() == &#34;y&#34;:
+                        allow_overwrite = True
+            else:
+                # Rename file with prefix &#39;old_&#39;
+                src_folder, src_filename = os.path.split(template_file)
+                new_filename = &#34;old_&#34; + src_filename
+                move_file(template_file, new_filename, src_folder, copy=False)
+
+                print(
+                    f&#34;WARNING: The following file is out-dated with different IDs than the ones in the folder:\n{template_file}\n\nHowever, there is data in it, then it is being renamed from {src_filename} to {new_filename}. Please updated the file the new file and remove the old one before continuing&#34;
+                )
+
+        # If there is no data or the user allow to remove the file
+        if not check_data or (
+            template_file is not None and allow_overwrite and able_overwrite
+        ):
+            # Only remove if file still exists
+            if template_file is not None and os.path.exists(template_file):
+                os.remove(template_file)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                    sep=csv_sep,
+                )
+
+
+def modify_template(
+    dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=&#34;;&#34;
+):
+    &#34;&#34;&#34; Modify all the templates on dst_folder applying `modify_func` on each DataFrame &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xlsx&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    # Extract the length of the path from the destination folder
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
+
+    # Take into account if there are or not subgroups
+    prefix = &#34;&#34;
+    if subgroup_length is not None:
+        prefix += &#34;*/&#34;
+        if groups is None:
+            subgroup_length = None
+
+    if groups is not None:
+        prefix += &#34;*/&#34;
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(os.path.join(dst_folder, prefix))
+
+    # Loop on across the folders to generate de template file
+    for folderpath in tqdm(folderpaths, desc=&#34;Folders: &#34;):
+
+        # Look for Excel/CSV files in the folders
+        template_files = (
+            glob(os.path.join(folderpath + &#34;*.xls&#34;))
+            + glob(os.path.join(folderpath + &#34;*.xlsx&#34;))
+            + glob(os.path.join(folderpath + &#34;*.csv&#34;))
+        )
+
+        for template_file in template_files:
+            # Read each template
+            df = read_template(template_file, sep=csv_sep)
+
+            # Do specified modification
+            df = modify_func(df)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    template_file,
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    template_file,
+                    index=False,
+                    sep=csv_sep,
+                )
+
+
+def sort_template_file(df, filename_prefix):
+    &#34;&#34;&#34; Sort DataFrame based on template filename &#34;&#34;&#34;
+
+    try:
+        # Extract ID from the filename and sort by it as numerical sorting
+        df[&#34;sort&#34;] = df[&#34;ID&#34;].str[len(filename_prefix) :].astype(int)
+        df = df.sort_values(&#34;sort&#34;)
+        df = df.drop(&#34;sort&#34;, axis=1)
+    except ValueError as e:
+        print(&#34;Not able to sort template by ID because: &#34;, e)
+        df = df.sort_values(&#34;ID&#34;)
+
+    return df.reset_index(drop=True)
+
+
+def check_data_in_template(template_file, sep=None):
+    &#34;&#34;&#34; Check if there is data different than null in each template &#34;&#34;&#34;
+
+    dtype = {&#34;ID&#34;: &#34;string&#34;, &#34;Target&#34;: &#34;string&#34;}
+    df = read_template(template_file, sep=sep, dtype=dtype)
+
+    return df, df.drop(&#34;ID&#34;, axis=1).notnull().any().any()
+
+
+def read_template(template_file, sep=None, dtype=None):
+    &#34;&#34;&#34; Read template idenpendently of the extension &#34;&#34;&#34;
+
+    # Extract extension and define loading method depending on it
+    _, extension = os.path.splitext(template_file)
+    if extension.startswith(&#34;.xls&#34;):
+        df = pd.read_excel(template_file, dtype=dtype)
+
+    elif extension == &#34;.csv&#34;:
+        if sep is not None:
+            df = pd.read_csv(template_file, sep=sep, dtype=dtype)
+        else:
+            df = pd.read_csv(template_file, sep=&#34;,&#34;, dtype=dtype)
+
+        # Check if CSV has been loaded with the correct sep
+        if len(df.columns) == 1:
+            df = pd.read_csv(template_file, sep=&#34;;&#34;, dtype=dtype)
+            if len(df.columns) == 1:
+                raise ValueError(
+                    &#34;Please define the correct sep for the CSV files already existing as for examples: &#34;,
+                    template_file,
+                )
+
+    return df
+
+
+def concat_templates(src_folder, excel=True, csv_sep=&#34;;&#34;):
+    &#34;&#34;&#34; Concatenate all the template into a DataFrame &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xls*&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    label_paths = (
+        glob(os.path.join(src_folder, &#34;*&#34; + extension))
+        + glob(os.path.join(src_folder, &#34;*/*&#34; + extension))
+        + glob(os.path.join(src_folder, &#34;*/*/*&#34; + extension))
+    )
+
+    dtype = {&#34;ID&#34;: &#34;string&#34;, &#34;Target&#34;: &#34;string&#34;}
+
+    df = pd.DataFrame()
+    for label_path in tqdm(label_paths, desc=&#34;Label files: &#34;):
+        # Check if there is any file which is out-dated
+        _, label_filename = os.path.split(label_path)
+        if label_filename.startswith(&#34;old_&#34;):
+            raise ValueError(
+                f&#34;The following file is out-dated, please move the data in this file to the corresponding file and remove the out-dated file.\n\n{label_path}&#34;
+            )
+
+        df = pd.concat(
+            [
+                df,
+                pd.read_excel(label_path, dtype=dtype, engine=&#34;openpyxl&#34;)
+                if excel
+                else pd.read_csv(label_path, sep=csv_sep, dtype=dtype),
+            ]
+        )
+
+    df = df.reset_index(drop=True)
+
+    # TODO: Think about how to handle various Targets
+    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
+    df = df[df.Target.notnull()].groupby(&#34;ID&#34;).agg(&#34;max&#34;).reset_index()
+    return df</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="radiology_ai.organize.templates.check_data_in_template"><code class="name flex">
+<span>def <span class="ident">check_data_in_template</span></span>(<span>template_file, sep=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check if there is data different than null in each template</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L231-L237" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def check_data_in_template(template_file, sep=None):
+    &#34;&#34;&#34; Check if there is data different than null in each template &#34;&#34;&#34;
+
+    dtype = {&#34;ID&#34;: &#34;string&#34;, &#34;Target&#34;: &#34;string&#34;}
+    df = read_template(template_file, sep=sep, dtype=dtype)
+
+    return df, df.drop(&#34;ID&#34;, axis=1).notnull().any().any()</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.templates.concat_templates"><code class="name flex">
+<span>def <span class="ident">concat_templates</span></span>(<span>src_folder, excel=True, csv_sep=';')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Concatenate all the template into a DataFrame</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L266-L306" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def concat_templates(src_folder, excel=True, csv_sep=&#34;;&#34;):
+    &#34;&#34;&#34; Concatenate all the template into a DataFrame &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xls*&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    label_paths = (
+        glob(os.path.join(src_folder, &#34;*&#34; + extension))
+        + glob(os.path.join(src_folder, &#34;*/*&#34; + extension))
+        + glob(os.path.join(src_folder, &#34;*/*/*&#34; + extension))
+    )
+
+    dtype = {&#34;ID&#34;: &#34;string&#34;, &#34;Target&#34;: &#34;string&#34;}
+
+    df = pd.DataFrame()
+    for label_path in tqdm(label_paths, desc=&#34;Label files: &#34;):
+        # Check if there is any file which is out-dated
+        _, label_filename = os.path.split(label_path)
+        if label_filename.startswith(&#34;old_&#34;):
+            raise ValueError(
+                f&#34;The following file is out-dated, please move the data in this file to the corresponding file and remove the out-dated file.\n\n{label_path}&#34;
+            )
+
+        df = pd.concat(
+            [
+                df,
+                pd.read_excel(label_path, dtype=dtype, engine=&#34;openpyxl&#34;)
+                if excel
+                else pd.read_csv(label_path, sep=csv_sep, dtype=dtype),
+            ]
+        )
+
+    df = df.reset_index(drop=True)
+
+    # TODO: Think about how to handle various Targets
+    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
+    df = df[df.Target.notnull()].groupby(&#34;ID&#34;).agg(&#34;max&#34;).reset_index()
+    return df</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.templates.generate_template"><code class="name flex">
+<span>def <span class="ident">generate_template</span></span>(<span>dst_folder, groups, subgroup_length, filename_prefix='IMG_', excel=True, csv_sep=';', able_overwrite=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates template files for each group of DICOM files using the filename as ID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L10-L155" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def generate_template(
+    dst_folder,
+    groups,
+    subgroup_length,
+    filename_prefix=&#34;IMG_&#34;,
+    excel=True,
+    csv_sep=&#34;;&#34;,
+    able_overwrite=False,
+):
+    &#34;&#34;&#34; Generates template files for each group of DICOM files using the filename as ID &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xlsx&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    # Extract the length of the path from the destination folder
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
+
+    # Take into account if there are or not subgroups
+    prefix = &#34;&#34;
+    if subgroup_length is not None:
+        prefix += &#34;*/&#34;
+        if groups is None:
+            subgroup_length = None
+
+    if groups is not None:
+        prefix += &#34;*/&#34;
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(os.path.join(dst_folder, prefix))
+
+    # Loop on across the folders to generate de template file
+    for folderpath in tqdm(folderpaths, desc=&#34;Folders: &#34;):
+        # Get all the DICOM files
+        filepaths = glob(os.path.join(folderpath, &#34;*.dcm&#34;))
+
+        data = {}
+        # Extract file IDs from each filepath
+        data[&#34;ID&#34;] = list(
+            map(
+                lambda x: os.path.splitext(os.path.normpath(x).split(os.sep)[-1])[0],
+                filepaths,
+            )
+        )
+
+        # Create DataFrame from the data with the proposed structure
+        df = pd.DataFrame(
+            data,
+            columns=[
+                &#34;ID&#34;,
+                &#34;Target&#34;,
+                &#34;Difficulty&#34;,
+                &#34;Incorrect_image&#34;,
+                &#34;Not_enough_quality&#34;,
+            ],
+        )
+
+        # Look for Excel/CSV files in the folders
+        template_files = (
+            glob(os.path.join(folderpath + &#34;*.xls&#34;))
+            + glob(os.path.join(folderpath + &#34;*.xlsx&#34;))
+            + glob(os.path.join(folderpath + &#34;*.csv&#34;))
+        )
+
+        # If there are template then we have to check if there is data and if it has to be overwritten or not
+        template_file = None
+        if len(template_files) == 1:
+            template_file = template_files[0]
+
+            # Check if there is data on the template file
+            old_df, check_data = check_data_in_template(template_file)
+
+        elif len(template_files) &gt; 1:
+            raise ValueError(
+                f&#34;There are more than one template on the following folder, please remove the out-dated one:\n{folderpath}&#34;
+            )
+
+        # In case that there is no template files then we are sure that there is no data
+        else:
+            check_data = False
+
+        # Sort DataFrame by ID if possible
+        df = sort_template_file(df, filename_prefix)
+
+        # Split the path on all the folders
+        path_split = os.path.normpath(filepaths[0]).split(os.sep)
+
+        if subgroup_length is not None or groups is not None:
+            # Set template filename as the name of the folder just after the destination folder
+            template_name = path_split[dst_folder_length]
+        else:
+            # Set template filename as &#39;labels&#39;
+            template_name = &#34;labels&#34;
+
+        # If there are subgroups then it is added also the subfolder on the filename
+        if subgroup_length is not None:
+            template_name = template_name + &#34;_&#34; + path_split[-2]
+
+        # If there is data then we need to request permission to the user to overwrite
+        allow_overwrite = False
+        check_same_ids = True
+        if check_data:
+
+            # Check if old DataFrame match with current IDs
+            old_df = sort_template_file(old_df, filename_prefix)
+            check_same_ids = (df[&#34;ID&#34;] == old_df[&#34;ID&#34;]).all()
+            if check_same_ids:
+                if able_overwrite:
+                    # Ask user if want to overwrite file with data
+                    allow_input = input(
+                        f&#34;There is data on file the following file:\n{template_file}\n\nDo you want to overwrite it?[y/n] (n default): &#34;
+                    )
+                    if len(allow_input) != 0 and allow_input[0].lower() == &#34;y&#34;:
+                        allow_overwrite = True
+            else:
+                # Rename file with prefix &#39;old_&#39;
+                src_folder, src_filename = os.path.split(template_file)
+                new_filename = &#34;old_&#34; + src_filename
+                move_file(template_file, new_filename, src_folder, copy=False)
+
+                print(
+                    f&#34;WARNING: The following file is out-dated with different IDs than the ones in the folder:\n{template_file}\n\nHowever, there is data in it, then it is being renamed from {src_filename} to {new_filename}. Please updated the file the new file and remove the old one before continuing&#34;
+                )
+
+        # If there is no data or the user allow to remove the file
+        if not check_data or (
+            template_file is not None and allow_overwrite and able_overwrite
+        ):
+            # Only remove if file still exists
+            if template_file is not None and os.path.exists(template_file):
+                os.remove(template_file)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    os.sep.join(path_split[:-1] + [template_name + extension]),
+                    index=False,
+                    sep=csv_sep,
+                )</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.templates.modify_template"><code class="name flex">
+<span>def <span class="ident">modify_template</span></span>(<span>dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=';')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Modify all the templates on dst_folder applying <code>modify_func</code> on each DataFrame</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L158-L213" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def modify_template(
+    dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=&#34;;&#34;
+):
+    &#34;&#34;&#34; Modify all the templates on dst_folder applying `modify_func` on each DataFrame &#34;&#34;&#34;
+
+    # Define extension
+    if excel:
+        extension = &#34;.xlsx&#34;
+    else:
+        extension = &#34;.csv&#34;
+
+    # Extract the length of the path from the destination folder
+    dst_folder_length = len(os.path.normpath(dst_folder).split(os.sep))
+
+    # Take into account if there are or not subgroups
+    prefix = &#34;&#34;
+    if subgroup_length is not None:
+        prefix += &#34;*/&#34;
+        if groups is None:
+            subgroup_length = None
+
+    if groups is not None:
+        prefix += &#34;*/&#34;
+
+    # Get all the folder and subfolders that contain DICOM files
+    folderpaths = glob(os.path.join(dst_folder, prefix))
+
+    # Loop on across the folders to generate de template file
+    for folderpath in tqdm(folderpaths, desc=&#34;Folders: &#34;):
+
+        # Look for Excel/CSV files in the folders
+        template_files = (
+            glob(os.path.join(folderpath + &#34;*.xls&#34;))
+            + glob(os.path.join(folderpath + &#34;*.xlsx&#34;))
+            + glob(os.path.join(folderpath + &#34;*.csv&#34;))
+        )
+
+        for template_file in template_files:
+            # Read each template
+            df = read_template(template_file, sep=csv_sep)
+
+            # Do specified modification
+            df = modify_func(df)
+
+            # Transform to Excel/CSV on the corresponding folder
+            if excel:
+                df.to_excel(
+                    template_file,
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    template_file,
+                    index=False,
+                    sep=csv_sep,
+                )</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.templates.read_template"><code class="name flex">
+<span>def <span class="ident">read_template</span></span>(<span>template_file, sep=None, dtype=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read template idenpendently of the extension</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L240-L263" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def read_template(template_file, sep=None, dtype=None):
+    &#34;&#34;&#34; Read template idenpendently of the extension &#34;&#34;&#34;
+
+    # Extract extension and define loading method depending on it
+    _, extension = os.path.splitext(template_file)
+    if extension.startswith(&#34;.xls&#34;):
+        df = pd.read_excel(template_file, dtype=dtype)
+
+    elif extension == &#34;.csv&#34;:
+        if sep is not None:
+            df = pd.read_csv(template_file, sep=sep, dtype=dtype)
+        else:
+            df = pd.read_csv(template_file, sep=&#34;,&#34;, dtype=dtype)
+
+        # Check if CSV has been loaded with the correct sep
+        if len(df.columns) == 1:
+            df = pd.read_csv(template_file, sep=&#34;;&#34;, dtype=dtype)
+            if len(df.columns) == 1:
+                raise ValueError(
+                    &#34;Please define the correct sep for the CSV files already existing as for examples: &#34;,
+                    template_file,
+                )
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.organize.templates.sort_template_file"><code class="name flex">
+<span>def <span class="ident">sort_template_file</span></span>(<span>df, filename_prefix)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sort DataFrame based on template filename</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/organize\templates.py#L216-L228" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def sort_template_file(df, filename_prefix):
+    &#34;&#34;&#34; Sort DataFrame based on template filename &#34;&#34;&#34;
+
+    try:
+        # Extract ID from the filename and sort by it as numerical sorting
+        df[&#34;sort&#34;] = df[&#34;ID&#34;].str[len(filename_prefix) :].astype(int)
+        df = df.sort_values(&#34;sort&#34;)
+        df = df.drop(&#34;sort&#34;, axis=1)
+    except ValueError as e:
+        print(&#34;Not able to sort template by ID because: &#34;, e)
+        df = df.sort_values(&#34;ID&#34;)
+
+    return df.reset_index(drop=True)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="gcse-search" style="height: 70px"
+data-as_oq="inurl:github.com/lluissalord/radiology_ai site:radiology_ai.github.io site:radiology_ai.website"
+data-gaCategoryParameter="radiology_ai.organize.templates">
+</div>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="radiology_ai.organize" href="index.html">radiology_ai.organize</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="radiology_ai.organize.templates.check_data_in_template" href="#radiology_ai.organize.templates.check_data_in_template">check_data_in_template</a></code></li>
+<li><code><a title="radiology_ai.organize.templates.concat_templates" href="#radiology_ai.organize.templates.concat_templates">concat_templates</a></code></li>
+<li><code><a title="radiology_ai.organize.templates.generate_template" href="#radiology_ai.organize.templates.generate_template">generate_template</a></code></li>
+<li><code><a title="radiology_ai.organize.templates.modify_template" href="#radiology_ai.organize.templates.modify_template">modify_template</a></code></li>
+<li><code><a title="radiology_ai.organize.templates.read_template" href="#radiology_ai.organize.templates.read_template">read_template</a></code></li>
+<li><code><a title="radiology_ai.organize.templates.sort_template_file" href="#radiology_ai.organize.templates.sort_template_file">sort_template_file</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

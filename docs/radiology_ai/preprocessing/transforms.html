@@ -35,21 +35,67 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L0-L711" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L0-L950" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Fastai Transformations to be used on training &#34;&#34;&#34;
 
 import numpy as np
 
+from fastai.basics import TensorImage
 from fastai.vision.core import *
 from fastcore.transform import Transform
 
 from PIL import Image
 import matplotlib.pyplot as plt
+from pathlib import Path
 
+import numpy as np
 import cv2
 
+import torch
 
+
+class TensorPNGFloatBW(TensorImage):
+    &#34;Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloatBW`&#34;
+    _show_args, _open_args = {&#34;cmap&#34;: &#34;bone&#34;}, {&#34;mode&#34;: &#34;L&#34;}
+
+
+class PILPNGFloatBW(PILImageBW):
+    _open_args, _tensor_cls, _show_args = (
+        {},
+        TensorPNGFloatBW,
+        TensorPNGFloatBW._show_args,
+    )
+
+    @classmethod
+    def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+        &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+        if isinstance(fn, (Path, str)):
+            im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)
+
+
+class TensorPNGFloat(TensorImage):
+    &#34;Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloat`&#34;
+    _show_args = {&#34;cmap&#34;: &#34;viridis&#34;}
+
+
+class PILPNGFloat(PILImage):
+    _open_args, _tensor_cls, _show_args = {}, TensorPNGFloat, TensorPNGFloat._show_args
+
+    @classmethod
+    def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+        &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+        if isinstance(fn, (Path, str)):
+            im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)
+
+
+# TODO: Adapt to uint16
 class HistScaled(Transform):
     &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
 
@@ -57,71 +103,98 @@ class HistScaled(Transform):
         super().__init__()
         self.bins = bins
 
-    def encodes(self, sample:PILImage):
+    def encodes(self, sample: PILImage):
         return Image.fromarray(
-            (
-                sample._tensor_cls(sample) / 255.
-            )
-            .hist_scaled(brks=self.bins).numpy() * 255
+            (sample._tensor_cls(sample) / 255.0).hist_scaled(brks=self.bins).numpy()
+            * 255
         )
 
 
 class CLAHE_Transform(Transform):
     &#34;&#34;&#34; Implement CLAHE transformation for Adaptative Histogram Equalization &#34;&#34;&#34;
-    
-    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
+
+    def __init__(
+        self,
+        PIL_cls,
+        clipLimit=4.0,
+        tileGridSize=(8, 8),
+        grayscale=True,
+        np_input=False,
+        np_output=False,
+    ):
         super().__init__()
         self.grayscale = grayscale
         self.np_input = np_input
         self.np_output = np_output
 
+        self.clipLimit = clipLimit
+        self.tileGridSize = tileGridSize
+
         self.PIL_cls = PIL_cls
 
-        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
-    
-    def encodes(self, sample:(PILImage,np.ndarray)):
+        # In order to be able to export learner this object should be created on each call
+        # self.clahe = cv2.createCLAHE(clipLimit=self.clipLimit, tileGridSize=tileGridSize)
+
+    def encodes(self, sample: (PILImage, np.ndarray)):
         if self.np_input:
             img = sample
         else:
             if self.grayscale:
-                img = np.array(sample.convert(&#39;L&#39;))
+                img = ToTensor()(x).numpy()
+
+                if len(img.shape) &gt; 2:
+                    img = np.squeeze(img, 0)
             else:
-                img = cv2.cvtColor(np.array(sample.convert(&#39;RGB&#39;)), cv2.COLOR_RGB2BGR)
-            
-        clahe_out = self.clahe.apply(img)
-        
+                img = cv2.cvtColor(np.array(sample.convert(&#34;RGB&#34;)), cv2.COLOR_RGB2BGR)
+
+        # Array should be set with the type that correspond to the data stored, otherwise CLAHE will not work as expected
+        img = convert_adapted_type(img)
+
+        clahe_out = cv2.createCLAHE(
+            clipLimit=adapt_uint8_value_to_current(self.clipLimit, img),
+            tileGridSize=self.tileGridSize,
+        ).apply(img)
+
         if not self.grayscale:
             clahe_out = cv2.cvtColor(clahe_out, cv2.COLOR_BGR2RGB)
 
         if self.np_output:
             return clahe_out
         else:
+            # return self.PIL_cls.create(transform_to_float(clahe_out))
             return self.PIL_cls.create(clahe_out)
 
 
-def union(a,b):
-  x = min(a[0], b[0])
-  y = min(a[1], b[1])
-  w = max(a[0]+a[2], b[0]+b[2]) - x
-  h = max(a[1]+a[3], b[1]+b[3]) - y
-  return (x, y, w, h)
+def union(a, b):
+    x = min(a[0], b[0])
+    y = min(a[1], b[1])
+    w = max(a[0] + a[2], b[0] + b[2]) - x
+    h = max(a[1] + a[3], b[1] + b[3]) - y
+    return (x, y, w, h)
 
 
-def intersection(a,b):
-  x = max(a[0], b[0])
-  y = max(a[1], b[1])
-  w = min(a[0]+a[2], b[0]+b[2]) - x
-  h = min(a[1]+a[3], b[1]+b[3]) - y
-  if w&lt;0 or h&lt;0: return () # or (0,0,0,0) ?
-  return (x, y, w, h)
+def intersection(a, b):
+    x = max(a[0], b[0])
+    y = max(a[1], b[1])
+    w = min(a[0] + a[2], b[0] + b[2]) - x
+    h = min(a[1] + a[3], b[1] + b[3]) - y
+    if w &lt; 0 or h &lt; 0:
+        return ()  # or (0,0,0,0) ?
+    return (x, y, w, h)
 
 
 def check_a_in_b(a, b):
-    return a[2]*a[3] != b[2]*b[3] and a[0] &gt;= b[0] and a[1] &gt;= b[1] and a[0]+a[2] &lt;= b[0]+b[2] and a[1]+a[3] &lt;= b[1]+b[3]
+    return (
+        a[2] * a[3] != b[2] * b[3]
+        and a[0] &gt;= b[0]
+        and a[1] &gt;= b[1]
+        and a[0] + a[2] &lt;= b[0] + b[2]
+        and a[1] + a[3] &lt;= b[1] + b[3]
+    )
 
 
 def check_intersection(a, b):
-    inter_box = intersection(a,b)
+    inter_box = intersection(a, b)
     return inter_box != () and inter_box[2] != 0 and inter_box[3] != 0
 
 
@@ -132,10 +205,81 @@ def add_in_dict_list(d, key, value):
         d[key] = [value]
 
 
+def adapt_uint8_value_to_current(value, source):
+    &#34;&#34;&#34; Get value adapted from uint8 format (0 - 255) to the current range &#34;&#34;&#34;
+
+    signed = (source &lt; 0).any()
+
+    dtype = source.dtype.name
+    if dtype == &#34;uint8&#34;:
+        return value
+    elif signed:
+        raise NotImplementedError(
+            &#34;Function `adapt_uint8_value_to_current` not prepared for source images with negative values&#34;
+        )
+    elif dtype.startswith(&#34;uint&#34;):
+        bits = int(dtype[4:])
+        return value * (2 ** bits - 1) // 255
+    elif dtype.startswith(&#34;int&#34;):
+        bits = int(dtype[3:])
+        return value * (2 ** (bits - 1) - 1) // 255
+    elif dtype.startswith(&#34;float&#34;):
+        max_val = source.flatten().max()
+        if max_val &lt;= 1:
+            return value / 255
+        for bits in [8, 16, 32, 64]:
+            max_val_bits = 2 ** bits - 1
+            if max_val &lt;= max_val_bits:
+                return value * max_val_bits // 255
+        raise NotImplementedError(
+            &#34;Function `adapt_uint8_value_to_current` is not prepared for images with more than 64 bits&#34;
+        )
+
+
+def transform_to_uint8(img):
+    return (img[:] // adapt_uint8_value_to_current(1, img)).astype(&#34;uint8&#34;)
+
+
+def transform_to_float(img):
+    return (img[:] / (255 * adapt_uint8_value_to_current(1, img))).astype(&#34;float&#34;)
+
+
+def convert_adapted_type(img):
+    signed = (img &lt; 0).any()
+    if signed:
+        raise NotImplementedError(
+            &#34;Function `convert_adapted_type` not prepared for source images with negative values&#34;
+        )
+
+    found = False
+    max_val = img.flatten().max()
+
+    if max_val &lt;= 1:
+        astype = &#34;float&#34;
+        found = True
+
+    for bits in [8, 16, 32, 64]:
+        max_val_bits = 2 ** bits - 1
+        if max_val &lt;= max_val_bits:
+            astype = f&#34;uint{bits}&#34;
+            found = True
+            break
+
+    if not found:
+        raise NotImplementedError(
+            &#34;Function `convert_adapted_type` is not prepared for images with more than 64 bits&#34;
+        )
+
+    if img.dtype.name.startswith(astype):
+        return img
+    else:
+        return img.astype(astype)
+
+
 class KneeLocalizer(Transform):
-    &#34;&#34;&#34; Transformation which finds out where is the knee and cut out the rest of the image
+    &#34;&#34;&#34;Transformation which finds out where is the knee and cut out the rest of the image
     Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
-    
+
     ```
     @inproceedings{tiulpin2017novel,
         title={A novel method for automatic localization of joint area on knee plain radiographs},
@@ -147,7 +291,16 @@ class KneeLocalizer(Transform):
     }
     ```
     &#34;&#34;&#34;
-    def __init__(self, svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False):
+
+    def __init__(
+        self,
+        svm_model_path,
+        PIL_cls,
+        resize=None,
+        np_input=False,
+        np_output=False,
+        debug=False,
+    ):
         super().__init__()
         self.win_size = (64, 64)
         self.win_stride = (64, 64)
@@ -159,8 +312,10 @@ class KneeLocalizer(Transform):
         self.scales = [1.05, 1.25, 1.5, 2]
         # self.scales = [0.9, 1, 1.1]
 
-        self.svm_w, self.svm_b = np.load(svm_model_path, encoding=&#39;bytes&#39;, allow_pickle=True)
-        
+        self.svm_w, self.svm_b = np.load(
+            svm_model_path, encoding=&#34;bytes&#34;, allow_pickle=True
+        )
+
         self.resize = resize
 
         self.PIL_cls = PIL_cls
@@ -170,7 +325,7 @@ class KneeLocalizer(Transform):
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
@@ -178,39 +333,44 @@ class KneeLocalizer(Transform):
             img = ToTensor()(x).numpy()
 
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
+            img = np.squeeze(img, 0)
+
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
 
         # At least score should be better than this
         best_score = -np.inf
 
         # Approximate the scales to not include left/right or top/bottom black stripes
         # First check if there is top/bottom black stripes, otherwise check it for left/right ones
-        mask_black = cv2.threshold(img, 3, 255, cv2.THRESH_BINARY)[1]
-        
+        mask_black = cv2.threshold(img, 7, 255, cv2.THRESH_BINARY)[1]
+
         # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((5,5), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         mask_black = cv2.morphologyEx(mask_black, cv2.MORPH_OPEN, kernel)
         mask_black = cv2.morphologyEx(mask_black, cv2.MORPH_CLOSE, kernel)
 
-        # Find contours of the intersting part, which will be the biggest zone 
+        # Find contours of the intersting part, which will be the biggest zone
         cnts = cv2.findContours(mask_black, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         biggest_area = 0
-        total_area = (float(mask_black.shape[0]) * mask_black.shape[1])
+        total_area = float(mask_black.shape[0]) * mask_black.shape[1]
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             area = w * h / total_area
             if area &gt; biggest_area:
                 biggest_area = area
-                roi = np.array([x,y,w,h], dtype=np.int)
+                roi = np.array([x, y, w, h], dtype=np.int)
                 if self.debug:
-                    cv2.rectangle(mask_black, (x,y),(x+w,y+h), (0,255,0), 2)
+                    cv2.rectangle(mask_black, (x, y), (x + w, y + h), (0, 255, 0), 2)
         if biggest_area != 0:
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = img[y1:y2, x1:x2]
+            roi_img_lossly = img_lossly[y1:y2, x1:x2]
         else:
             roi_img = img[:]
+            roi_img_lossly = img_lossly[:]
 
         # Check for external white zones and remove them
         # Generate a mask where background is identified
@@ -218,7 +378,7 @@ class KneeLocalizer(Transform):
         # mask_white = 255 - mask_white
 
         # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((5,5), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         mask_white = cv2.morphologyEx(mask_white, cv2.MORPH_OPEN, kernel)
         mask_white = cv2.morphologyEx(mask_white, cv2.MORPH_CLOSE, kernel)
 
@@ -229,35 +389,35 @@ class KneeLocalizer(Transform):
         cnts = cv2.findContours(mask_white, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         smallest_area = np.inf
-        total_area = (float(mask_white.shape[0]) * mask_white.shape[1])
+        total_area = float(mask_white.shape[0]) * mask_white.shape[1]
         found = False
         c_candidates = []
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             area = w * h / total_area
             if area &gt; 0.05:
-                
+
                 # Add candidates to check union of contours
                 c_candidates.append(c)
 
                 # Area conditions
-                if smallest_area &lt;= area and area &lt; 0.5:
+                if smallest_area &lt;= area or area &lt; 0.5:
                     continue
 
                 # Check that when filling current proposal then almost nothing is left
                 check_mask = mask_white[:].copy()
-                cv2.drawContours(check_mask, [c], -1, (0,0,0), -1)
+                cv2.drawContours(check_mask, [c], -1, (0, 0, 0), -1)
                 # apply morphology to remove isolated extraneous noise
-                kernel = np.ones((5,5), np.uint8)
+                kernel = np.ones((5, 5), np.uint8)
                 check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_OPEN, kernel)
                 check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_CLOSE, kernel)
                 if check_mask.sum() / (total_area * 255) &lt; 0.01:
                     found = True
                     smallest_area = area
-                    roi = np.array([x,y,w,h], dtype=np.int)
-                
+                    roi = np.array([x, y, w, h], dtype=np.int)
+
                 if self.debug:
-                    cv2.rectangle(mask_white, (x,y),(x+w,y+h), (0,255,0), 2)
+                    cv2.rectangle(mask_white, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         # Check candidates for combined contours
         if len(c_candidates) &gt; 1:
@@ -268,7 +428,7 @@ class KneeLocalizer(Transform):
                     # Do not try on itself and already checked
                     if i &gt;= j:
                         continue
-                
+
                     bbox_2 = cv2.boundingRect(c2)
 
                     # Cannot be on contours which overlap
@@ -283,9 +443,9 @@ class KneeLocalizer(Transform):
 
                     # Check that when filling current proposal then almost nothing is left
                     check_mask = mask_white[:].copy()
-                    cv2.drawContours(check_mask, [c1, c2], -1, (0,0,0), -1)
+                    cv2.drawContours(check_mask, [c1, c2], -1, (0, 0, 0), -1)
                     # apply morphology to remove isolated extraneous noise
-                    kernel = np.ones((5,5), np.uint8)
+                    kernel = np.ones((5, 5), np.uint8)
                     check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_OPEN, kernel)
                     check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_CLOSE, kernel)
                     if check_mask.sum() / (total_area * 255) &lt; 0.01:
@@ -294,28 +454,33 @@ class KneeLocalizer(Transform):
                         roi = np.array(uni_box, dtype=np.int)
 
                     if self.debug:
-                        x,y,w,h = tuple(uni_box)
-                        cv2.rectangle(mask_white, (x,y),(x+w,y+h), (0,255,0), 2)
+                        x, y, w, h = tuple(uni_box)
+                        cv2.rectangle(
+                            mask_white, (x, y), (x + w, y + h), (0, 255, 0), 2
+                        )
 
         # Set current ROI
         if found:
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = roi_img[y1:y2, x1:x2]
+            roi_img_lossly = roi_img_lossly[y1:y2, x1:x2]
         else:
             roi_img = roi_img[:]
+            roi_img_lossly = roi_img_lossly[:]
 
-        
         R, C = roi_img.shape[-2:]
-        min_R_C = min(R,C)
+        min_R_C = min(R, C)
 
         # We will store the coordinates of the top left and
         # the bottom right corners of the bounding box
-        hog = cv2.HOGDescriptor(self.win_size,
-                                self.block_size,
-                                self.block_stride,
-                                self.cell_size,
-                                self.nbins)
+        hog = cv2.HOGDescriptor(
+            self.win_size,
+            self.block_size,
+            self.block_stride,
+            self.cell_size,
+            self.nbins,
+        )
 
         # displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
         x_prop = self.get_joint_x_proposals(roi_img)
@@ -324,61 +489,77 @@ class KneeLocalizer(Transform):
         if self.debug:
             debug_info = []
 
-        # Loop across proposals and scales
-        for y_coord in y_prop:
-            for x_coord in x_prop:
-                for scale in self.scales:
-                    # Check if fits on image
-                    if x_coord - min_R_C / scale / 2 &gt;= 0 and x_coord + min_R_C / scale / 2 &lt;= C and y_coord - min_R_C / scale / 2 &gt;= 0 and y_coord + min_R_C / scale / 2 &lt;= R :
+        if y_prop != []:
+            # Loop across proposals and scales
+            for y_coord in y_prop:
+                for x_coord in x_prop:
+                    for scale in self.scales:
+                        # Check if fits on image
+                        if (
+                            x_coord - min_R_C / scale / 2 &gt;= 0
+                            and x_coord + min_R_C / scale / 2 &lt;= C
+                            and y_coord - min_R_C / scale / 2 &gt;= 0
+                            and y_coord + min_R_C / scale / 2 &lt;= R
+                        ):
 
-                        # Candidate ROI
-                        roi = np.array([x_coord - min_R_C / scale / 2,
-                                        y_coord - min_R_C / scale / 2,
-                                        min_R_C / scale, min_R_C / scale], dtype=np.int)
-                        x1, y1 = roi[0], roi[1]
-                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
-                        patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
-
-                        # Calculate score from SVM model
-                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
-                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
-
-                        if self.debug:
-                            debug_info.append(
-                                {
-                                    &#39;patch&#39;: patch,
-                                    &#39;score&#39;: score,
-                                    &#39;scale&#39;: scale,
-                                    &#39;coords&#39;: ((x1, y1), (x2,y2)),
-                                }
+                            # Candidate ROI
+                            roi = np.array(
+                                [
+                                    x_coord - min_R_C / scale / 2,
+                                    y_coord - min_R_C / scale / 2,
+                                    min_R_C / scale,
+                                    min_R_C / scale,
+                                ],
+                                dtype=np.int,
                             )
-                        
-                        # Check and save best score
-                        if score &gt; best_score:
-                            best_score = score
-                            roi_R = ((x1, y1), (x2,y2))
+                            x1, y1 = roi[0], roi[1]
+                            x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                            patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
 
+                            # Calculate score from SVM model
+                            hog_descr = hog.compute(
+                                patch, self.win_stride, self.padding
+                            )
+                            score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+
+                            if self.debug:
+                                debug_info.append(
+                                    {
+                                        &#34;patch&#34;: patch,
+                                        &#34;score&#34;: score,
+                                        &#34;scale&#34;: scale,
+                                        &#34;coords&#34;: ((x1, y1), (x2, y2)),
+                                    }
+                                )
+
+                            # Check and save best score
+                            if score &gt; best_score:
+                                best_score = score
+                                roi_R = ((x1, y1), (x2, y2))
+        else:
+            roi_img = img[:]
+            roi_img_lossly = roi_img_lossly[:]
+            # self.PIL_cls.create(roi_img).save(&#39;sources/extra_images/failing.png&#39;, format=&#39;png&#39;, compress_level=0)
+            debug_info = []
+
+        # if self.debug or y_prop == []:
         if self.debug:
             print()
             cols = 4
             rows = len(debug_info) // cols + (len(debug_info) % cols != 0) + 1
-            fig, axs = plt.subplots(
-                rows,
-                cols, 
-                figsize=(15,15)
-            )
-            ax_orig = axs[0] if rows == 1 else axs[0,0]
+            fig, axs = plt.subplots(rows, cols, figsize=(15, 15))
+            ax_orig = axs[0] if rows == 1 else axs[0, 0]
             ax_orig.imshow(img, cmap=plt.cm.bone)
-            ax_orig.set_title(f&#39;Original&#39;)
-            ax_roi = axs[1] if rows == 1 else axs[0,1]
+            ax_orig.set_title(f&#34;Original&#34;)
+            ax_roi = axs[1] if rows == 1 else axs[0, 1]
             ax_roi.imshow(roi_img, cmap=plt.cm.bone)
-            ax_roi.set_title(f&#39;ROI from Original&#39;)
-            ax_mask_black = axs[2] if rows == 1 else axs[0,2]
+            ax_roi.set_title(f&#34;ROI from Original&#34;)
+            ax_mask_black = axs[2] if rows == 1 else axs[0, 2]
             ax_mask_black.imshow(mask_black, cmap=plt.cm.bone)
-            ax_mask_black.set_title(f&#39;Mask&#39;)
-            ax_mask_white = axs[3] if rows == 1 else axs[0,3]
+            ax_mask_black.set_title(f&#34;Mask&#34;)
+            ax_mask_white = axs[3] if rows == 1 else axs[0, 3]
             ax_mask_white.imshow(mask_white, cmap=plt.cm.bone)
-            ax_mask_white.set_title(f&#39;Mask&#39;)
+            ax_mask_white.set_title(f&#34;Mask&#34;)
             if len(debug_info) &gt; 0:
                 debug_info = sorted(debug_info, key=lambda x: x[&#34;score&#34;], reverse=True)
                 i = 0
@@ -392,102 +573,111 @@ class KneeLocalizer(Transform):
                         i += 1
             fig.tight_layout()
             fig.show()
+            plt.show()
 
         if best_score == -np.inf:
-            img = cv2.resize(
-                roi_img,
-                dsize=(self.resize, self.resize)
-            )
+            img_lossly = cv2.resize(roi_img_lossly, dsize=(self.resize, self.resize))
         elif self.resize:
-            img = cv2.resize(
-                roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
-                dsize=(self.resize, self.resize)
+            img_lossly = cv2.resize(
+                roi_img_lossly[roi_R[0][1] : roi_R[1][1], roi_R[0][0] : roi_R[1][0]],
+                dsize=(self.resize, self.resize),
             )
         else:
-            img = roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+            img_lossly = roi_img_lossly[
+                roi_R[0][1] : roi_R[1][1], roi_R[0][0] : roi_R[1][0]
+            ]
 
         if self.np_output:
-            return img
+            return img_lossly
         else:
-            value = self.PIL_cls.create(img)
+            value = self.PIL_cls.create(transform_to_float(img_lossly))
             # value = Image.fromarray(
             #     img
             # )
             return value
 
-
     def smooth_line(self, line, av_points):
-        smooth = np.convolve(
-            line,
-            np.ones((av_points, )) / av_points
-        )[(av_points - 1):-(av_points - 1)]
+        smooth = np.convolve(line, np.ones((av_points,)) / av_points)[
+            (av_points - 1) : -(av_points - 1)
+        ]
 
         return smooth
 
-    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+    def get_joint_y_proposals(
+        self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+    ):
         &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
 
         R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the X-axis
-        segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
-                            int(C / 3):int(C - C / 3)], axis=1)
-    
+        segm_line = np.sum(
+            img[int(R * margin) : int(R * (1 - margin)), int(C / 3) : int(C - C / 3)],
+            axis=1,
+        )
+
         # Smooth the segmentation line
         segm_line = self.smooth_line(segm_line, av_points)
 
         # Find the derivative smoothed
-        derv_segm_line = self.smooth_line(
-                np.diff(
-                    segm_line
-                ),
-                av_derv_points
-            )
+        derv_segm_line = self.smooth_line(np.diff(segm_line), av_derv_points)
 
         # Find the absolute of the second derivative smoothed
         derv_derv_segm_line = np.abs(
-            self.smooth_line(
-                np.diff(
-                    derv_segm_line
-                ),
-                av_derv_points
-            )
+            self.smooth_line(np.diff(derv_segm_line), av_derv_points)
         )
 
         # Filter for peaks with highest second derivate as it has to be a quick change of gradients
-        derv_peaks = np.argsort(derv_derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
-        max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
-        min_cond = max(min(derv_peaks) - R // 20, 0)
+        derv_peaks = np.argsort(derv_derv_segm_line)[::-1][
+            : int(0.1 * R * (1 - 2 * margin))
+        ]
 
-        # Get top tau % of the filtered peaks
-        peaks = np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][:int(0.1 * R * (1 - 2 * margin))] + min_cond
+        if len(derv_peaks) != 0:
+            max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
+            min_cond = max(min(derv_peaks) - R // 20, 0)
 
-        # Filter to only use peaks which are separated at least by a 5%
-        final_peaks = []
-        while len(peaks) != 0:
-            peak = peaks[0]
-            final_peaks.append(peak)
-            peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
+            # Get top tau % of the filtered peaks
+            peaks = (
+                np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][
+                    : int(0.1 * R * (1 - 2 * margin))
+                ]
+                + min_cond
+            )
 
-        # return list(peaks[::step] + int(R * margin)) + [R // 2]
-        return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+            # Filter to only use peaks which are separated at least by a 5%
+            final_peaks = []
+            while len(peaks) != 0:
+                peak = peaks[0]
+                final_peaks.append(peak)
+                peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
 
-    
-    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+            # return list(peaks[::step] + int(R * margin)) + [R // 2]
+            return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+
+        # Sometimes if there has been some issues on previous steps it happens that there are no enough derv_peaks
+        # then it is best to not propose any
+        else:
+            return []
+
+    def get_joint_x_proposals(
+        self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+    ):
         &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
 
         R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the Y-axis
-        segm_line = np.sum(img[int(R / 3):int(R - R / 3),
-                               int(C * margin):int(C * (1 - margin))], axis=0)
-    
+        segm_line = np.sum(
+            img[int(R / 3) : int(R - R / 3), int(C * margin) : int(C * (1 - margin))],
+            axis=0,
+        )
+
         # Smooth the segmentation line
         segm_line = self.smooth_line(segm_line, av_points)
 
         # Get top tau % of the peaks
-        peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
-        
+        peaks = np.argsort(segm_line)[::-1][: int(0.1 * C * (1 - 2 * margin))]
+
         # Filter to only use peaks which are separated at least by a 5%
         final_peaks = []
         while len(peaks) != 0:
@@ -499,10 +689,20 @@ class KneeLocalizer(Transform):
         return list(np.array(final_peaks) + int(C * margin)) + [C // 2]
 
 
+# TODO: Adapt to uint16
 class XRayPreprocess(Transform):
     &#34;&#34;&#34; Preprocess the X-ray image using histogram clipping and global contrast normalization. &#34;&#34;&#34;
 
-    def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
+    def __init__(
+        self,
+        PIL_cls,
+        cut_min=5.0,
+        cut_max=99.0,
+        only_non_zero=True,
+        scale=True,
+        np_input=False,
+        np_output=False,
+    ):
         self.cut_min = cut_min
         self.cut_max = cut_max
         self.only_non_zero = only_non_zero
@@ -513,22 +713,22 @@ class XRayPreprocess(Transform):
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
         else:
             img = ToTensor()(x).numpy()
-        
+
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
+            img = np.squeeze(img, 0)
 
         if self.only_non_zero:
             percentile_img = img[img != 0]
 
         lim1, lim2 = np.percentile(
             percentile_img if self.only_non_zero and len(percentile_img) &gt; 0 else img,
-            [self.cut_min, self.cut_max]
+            [self.cut_min, self.cut_max],
         )
 
         img[img &lt; lim1] = lim1
@@ -543,9 +743,9 @@ class XRayPreprocess(Transform):
             img *= 255
 
         if self.np_output:
-            return img.astype(&#39;uint8&#39;)
+            return img.astype(&#34;uint8&#34;)
         else:
-            value = self.PIL_cls.create(img.astype(&#39;uint8&#39;))
+            value = self.PIL_cls.create(img.astype(&#34;uint8&#34;))
             # value = Image.fromarray(
             #     img.astype(&#39;uint8&#39;)
             # )
@@ -553,14 +753,27 @@ class XRayPreprocess(Transform):
 
 
 class BackgroundPreprocess(Transform):
-    &#34;&#34;&#34; Background cleaning preprocess. Consist on the following steps:
+    &#34;&#34;&#34;Background cleaning preprocess. Consist on the following steps:
     1. Adaptativ binary thresholding and extract Otsu threshold value for later use on contour conditions
     3. Find main contours of the background parts to be removed and create a mask with them
     4. Look for contours inside other contours on mask and paint them with the color of the parent contour
     5. Repeat previous step with inverse resulting mask (taking into account also previous parent contours)
     6. Bitwise input image with mask to remove background&#34;&#34;&#34;
 
-    def __init__(self, PIL_cls, np_input=False, np_output=False, morph_kernel=15, inpaint_morph_kernel=15, thresh_limit_multiplier=0.6, min_thresh=120, min_density=0.2, min_area=0.02, max_area=0.5, debug=False):
+    def __init__(
+        self,
+        PIL_cls,
+        np_input=False,
+        np_output=False,
+        morph_kernel=15,
+        inpaint_morph_kernel=15,
+        thresh_limit_multiplier=0.6,
+        min_thresh=120,
+        min_density=0.2,
+        min_area=0.02,
+        max_area=0.5,
+        debug=False,
+    ):
         super().__init__()
         self.PIL_cls = PIL_cls
 
@@ -581,7 +794,7 @@ class BackgroundPreprocess(Transform):
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
@@ -589,28 +802,28 @@ class BackgroundPreprocess(Transform):
             img = ToTensor()(x).numpy()
 
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
-        # R, C = img.shape[-2:]
+            img = np.squeeze(img, 0)
+
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
+
+        # Copy images to be able to compare on debugging
+        if self.debug:
+            result = img_lossly[:].copy()
+            boxes = img[:].copy()
+        else:
+            result = img_lossly[:]
 
         # threshold input image as mask with adaptative threshold
         mask = cv2.adaptiveThreshold(
-            img,
-            255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+            img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2
+        )
 
         # Extract which threshold would be used by Otsu to be used as condition later
-        ret, _ = cv2.threshold(
-            img,
-            0, 255, cv2.THRESH_OTSU)
-
-        # Copy images to be able to compare on debugging 
-        if self.debug:
-            result = img[:].copy()
-            boxes = img[:].copy()
-        else:
-            result = img
+        ret, _ = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
 
         # # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((self.morph_kernel,self.morph_kernel), np.uint8)
+        kernel = np.ones((self.morph_kernel, self.morph_kernel), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
@@ -621,12 +834,12 @@ class BackgroundPreprocess(Transform):
         cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         biggest_cs = []
-        total_area = (float(mask.shape[0]) * mask.shape[1])
+        total_area = float(mask.shape[0]) * mask.shape[1]
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             ar = w / float(h)
             # area = w * h / total_area
-            area = cv2.contourArea(c)/total_area
+            area = cv2.contourArea(c) / total_area
 
             # center_width = x + w // 2
             # left_limit = mask.shape[1] // 2 - int(self.center_width_scale * mask.shape[1] / 2)
@@ -635,9 +848,9 @@ class BackgroundPreprocess(Transform):
 
             # Check are is between limits
             if area &gt; self.min_area and area &lt; self.max_area:
-                
+
                 temp = np.zeros(mask.shape, np.uint8)
-                cv2.drawContours(temp,[c],0,255,-1)
+                cv2.drawContours(temp, [c], 0, 255, -1)
                 match = np.where(temp == 255)
                 mask_matched = mask[match].flatten()
                 img_matched = img[match].flatten()
@@ -655,63 +868,79 @@ class BackgroundPreprocess(Transform):
 
                 median = np.median(img_matched)
                 # Check density and median of countour area in input image is below threshold limits
-                if density &gt; self.min_density and median &lt; self.min_thresh and median &lt; ret * self.thresh_limit_multiplier:
+                if (
+                    density &gt; self.min_density
+                    and median &lt; self.min_thresh
+                    and median &lt; ret * self.thresh_limit_multiplier
+                ):
                     biggest_cs.append(c)
 
         # Only modify image if there is any area that matched, otherwise do not modify
         if len(biggest_cs) != 0:
-            cv2.drawContours(mask_inpaint, biggest_cs, -1, (0,0,0), -1)
-            
+            cv2.drawContours(mask_inpaint, biggest_cs, -1, (0, 0, 0), -1)
+
             if self.debug:
                 for c in biggest_cs:
-                    x,y,w,h = cv2.boundingRect(c)
-                    cv2.rectangle(boxes, (x,y),(x+w,y+h), (0,255,0), 3)
+                    x, y, w, h = cv2.boundingRect(c)
+                    cv2.rectangle(boxes, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
             # Proceed with processes having background parts in white
             mask_inpaint = 255 - mask_inpaint
 
             # # apply morphology to remove isolated extraneous noise
-            kernel = np.ones((self.inpaint_morph_kernel,self.inpaint_morph_kernel), np.uint8)
+            kernel = np.ones(
+                (self.inpaint_morph_kernel, self.inpaint_morph_kernel), np.uint8
+            )
             mask_inpaint = cv2.morphologyEx(mask_inpaint, cv2.MORPH_OPEN, kernel)
             mask_inpaint = cv2.morphologyEx(mask_inpaint, cv2.MORPH_CLOSE, kernel)
 
             # Look for contours inside other contours, save them with the color of the parent contour
-            cnts, hier = cv2.findContours(mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)            
+            cnts, hier = cv2.findContours(
+                mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+            )
             fill_cnts = {}
             parent_bbox = {}
             for i, h in enumerate(hier[0]):
                 # Internal contours are saved on fill_cnts to be painted on
                 if h[-1] != -1:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[h[-1]])
-                    parent_color = np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[h[-1]])
+                    parent_color = np.median(mask_inpaint[y : y + h, x : x + w])
 
                     add_in_dict_list(fill_cnts, parent_color, cnts[i])
                 # External contours are saved on parent_bbox to check later if are parents of other contours
                 else:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[i])
-                    parent_color = 255 - np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[i])
+                    parent_color = 255 - np.median(mask_inpaint[y : y + h, x : x + w])
 
-                    add_in_dict_list(parent_bbox, parent_color, (x,y,w,h))
+                    add_in_dict_list(parent_bbox, parent_color, (x, y, w, h))
 
             # Paint internal contours with its parent color
             for parent_color, cnts_list in fill_cnts.items():
-                cv2.drawContours(mask_inpaint, cnts_list, -1, (parent_color,parent_color,parent_color), -1)
+                cv2.drawContours(
+                    mask_inpaint,
+                    cnts_list,
+                    -1,
+                    (parent_color, parent_color, parent_color),
+                    -1,
+                )
 
             # Proceed with processes having bone parts in white
             mask_inpaint = 255 - mask_inpaint
 
             # Look for contours inside other contours, save them with the color of the parent contour
-            cnts, hier = cv2.findContours(mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)            
+            cnts, hier = cv2.findContours(
+                mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+            )
             fill_cnts = {}
             for i, h in enumerate(hier[0]):
                 bbox = cv2.boundingRect(cnts[i])
                 # Internal contours are saved on fill_cnts to be painted on
                 if h[-1] != -1:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[h[-1]])
-                    parent_color = np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[h[-1]])
+                    parent_color = np.median(mask_inpaint[y : y + h, x : x + w])
 
                     add_in_dict_list(fill_cnts, parent_color, cnts[i])
                 # External contours are checked if are inside a previous parent bounding box, if so added to be painted on
@@ -723,28 +952,38 @@ class BackgroundPreprocess(Transform):
 
             # Paint internal contours with its parent color
             for parent_color, cnts_list in fill_cnts.items():
-                cv2.drawContours(mask_inpaint, cnts_list, -1, (parent_color,parent_color,parent_color), -1)
+                cv2.drawContours(
+                    mask_inpaint,
+                    cnts_list,
+                    -1,
+                    (parent_color, parent_color, parent_color),
+                    -1,
+                )
 
             # Apply mask on input image which results on image without background
-            result = cv2.bitwise_and(result, result, mask = mask_inpaint)
-        
+            result = cv2.bitwise_and(result, result, mask=mask_inpaint)
+
         if self.debug:
             print()
             rows = 2
             cols = 2
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(rows,cols, figsize=(5*cols, 5*rows))
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(
+                rows, cols, figsize=(5 * cols, 5 * rows)
+            )
             ax1.imshow(img, cmap=plt.cm.bone)
-            ax2.imshow(result, cmap=plt.cm.bone)
+            ax2.imshow(transform_to_uint8(result), cmap=plt.cm.bone)
             ax3.imshow(mask, cmap=plt.cm.bone)
             ax4.imshow(mask_inpaint)
-            fig.suptitle(f&#39;area {(self.min_area, self.max_area)} - th_limit ({self.thresh_limit_multiplier:2f}, {ret * self.thresh_limit_multiplier:.0f}) - kernels (M,IM) ({self.morph_kernel},{self.inpaint_morph_kernel})&#39;)
+            fig.suptitle(
+                f&#34;area {(self.min_area, self.max_area)} - th_limit ({self.thresh_limit_multiplier:2f}, {ret * self.thresh_limit_multiplier:.0f}) - kernels (M,IM) ({self.morph_kernel},{self.inpaint_morph_kernel})&#34;
+            )
             fig.tight_layout()
             fig.show()
 
         if self.np_output:
             return result
         else:
-            value = self.PIL_cls.create(result)
+            value = self.PIL_cls.create(transform_to_float(result))
             # value = Image.fromarray(
             #     img
             # )
@@ -758,6 +997,47 @@ class BackgroundPreprocess(Transform):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="radiology_ai.preprocessing.transforms.adapt_uint8_value_to_current"><code class="name flex">
+<span>def <span class="ident">adapt_uint8_value_to_current</span></span>(<span>value, source)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get value adapted from uint8 format (0 - 255) to the current range</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L169-L197" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def adapt_uint8_value_to_current(value, source):
+    &#34;&#34;&#34; Get value adapted from uint8 format (0 - 255) to the current range &#34;&#34;&#34;
+
+    signed = (source &lt; 0).any()
+
+    dtype = source.dtype.name
+    if dtype == &#34;uint8&#34;:
+        return value
+    elif signed:
+        raise NotImplementedError(
+            &#34;Function `adapt_uint8_value_to_current` not prepared for source images with negative values&#34;
+        )
+    elif dtype.startswith(&#34;uint&#34;):
+        bits = int(dtype[4:])
+        return value * (2 ** bits - 1) // 255
+    elif dtype.startswith(&#34;int&#34;):
+        bits = int(dtype[3:])
+        return value * (2 ** (bits - 1) - 1) // 255
+    elif dtype.startswith(&#34;float&#34;):
+        max_val = source.flatten().max()
+        if max_val &lt;= 1:
+            return value / 255
+        for bits in [8, 16, 32, 64]:
+            max_val_bits = 2 ** bits - 1
+            if max_val &lt;= max_val_bits:
+                return value * max_val_bits // 255
+        raise NotImplementedError(
+            &#34;Function `adapt_uint8_value_to_current` is not prepared for images with more than 64 bits&#34;
+        )</code></pre>
+</details>
+</dd>
 <dt id="radiology_ai.preprocessing.transforms.add_in_dict_list"><code class="name flex">
 <span>def <span class="ident">add_in_dict_list</span></span>(<span>d, key, value)</span>
 </code></dt>
@@ -766,7 +1046,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L89-L93" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L162-L166" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_in_dict_list(d, key, value):
     if key in d:
@@ -783,10 +1063,16 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L80-L81" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L147-L154" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_a_in_b(a, b):
-    return a[2]*a[3] != b[2]*b[3] and a[0] &gt;= b[0] and a[1] &gt;= b[1] and a[0]+a[2] &lt;= b[0]+b[2] and a[1]+a[3] &lt;= b[1]+b[3]</code></pre>
+    return (
+        a[2] * a[3] != b[2] * b[3]
+        and a[0] &gt;= b[0]
+        and a[1] &gt;= b[1]
+        and a[0] + a[2] &lt;= b[0] + b[2]
+        and a[1] + a[3] &lt;= b[1] + b[3]
+    )</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.check_intersection"><code class="name flex">
@@ -797,11 +1083,53 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L84-L86" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L157-L159" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def check_intersection(a, b):
-    inter_box = intersection(a,b)
+    inter_box = intersection(a, b)
     return inter_box != () and inter_box[2] != 0 and inter_box[3] != 0</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.convert_adapted_type"><code class="name flex">
+<span>def <span class="ident">convert_adapted_type</span></span>(<span>img)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L208-L237" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def convert_adapted_type(img):
+    signed = (img &lt; 0).any()
+    if signed:
+        raise NotImplementedError(
+            &#34;Function `convert_adapted_type` not prepared for source images with negative values&#34;
+        )
+
+    found = False
+    max_val = img.flatten().max()
+
+    if max_val &lt;= 1:
+        astype = &#34;float&#34;
+        found = True
+
+    for bits in [8, 16, 32, 64]:
+        max_val_bits = 2 ** bits - 1
+        if max_val &lt;= max_val_bits:
+            astype = f&#34;uint{bits}&#34;
+            found = True
+            break
+
+    if not found:
+        raise NotImplementedError(
+            &#34;Function `convert_adapted_type` is not prepared for images with more than 64 bits&#34;
+        )
+
+    if img.dtype.name.startswith(astype):
+        return img
+    else:
+        return img.astype(astype)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.intersection"><code class="name flex">
@@ -812,15 +1140,44 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L71-L77" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L137-L144" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def intersection(a,b):
-  x = max(a[0], b[0])
-  y = max(a[1], b[1])
-  w = min(a[0]+a[2], b[0]+b[2]) - x
-  h = min(a[1]+a[3], b[1]+b[3]) - y
-  if w&lt;0 or h&lt;0: return () # or (0,0,0,0) ?
-  return (x, y, w, h)</code></pre>
+<pre><code class="python">def intersection(a, b):
+    x = max(a[0], b[0])
+    y = max(a[1], b[1])
+    w = min(a[0] + a[2], b[0] + b[2]) - x
+    h = min(a[1] + a[3], b[1] + b[3]) - y
+    if w &lt; 0 or h &lt; 0:
+        return ()  # or (0,0,0,0) ?
+    return (x, y, w, h)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.transform_to_float"><code class="name flex">
+<span>def <span class="ident">transform_to_float</span></span>(<span>img)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L204-L205" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def transform_to_float(img):
+    return (img[:] / (255 * adapt_uint8_value_to_current(1, img))).astype(&#34;float&#34;)</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.transform_to_uint8"><code class="name flex">
+<span>def <span class="ident">transform_to_uint8</span></span>(<span>img)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L200-L201" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def transform_to_uint8(img):
+    return (img[:] // adapt_uint8_value_to_current(1, img)).astype(&#34;uint8&#34;)</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.union"><code class="name flex">
@@ -831,14 +1188,14 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L63-L68" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L129-L134" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def union(a,b):
-  x = min(a[0], b[0])
-  y = min(a[1], b[1])
-  w = max(a[0]+a[2], b[0]+b[2]) - x
-  h = max(a[1]+a[3], b[1]+b[3]) - y
-  return (x, y, w, h)</code></pre>
+<pre><code class="python">def union(a, b):
+    x = min(a[0], b[0])
+    y = min(a[1], b[1])
+    w = max(a[0] + a[2], b[0] + b[2]) - x
+    h = max(a[1] + a[3], b[1] + b[3]) - y
+    return (x, y, w, h)</code></pre>
 </details>
 </dd>
 </dl>
@@ -860,17 +1217,30 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L516-L712" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L716-L951" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class BackgroundPreprocess(Transform):
-    &#34;&#34;&#34; Background cleaning preprocess. Consist on the following steps:
+    &#34;&#34;&#34;Background cleaning preprocess. Consist on the following steps:
     1. Adaptativ binary thresholding and extract Otsu threshold value for later use on contour conditions
     3. Find main contours of the background parts to be removed and create a mask with them
     4. Look for contours inside other contours on mask and paint them with the color of the parent contour
     5. Repeat previous step with inverse resulting mask (taking into account also previous parent contours)
     6. Bitwise input image with mask to remove background&#34;&#34;&#34;
 
-    def __init__(self, PIL_cls, np_input=False, np_output=False, morph_kernel=15, inpaint_morph_kernel=15, thresh_limit_multiplier=0.6, min_thresh=120, min_density=0.2, min_area=0.02, max_area=0.5, debug=False):
+    def __init__(
+        self,
+        PIL_cls,
+        np_input=False,
+        np_output=False,
+        morph_kernel=15,
+        inpaint_morph_kernel=15,
+        thresh_limit_multiplier=0.6,
+        min_thresh=120,
+        min_density=0.2,
+        min_area=0.02,
+        max_area=0.5,
+        debug=False,
+    ):
         super().__init__()
         self.PIL_cls = PIL_cls
 
@@ -891,7 +1261,7 @@ class BackgroundPreprocess(Transform):
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
@@ -899,28 +1269,28 @@ class BackgroundPreprocess(Transform):
             img = ToTensor()(x).numpy()
 
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
-        # R, C = img.shape[-2:]
+            img = np.squeeze(img, 0)
+
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
+
+        # Copy images to be able to compare on debugging
+        if self.debug:
+            result = img_lossly[:].copy()
+            boxes = img[:].copy()
+        else:
+            result = img_lossly[:]
 
         # threshold input image as mask with adaptative threshold
         mask = cv2.adaptiveThreshold(
-            img,
-            255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+            img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2
+        )
 
         # Extract which threshold would be used by Otsu to be used as condition later
-        ret, _ = cv2.threshold(
-            img,
-            0, 255, cv2.THRESH_OTSU)
-
-        # Copy images to be able to compare on debugging 
-        if self.debug:
-            result = img[:].copy()
-            boxes = img[:].copy()
-        else:
-            result = img
+        ret, _ = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
 
         # # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((self.morph_kernel,self.morph_kernel), np.uint8)
+        kernel = np.ones((self.morph_kernel, self.morph_kernel), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
@@ -931,12 +1301,12 @@ class BackgroundPreprocess(Transform):
         cnts = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         biggest_cs = []
-        total_area = (float(mask.shape[0]) * mask.shape[1])
+        total_area = float(mask.shape[0]) * mask.shape[1]
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             ar = w / float(h)
             # area = w * h / total_area
-            area = cv2.contourArea(c)/total_area
+            area = cv2.contourArea(c) / total_area
 
             # center_width = x + w // 2
             # left_limit = mask.shape[1] // 2 - int(self.center_width_scale * mask.shape[1] / 2)
@@ -945,9 +1315,9 @@ class BackgroundPreprocess(Transform):
 
             # Check are is between limits
             if area &gt; self.min_area and area &lt; self.max_area:
-                
+
                 temp = np.zeros(mask.shape, np.uint8)
-                cv2.drawContours(temp,[c],0,255,-1)
+                cv2.drawContours(temp, [c], 0, 255, -1)
                 match = np.where(temp == 255)
                 mask_matched = mask[match].flatten()
                 img_matched = img[match].flatten()
@@ -965,63 +1335,79 @@ class BackgroundPreprocess(Transform):
 
                 median = np.median(img_matched)
                 # Check density and median of countour area in input image is below threshold limits
-                if density &gt; self.min_density and median &lt; self.min_thresh and median &lt; ret * self.thresh_limit_multiplier:
+                if (
+                    density &gt; self.min_density
+                    and median &lt; self.min_thresh
+                    and median &lt; ret * self.thresh_limit_multiplier
+                ):
                     biggest_cs.append(c)
 
         # Only modify image if there is any area that matched, otherwise do not modify
         if len(biggest_cs) != 0:
-            cv2.drawContours(mask_inpaint, biggest_cs, -1, (0,0,0), -1)
-            
+            cv2.drawContours(mask_inpaint, biggest_cs, -1, (0, 0, 0), -1)
+
             if self.debug:
                 for c in biggest_cs:
-                    x,y,w,h = cv2.boundingRect(c)
-                    cv2.rectangle(boxes, (x,y),(x+w,y+h), (0,255,0), 3)
+                    x, y, w, h = cv2.boundingRect(c)
+                    cv2.rectangle(boxes, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
             # Proceed with processes having background parts in white
             mask_inpaint = 255 - mask_inpaint
 
             # # apply morphology to remove isolated extraneous noise
-            kernel = np.ones((self.inpaint_morph_kernel,self.inpaint_morph_kernel), np.uint8)
+            kernel = np.ones(
+                (self.inpaint_morph_kernel, self.inpaint_morph_kernel), np.uint8
+            )
             mask_inpaint = cv2.morphologyEx(mask_inpaint, cv2.MORPH_OPEN, kernel)
             mask_inpaint = cv2.morphologyEx(mask_inpaint, cv2.MORPH_CLOSE, kernel)
 
             # Look for contours inside other contours, save them with the color of the parent contour
-            cnts, hier = cv2.findContours(mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)            
+            cnts, hier = cv2.findContours(
+                mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+            )
             fill_cnts = {}
             parent_bbox = {}
             for i, h in enumerate(hier[0]):
                 # Internal contours are saved on fill_cnts to be painted on
                 if h[-1] != -1:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[h[-1]])
-                    parent_color = np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[h[-1]])
+                    parent_color = np.median(mask_inpaint[y : y + h, x : x + w])
 
                     add_in_dict_list(fill_cnts, parent_color, cnts[i])
                 # External contours are saved on parent_bbox to check later if are parents of other contours
                 else:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[i])
-                    parent_color = 255 - np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[i])
+                    parent_color = 255 - np.median(mask_inpaint[y : y + h, x : x + w])
 
-                    add_in_dict_list(parent_bbox, parent_color, (x,y,w,h))
+                    add_in_dict_list(parent_bbox, parent_color, (x, y, w, h))
 
             # Paint internal contours with its parent color
             for parent_color, cnts_list in fill_cnts.items():
-                cv2.drawContours(mask_inpaint, cnts_list, -1, (parent_color,parent_color,parent_color), -1)
+                cv2.drawContours(
+                    mask_inpaint,
+                    cnts_list,
+                    -1,
+                    (parent_color, parent_color, parent_color),
+                    -1,
+                )
 
             # Proceed with processes having bone parts in white
             mask_inpaint = 255 - mask_inpaint
 
             # Look for contours inside other contours, save them with the color of the parent contour
-            cnts, hier = cv2.findContours(mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)            
+            cnts, hier = cv2.findContours(
+                mask_inpaint, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+            )
             fill_cnts = {}
             for i, h in enumerate(hier[0]):
                 bbox = cv2.boundingRect(cnts[i])
                 # Internal contours are saved on fill_cnts to be painted on
                 if h[-1] != -1:
                     # Determine parent color to fill child contour
-                    x,y,w,h = cv2.boundingRect(cnts[h[-1]])
-                    parent_color = np.median(mask_inpaint[y:y+h,x:x+w])
+                    x, y, w, h = cv2.boundingRect(cnts[h[-1]])
+                    parent_color = np.median(mask_inpaint[y : y + h, x : x + w])
 
                     add_in_dict_list(fill_cnts, parent_color, cnts[i])
                 # External contours are checked if are inside a previous parent bounding box, if so added to be painted on
@@ -1033,28 +1419,38 @@ class BackgroundPreprocess(Transform):
 
             # Paint internal contours with its parent color
             for parent_color, cnts_list in fill_cnts.items():
-                cv2.drawContours(mask_inpaint, cnts_list, -1, (parent_color,parent_color,parent_color), -1)
+                cv2.drawContours(
+                    mask_inpaint,
+                    cnts_list,
+                    -1,
+                    (parent_color, parent_color, parent_color),
+                    -1,
+                )
 
             # Apply mask on input image which results on image without background
-            result = cv2.bitwise_and(result, result, mask = mask_inpaint)
-        
+            result = cv2.bitwise_and(result, result, mask=mask_inpaint)
+
         if self.debug:
             print()
             rows = 2
             cols = 2
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(rows,cols, figsize=(5*cols, 5*rows))
+            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(
+                rows, cols, figsize=(5 * cols, 5 * rows)
+            )
             ax1.imshow(img, cmap=plt.cm.bone)
-            ax2.imshow(result, cmap=plt.cm.bone)
+            ax2.imshow(transform_to_uint8(result), cmap=plt.cm.bone)
             ax3.imshow(mask, cmap=plt.cm.bone)
             ax4.imshow(mask_inpaint)
-            fig.suptitle(f&#39;area {(self.min_area, self.max_area)} - th_limit ({self.thresh_limit_multiplier:2f}, {ret * self.thresh_limit_multiplier:.0f}) - kernels (M,IM) ({self.morph_kernel},{self.inpaint_morph_kernel})&#39;)
+            fig.suptitle(
+                f&#34;area {(self.min_area, self.max_area)} - th_limit ({self.thresh_limit_multiplier:2f}, {ret * self.thresh_limit_multiplier:.0f}) - kernels (M,IM) ({self.morph_kernel},{self.inpaint_morph_kernel})&#34;
+            )
             fig.tight_layout()
             fig.show()
 
         if self.np_output:
             return result
         else:
-            value = self.PIL_cls.create(result)
+            value = self.PIL_cls.create(transform_to_float(result))
             # value = Image.fromarray(
             #     img
             # )
@@ -1088,45 +1484,67 @@ class BackgroundPreprocess(Transform):
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.CLAHE_Transform"><code class="flex name class">
 <span>class <span class="ident">CLAHE_Transform</span></span>
-<span>(</span><span>PIL_cls, clipLimit=2.0, tileGridSize=(8, 8), grayscale=True, np_input=False, np_output=False)</span>
+<span>(</span><span>PIL_cls, clipLimit=4.0, tileGridSize=(8, 8), grayscale=True, np_input=False, np_output=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Implement CLAHE transformation for Adaptative Histogram Equalization</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L30-L60" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L74-L126" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class CLAHE_Transform(Transform):
     &#34;&#34;&#34; Implement CLAHE transformation for Adaptative Histogram Equalization &#34;&#34;&#34;
-    
-    def __init__(self, PIL_cls, clipLimit=2.0, tileGridSize=(8,8), grayscale=True, np_input=False, np_output=False):
+
+    def __init__(
+        self,
+        PIL_cls,
+        clipLimit=4.0,
+        tileGridSize=(8, 8),
+        grayscale=True,
+        np_input=False,
+        np_output=False,
+    ):
         super().__init__()
         self.grayscale = grayscale
         self.np_input = np_input
         self.np_output = np_output
 
+        self.clipLimit = clipLimit
+        self.tileGridSize = tileGridSize
+
         self.PIL_cls = PIL_cls
 
-        self.clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
-    
-    def encodes(self, sample:(PILImage,np.ndarray)):
+        # In order to be able to export learner this object should be created on each call
+        # self.clahe = cv2.createCLAHE(clipLimit=self.clipLimit, tileGridSize=tileGridSize)
+
+    def encodes(self, sample: (PILImage, np.ndarray)):
         if self.np_input:
             img = sample
         else:
             if self.grayscale:
-                img = np.array(sample.convert(&#39;L&#39;))
+                img = ToTensor()(x).numpy()
+
+                if len(img.shape) &gt; 2:
+                    img = np.squeeze(img, 0)
             else:
-                img = cv2.cvtColor(np.array(sample.convert(&#39;RGB&#39;)), cv2.COLOR_RGB2BGR)
-            
-        clahe_out = self.clahe.apply(img)
-        
+                img = cv2.cvtColor(np.array(sample.convert(&#34;RGB&#34;)), cv2.COLOR_RGB2BGR)
+
+        # Array should be set with the type that correspond to the data stored, otherwise CLAHE will not work as expected
+        img = convert_adapted_type(img)
+
+        clahe_out = cv2.createCLAHE(
+            clipLimit=adapt_uint8_value_to_current(self.clipLimit, img),
+            tileGridSize=self.tileGridSize,
+        ).apply(img)
+
         if not self.grayscale:
             clahe_out = cv2.cvtColor(clahe_out, cv2.COLOR_BGR2RGB)
 
         if self.np_output:
             return clahe_out
         else:
+            # return self.PIL_cls.create(transform_to_float(clahe_out))
             return self.PIL_cls.create(clahe_out)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1164,7 +1582,7 @@ class BackgroundPreprocess(Transform):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L14-L27" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L60-L71" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class HistScaled(Transform):
     &#34;&#34;&#34; Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly &#34;&#34;&#34;
@@ -1173,12 +1591,10 @@ class BackgroundPreprocess(Transform):
         super().__init__()
         self.bins = bins
 
-    def encodes(self, sample:PILImage):
+    def encodes(self, sample: PILImage):
         return Image.fromarray(
-            (
-                sample._tensor_cls(sample) / 255.
-            )
-            .hist_scaled(brks=self.bins).numpy() * 255
+            (sample._tensor_cls(sample) / 255.0).hist_scaled(brks=self.bins).numpy()
+            * 255
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1226,12 +1642,12 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L96-L460" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L240-L650" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class KneeLocalizer(Transform):
-    &#34;&#34;&#34; Transformation which finds out where is the knee and cut out the rest of the image
+    &#34;&#34;&#34;Transformation which finds out where is the knee and cut out the rest of the image
     Based on code from https://github.com/MIPT-Oulu/KneeLocalizer
-    
+
     ```
     @inproceedings{tiulpin2017novel,
         title={A novel method for automatic localization of joint area on knee plain radiographs},
@@ -1243,7 +1659,16 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
     }
     ```
     &#34;&#34;&#34;
-    def __init__(self, svm_model_path, PIL_cls, resize=None, np_input=False, np_output=False, debug=False):
+
+    def __init__(
+        self,
+        svm_model_path,
+        PIL_cls,
+        resize=None,
+        np_input=False,
+        np_output=False,
+        debug=False,
+    ):
         super().__init__()
         self.win_size = (64, 64)
         self.win_stride = (64, 64)
@@ -1255,8 +1680,10 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         self.scales = [1.05, 1.25, 1.5, 2]
         # self.scales = [0.9, 1, 1.1]
 
-        self.svm_w, self.svm_b = np.load(svm_model_path, encoding=&#39;bytes&#39;, allow_pickle=True)
-        
+        self.svm_w, self.svm_b = np.load(
+            svm_model_path, encoding=&#34;bytes&#34;, allow_pickle=True
+        )
+
         self.resize = resize
 
         self.PIL_cls = PIL_cls
@@ -1266,7 +1693,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
@@ -1274,39 +1701,44 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
             img = ToTensor()(x).numpy()
 
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
+            img = np.squeeze(img, 0)
+
+        img_lossly = img[:]
+        img = transform_to_uint8(img)
 
         # At least score should be better than this
         best_score = -np.inf
 
         # Approximate the scales to not include left/right or top/bottom black stripes
         # First check if there is top/bottom black stripes, otherwise check it for left/right ones
-        mask_black = cv2.threshold(img, 3, 255, cv2.THRESH_BINARY)[1]
-        
+        mask_black = cv2.threshold(img, 7, 255, cv2.THRESH_BINARY)[1]
+
         # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((5,5), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         mask_black = cv2.morphologyEx(mask_black, cv2.MORPH_OPEN, kernel)
         mask_black = cv2.morphologyEx(mask_black, cv2.MORPH_CLOSE, kernel)
 
-        # Find contours of the intersting part, which will be the biggest zone 
+        # Find contours of the intersting part, which will be the biggest zone
         cnts = cv2.findContours(mask_black, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         biggest_area = 0
-        total_area = (float(mask_black.shape[0]) * mask_black.shape[1])
+        total_area = float(mask_black.shape[0]) * mask_black.shape[1]
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             area = w * h / total_area
             if area &gt; biggest_area:
                 biggest_area = area
-                roi = np.array([x,y,w,h], dtype=np.int)
+                roi = np.array([x, y, w, h], dtype=np.int)
                 if self.debug:
-                    cv2.rectangle(mask_black, (x,y),(x+w,y+h), (0,255,0), 2)
+                    cv2.rectangle(mask_black, (x, y), (x + w, y + h), (0, 255, 0), 2)
         if biggest_area != 0:
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = img[y1:y2, x1:x2]
+            roi_img_lossly = img_lossly[y1:y2, x1:x2]
         else:
             roi_img = img[:]
+            roi_img_lossly = img_lossly[:]
 
         # Check for external white zones and remove them
         # Generate a mask where background is identified
@@ -1314,7 +1746,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         # mask_white = 255 - mask_white
 
         # apply morphology to remove isolated extraneous noise
-        kernel = np.ones((5,5), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         mask_white = cv2.morphologyEx(mask_white, cv2.MORPH_OPEN, kernel)
         mask_white = cv2.morphologyEx(mask_white, cv2.MORPH_CLOSE, kernel)
 
@@ -1325,35 +1757,35 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         cnts = cv2.findContours(mask_white, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
         smallest_area = np.inf
-        total_area = (float(mask_white.shape[0]) * mask_white.shape[1])
+        total_area = float(mask_white.shape[0]) * mask_white.shape[1]
         found = False
         c_candidates = []
         for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             area = w * h / total_area
             if area &gt; 0.05:
-                
+
                 # Add candidates to check union of contours
                 c_candidates.append(c)
 
                 # Area conditions
-                if smallest_area &lt;= area and area &lt; 0.5:
+                if smallest_area &lt;= area or area &lt; 0.5:
                     continue
 
                 # Check that when filling current proposal then almost nothing is left
                 check_mask = mask_white[:].copy()
-                cv2.drawContours(check_mask, [c], -1, (0,0,0), -1)
+                cv2.drawContours(check_mask, [c], -1, (0, 0, 0), -1)
                 # apply morphology to remove isolated extraneous noise
-                kernel = np.ones((5,5), np.uint8)
+                kernel = np.ones((5, 5), np.uint8)
                 check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_OPEN, kernel)
                 check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_CLOSE, kernel)
                 if check_mask.sum() / (total_area * 255) &lt; 0.01:
                     found = True
                     smallest_area = area
-                    roi = np.array([x,y,w,h], dtype=np.int)
-                
+                    roi = np.array([x, y, w, h], dtype=np.int)
+
                 if self.debug:
-                    cv2.rectangle(mask_white, (x,y),(x+w,y+h), (0,255,0), 2)
+                    cv2.rectangle(mask_white, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         # Check candidates for combined contours
         if len(c_candidates) &gt; 1:
@@ -1364,7 +1796,7 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
                     # Do not try on itself and already checked
                     if i &gt;= j:
                         continue
-                
+
                     bbox_2 = cv2.boundingRect(c2)
 
                     # Cannot be on contours which overlap
@@ -1379,9 +1811,9 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 
                     # Check that when filling current proposal then almost nothing is left
                     check_mask = mask_white[:].copy()
-                    cv2.drawContours(check_mask, [c1, c2], -1, (0,0,0), -1)
+                    cv2.drawContours(check_mask, [c1, c2], -1, (0, 0, 0), -1)
                     # apply morphology to remove isolated extraneous noise
-                    kernel = np.ones((5,5), np.uint8)
+                    kernel = np.ones((5, 5), np.uint8)
                     check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_OPEN, kernel)
                     check_mask = cv2.morphologyEx(check_mask, cv2.MORPH_CLOSE, kernel)
                     if check_mask.sum() / (total_area * 255) &lt; 0.01:
@@ -1390,28 +1822,33 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
                         roi = np.array(uni_box, dtype=np.int)
 
                     if self.debug:
-                        x,y,w,h = tuple(uni_box)
-                        cv2.rectangle(mask_white, (x,y),(x+w,y+h), (0,255,0), 2)
+                        x, y, w, h = tuple(uni_box)
+                        cv2.rectangle(
+                            mask_white, (x, y), (x + w, y + h), (0, 255, 0), 2
+                        )
 
         # Set current ROI
         if found:
             x1, y1 = roi[0], roi[1]
             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
             roi_img = roi_img[y1:y2, x1:x2]
+            roi_img_lossly = roi_img_lossly[y1:y2, x1:x2]
         else:
             roi_img = roi_img[:]
+            roi_img_lossly = roi_img_lossly[:]
 
-        
         R, C = roi_img.shape[-2:]
-        min_R_C = min(R,C)
+        min_R_C = min(R, C)
 
         # We will store the coordinates of the top left and
         # the bottom right corners of the bounding box
-        hog = cv2.HOGDescriptor(self.win_size,
-                                self.block_size,
-                                self.block_stride,
-                                self.cell_size,
-                                self.nbins)
+        hog = cv2.HOGDescriptor(
+            self.win_size,
+            self.block_size,
+            self.block_stride,
+            self.cell_size,
+            self.nbins,
+        )
 
         # displacements = range(-C // 4, 1 * C // 4 + 1, C // 8)
         x_prop = self.get_joint_x_proposals(roi_img)
@@ -1420,61 +1857,77 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         if self.debug:
             debug_info = []
 
-        # Loop across proposals and scales
-        for y_coord in y_prop:
-            for x_coord in x_prop:
-                for scale in self.scales:
-                    # Check if fits on image
-                    if x_coord - min_R_C / scale / 2 &gt;= 0 and x_coord + min_R_C / scale / 2 &lt;= C and y_coord - min_R_C / scale / 2 &gt;= 0 and y_coord + min_R_C / scale / 2 &lt;= R :
+        if y_prop != []:
+            # Loop across proposals and scales
+            for y_coord in y_prop:
+                for x_coord in x_prop:
+                    for scale in self.scales:
+                        # Check if fits on image
+                        if (
+                            x_coord - min_R_C / scale / 2 &gt;= 0
+                            and x_coord + min_R_C / scale / 2 &lt;= C
+                            and y_coord - min_R_C / scale / 2 &gt;= 0
+                            and y_coord + min_R_C / scale / 2 &lt;= R
+                        ):
 
-                        # Candidate ROI
-                        roi = np.array([x_coord - min_R_C / scale / 2,
-                                        y_coord - min_R_C / scale / 2,
-                                        min_R_C / scale, min_R_C / scale], dtype=np.int)
-                        x1, y1 = roi[0], roi[1]
-                        x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
-                        patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
-
-                        # Calculate score from SVM model
-                        hog_descr = hog.compute(patch, self.win_stride, self.padding)
-                        score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
-
-                        if self.debug:
-                            debug_info.append(
-                                {
-                                    &#39;patch&#39;: patch,
-                                    &#39;score&#39;: score,
-                                    &#39;scale&#39;: scale,
-                                    &#39;coords&#39;: ((x1, y1), (x2,y2)),
-                                }
+                            # Candidate ROI
+                            roi = np.array(
+                                [
+                                    x_coord - min_R_C / scale / 2,
+                                    y_coord - min_R_C / scale / 2,
+                                    min_R_C / scale,
+                                    min_R_C / scale,
+                                ],
+                                dtype=np.int,
                             )
-                        
-                        # Check and save best score
-                        if score &gt; best_score:
-                            best_score = score
-                            roi_R = ((x1, y1), (x2,y2))
+                            x1, y1 = roi[0], roi[1]
+                            x2, y2 = roi[0] + roi[2], roi[1] + roi[3]
+                            patch = cv2.resize(roi_img[y1:y2, x1:x2], self.win_size)
 
+                            # Calculate score from SVM model
+                            hog_descr = hog.compute(
+                                patch, self.win_stride, self.padding
+                            )
+                            score = np.inner(self.svm_w, hog_descr.ravel()) + self.svm_b
+
+                            if self.debug:
+                                debug_info.append(
+                                    {
+                                        &#34;patch&#34;: patch,
+                                        &#34;score&#34;: score,
+                                        &#34;scale&#34;: scale,
+                                        &#34;coords&#34;: ((x1, y1), (x2, y2)),
+                                    }
+                                )
+
+                            # Check and save best score
+                            if score &gt; best_score:
+                                best_score = score
+                                roi_R = ((x1, y1), (x2, y2))
+        else:
+            roi_img = img[:]
+            roi_img_lossly = roi_img_lossly[:]
+            # self.PIL_cls.create(roi_img).save(&#39;sources/extra_images/failing.png&#39;, format=&#39;png&#39;, compress_level=0)
+            debug_info = []
+
+        # if self.debug or y_prop == []:
         if self.debug:
             print()
             cols = 4
             rows = len(debug_info) // cols + (len(debug_info) % cols != 0) + 1
-            fig, axs = plt.subplots(
-                rows,
-                cols, 
-                figsize=(15,15)
-            )
-            ax_orig = axs[0] if rows == 1 else axs[0,0]
+            fig, axs = plt.subplots(rows, cols, figsize=(15, 15))
+            ax_orig = axs[0] if rows == 1 else axs[0, 0]
             ax_orig.imshow(img, cmap=plt.cm.bone)
-            ax_orig.set_title(f&#39;Original&#39;)
-            ax_roi = axs[1] if rows == 1 else axs[0,1]
+            ax_orig.set_title(f&#34;Original&#34;)
+            ax_roi = axs[1] if rows == 1 else axs[0, 1]
             ax_roi.imshow(roi_img, cmap=plt.cm.bone)
-            ax_roi.set_title(f&#39;ROI from Original&#39;)
-            ax_mask_black = axs[2] if rows == 1 else axs[0,2]
+            ax_roi.set_title(f&#34;ROI from Original&#34;)
+            ax_mask_black = axs[2] if rows == 1 else axs[0, 2]
             ax_mask_black.imshow(mask_black, cmap=plt.cm.bone)
-            ax_mask_black.set_title(f&#39;Mask&#39;)
-            ax_mask_white = axs[3] if rows == 1 else axs[0,3]
+            ax_mask_black.set_title(f&#34;Mask&#34;)
+            ax_mask_white = axs[3] if rows == 1 else axs[0, 3]
             ax_mask_white.imshow(mask_white, cmap=plt.cm.bone)
-            ax_mask_white.set_title(f&#39;Mask&#39;)
+            ax_mask_white.set_title(f&#34;Mask&#34;)
             if len(debug_info) &gt; 0:
                 debug_info = sorted(debug_info, key=lambda x: x[&#34;score&#34;], reverse=True)
                 i = 0
@@ -1488,102 +1941,111 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
                         i += 1
             fig.tight_layout()
             fig.show()
+            plt.show()
 
         if best_score == -np.inf:
-            img = cv2.resize(
-                roi_img,
-                dsize=(self.resize, self.resize)
-            )
+            img_lossly = cv2.resize(roi_img_lossly, dsize=(self.resize, self.resize))
         elif self.resize:
-            img = cv2.resize(
-                roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]],
-                dsize=(self.resize, self.resize)
+            img_lossly = cv2.resize(
+                roi_img_lossly[roi_R[0][1] : roi_R[1][1], roi_R[0][0] : roi_R[1][0]],
+                dsize=(self.resize, self.resize),
             )
         else:
-            img = roi_img[roi_R[0][1]:roi_R[1][1], roi_R[0][0]:roi_R[1][0]]
+            img_lossly = roi_img_lossly[
+                roi_R[0][1] : roi_R[1][1], roi_R[0][0] : roi_R[1][0]
+            ]
 
         if self.np_output:
-            return img
+            return img_lossly
         else:
-            value = self.PIL_cls.create(img)
+            value = self.PIL_cls.create(transform_to_float(img_lossly))
             # value = Image.fromarray(
             #     img
             # )
             return value
 
-
     def smooth_line(self, line, av_points):
-        smooth = np.convolve(
-            line,
-            np.ones((av_points, )) / av_points
-        )[(av_points - 1):-(av_points - 1)]
+        smooth = np.convolve(line, np.ones((av_points,)) / av_points)[
+            (av_points - 1) : -(av_points - 1)
+        ]
 
         return smooth
 
-    def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+    def get_joint_y_proposals(
+        self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+    ):
         &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
 
         R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the X-axis
-        segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
-                            int(C / 3):int(C - C / 3)], axis=1)
-    
+        segm_line = np.sum(
+            img[int(R * margin) : int(R * (1 - margin)), int(C / 3) : int(C - C / 3)],
+            axis=1,
+        )
+
         # Smooth the segmentation line
         segm_line = self.smooth_line(segm_line, av_points)
 
         # Find the derivative smoothed
-        derv_segm_line = self.smooth_line(
-                np.diff(
-                    segm_line
-                ),
-                av_derv_points
-            )
+        derv_segm_line = self.smooth_line(np.diff(segm_line), av_derv_points)
 
         # Find the absolute of the second derivative smoothed
         derv_derv_segm_line = np.abs(
-            self.smooth_line(
-                np.diff(
-                    derv_segm_line
-                ),
-                av_derv_points
-            )
+            self.smooth_line(np.diff(derv_segm_line), av_derv_points)
         )
 
         # Filter for peaks with highest second derivate as it has to be a quick change of gradients
-        derv_peaks = np.argsort(derv_derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
-        max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
-        min_cond = max(min(derv_peaks) - R // 20, 0)
+        derv_peaks = np.argsort(derv_derv_segm_line)[::-1][
+            : int(0.1 * R * (1 - 2 * margin))
+        ]
 
-        # Get top tau % of the filtered peaks
-        peaks = np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][:int(0.1 * R * (1 - 2 * margin))] + min_cond
+        if len(derv_peaks) != 0:
+            max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
+            min_cond = max(min(derv_peaks) - R // 20, 0)
 
-        # Filter to only use peaks which are separated at least by a 5%
-        final_peaks = []
-        while len(peaks) != 0:
-            peak = peaks[0]
-            final_peaks.append(peak)
-            peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
+            # Get top tau % of the filtered peaks
+            peaks = (
+                np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][
+                    : int(0.1 * R * (1 - 2 * margin))
+                ]
+                + min_cond
+            )
 
-        # return list(peaks[::step] + int(R * margin)) + [R // 2]
-        return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+            # Filter to only use peaks which are separated at least by a 5%
+            final_peaks = []
+            while len(peaks) != 0:
+                peak = peaks[0]
+                final_peaks.append(peak)
+                peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
 
-    
-    def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+            # return list(peaks[::step] + int(R * margin)) + [R // 2]
+            return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+
+        # Sometimes if there has been some issues on previous steps it happens that there are no enough derv_peaks
+        # then it is best to not propose any
+        else:
+            return []
+
+    def get_joint_x_proposals(
+        self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+    ):
         &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
 
         R, C = img.shape[-2:]
 
         # Sum the middle if the leg is along the Y-axis
-        segm_line = np.sum(img[int(R / 3):int(R - R / 3),
-                               int(C * margin):int(C * (1 - margin))], axis=0)
-    
+        segm_line = np.sum(
+            img[int(R / 3) : int(R - R / 3), int(C * margin) : int(C * (1 - margin))],
+            axis=0,
+        )
+
         # Smooth the segmentation line
         segm_line = self.smooth_line(segm_line, av_points)
 
         # Get top tau % of the peaks
-        peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
-        
+        peaks = np.argsort(segm_line)[::-1][: int(0.1 * C * (1 - 2 * margin))]
+
         # Filter to only use peaks which are separated at least by a 5%
         final_peaks = []
         while len(peaks) != 0:
@@ -1620,23 +2082,27 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L437-L460" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L623-L650" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_joint_x_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+<pre><code class="python">def get_joint_x_proposals(
+    self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+):
     &#34;&#34;&#34;Return X-coordinates of the bone approximate locations&#34;&#34;&#34;
 
     R, C = img.shape[-2:]
 
     # Sum the middle if the leg is along the Y-axis
-    segm_line = np.sum(img[int(R / 3):int(R - R / 3),
-                           int(C * margin):int(C * (1 - margin))], axis=0)
+    segm_line = np.sum(
+        img[int(R / 3) : int(R - R / 3), int(C * margin) : int(C * (1 - margin))],
+        axis=0,
+    )
 
     # Smooth the segmentation line
     segm_line = self.smooth_line(segm_line, av_points)
 
     # Get top tau % of the peaks
-    peaks = np.argsort(segm_line)[::-1][:int(0.1 * C * (1 - 2 * margin))]
-    
+    peaks = np.argsort(segm_line)[::-1][: int(0.1 * C * (1 - 2 * margin))]
+
     # Filter to only use peaks which are separated at least by a 5%
     final_peaks = []
     while len(peaks) != 0:
@@ -1656,55 +2122,63 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L388-L434" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L567-L621" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_joint_y_proposals(self, img, av_points=2, av_derv_points=11, margin=0.25, step=10):
+<pre><code class="python">def get_joint_y_proposals(
+    self, img, av_points=2, av_derv_points=11, margin=0.25, step=10
+):
     &#34;&#34;&#34;Return Y-coordinates of the joint approximate locations.&#34;&#34;&#34;
 
     R, C = img.shape[-2:]
 
     # Sum the middle if the leg is along the X-axis
-    segm_line = np.sum(img[int(R * margin):int(R * (1 - margin)),
-                        int(C / 3):int(C - C / 3)], axis=1)
+    segm_line = np.sum(
+        img[int(R * margin) : int(R * (1 - margin)), int(C / 3) : int(C - C / 3)],
+        axis=1,
+    )
 
     # Smooth the segmentation line
     segm_line = self.smooth_line(segm_line, av_points)
 
     # Find the derivative smoothed
-    derv_segm_line = self.smooth_line(
-            np.diff(
-                segm_line
-            ),
-            av_derv_points
-        )
+    derv_segm_line = self.smooth_line(np.diff(segm_line), av_derv_points)
 
     # Find the absolute of the second derivative smoothed
     derv_derv_segm_line = np.abs(
-        self.smooth_line(
-            np.diff(
-                derv_segm_line
-            ),
-            av_derv_points
-        )
+        self.smooth_line(np.diff(derv_segm_line), av_derv_points)
     )
 
     # Filter for peaks with highest second derivate as it has to be a quick change of gradients
-    derv_peaks = np.argsort(derv_derv_segm_line)[::-1][:int(0.1 * R * (1 - 2 * margin))]
-    max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
-    min_cond = max(min(derv_peaks) - R // 20, 0)
+    derv_peaks = np.argsort(derv_derv_segm_line)[::-1][
+        : int(0.1 * R * (1 - 2 * margin))
+    ]
 
-    # Get top tau % of the filtered peaks
-    peaks = np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][:int(0.1 * R * (1 - 2 * margin))] + min_cond
+    if len(derv_peaks) != 0:
+        max_cond = min(max(derv_peaks) + R // 20, len(derv_segm_line))
+        min_cond = max(min(derv_peaks) - R // 20, 0)
 
-    # Filter to only use peaks which are separated at least by a 5%
-    final_peaks = []
-    while len(peaks) != 0:
-        peak = peaks[0]
-        final_peaks.append(peak)
-        peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
+        # Get top tau % of the filtered peaks
+        peaks = (
+            np.argsort(np.abs(derv_segm_line[min_cond:max_cond]))[::-1][
+                : int(0.1 * R * (1 - 2 * margin))
+            ]
+            + min_cond
+        )
 
-    # return list(peaks[::step] + int(R * margin)) + [R // 2]
-    return list(np.array(final_peaks) + int(R * margin)) + [R // 2]</code></pre>
+        # Filter to only use peaks which are separated at least by a 5%
+        final_peaks = []
+        while len(peaks) != 0:
+            peak = peaks[0]
+            final_peaks.append(peak)
+            peaks = peaks[(peaks &gt; peak + R // 25) | (peaks &lt; peak - R // 25)]
+
+        # return list(peaks[::step] + int(R * margin)) + [R // 2]
+        return list(np.array(final_peaks) + int(R * margin)) + [R // 2]
+
+    # Sometimes if there has been some issues on previous steps it happens that there are no enough derv_peaks
+    # then it is best to not propose any
+    else:
+        return []</code></pre>
 </details>
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.KneeLocalizer.setups"><code class="name flex">
@@ -1721,18 +2195,194 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L380-L386" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L560-L565" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def smooth_line(self, line, av_points):
-    smooth = np.convolve(
-        line,
-        np.ones((av_points, )) / av_points
-    )[(av_points - 1):-(av_points - 1)]
+    smooth = np.convolve(line, np.ones((av_points,)) / av_points)[
+        (av_points - 1) : -(av_points - 1)
+    ]
 
     return smooth</code></pre>
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.PILPNGFloat"><code class="flex name class">
+<span>class <span class="ident">PILPNGFloat</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents an image object.
+To create
+:py:class:<code>~PIL.Image.Image</code> objects, use the appropriate factory
+functions.
+There's hardly ever any reason to call the Image constructor
+directly.</p>
+<ul>
+<li>:py:func:<code>~PIL.Image.open</code></li>
+<li>:py:func:<code>~PIL.Image.new</code></li>
+<li>:py:func:<code>~PIL.Image.frombytes</code></li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L46-L56" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class PILPNGFloat(PILImage):
+    _open_args, _tensor_cls, _show_args = {}, TensorPNGFloat, TensorPNGFloat._show_args
+
+    @classmethod
+    def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+        &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+        if isinstance(fn, (Path, str)):
+            im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.vision.core.PILImage</li>
+<li>fastai.vision.core.PILBase</li>
+<li>PIL.Image.Image</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.PILPNGFloat.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>fn: (<class 'pathlib.Path'>, <class 'str'>, <class 'bytes'>), mode=None) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Open a <code>PNG file</code> from path <code>fn</code> with float format without lossing information</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L49-L56" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@classmethod
+def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+    &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+    if isinstance(fn, (Path, str)):
+        im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+    im.load()
+    im = im._new(im.im)
+    return cls(im.convert(mode) if mode else im)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.PILPNGFloatBW"><code class="flex name class">
+<span>class <span class="ident">PILPNGFloatBW</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents an image object.
+To create
+:py:class:<code>~PIL.Image.Image</code> objects, use the appropriate factory
+functions.
+There's hardly ever any reason to call the Image constructor
+directly.</p>
+<ul>
+<li>:py:func:<code>~PIL.Image.open</code></li>
+<li>:py:func:<code>~PIL.Image.new</code></li>
+<li>:py:func:<code>~PIL.Image.frombytes</code></li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L24-L38" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class PILPNGFloatBW(PILImageBW):
+    _open_args, _tensor_cls, _show_args = (
+        {},
+        TensorPNGFloatBW,
+        TensorPNGFloatBW._show_args,
+    )
+
+    @classmethod
+    def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+        &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+        if isinstance(fn, (Path, str)):
+            im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+        im.load()
+        im = im._new(im.im)
+        return cls(im.convert(mode) if mode else im)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.vision.core.PILImageBW</li>
+<li>fastai.vision.core.PILImage</li>
+<li>fastai.vision.core.PILBase</li>
+<li>PIL.Image.Image</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="radiology_ai.preprocessing.transforms.PILPNGFloatBW.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>fn: (<class 'pathlib.Path'>, <class 'str'>, <class 'bytes'>), mode=None) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Open a <code>PNG file</code> from path <code>fn</code> with float format without lossing information</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L31-L38" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@classmethod
+def create(cls, fn: (Path, str, bytes), mode=None) -&gt; None:
+    &#34;Open a `PNG file` from path `fn` with float format without lossing information&#34;
+    if isinstance(fn, (Path, str)):
+        im = Image.fromarray(plt.imread(fn) * (2 ** 16 - 1))
+    im.load()
+    im = im._new(im.im)
+    return cls(im.convert(mode) if mode else im)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.TensorPNGFloat"><code class="flex name class">
+<span>class <span class="ident">TensorPNGFloat</span></span>
+<span>(</span><span>x, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inherits from <code>TensorImage</code> and converts the PNG file into a <code><a title="radiology_ai.preprocessing.transforms.TensorPNGFloat" href="#radiology_ai.preprocessing.transforms.TensorPNGFloat">TensorPNGFloat</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L41-L43" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class TensorPNGFloat(TensorImage):
+    &#34;Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloat`&#34;
+    _show_args = {&#34;cmap&#34;: &#34;viridis&#34;}</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.torch_core.TensorImage</li>
+<li>fastai.torch_core.TensorImageBase</li>
+<li>fastai.torch_core.TensorBase</li>
+<li>torch.Tensor</li>
+<li>torch._C._TensorBase</li>
+</ul>
+</dd>
+<dt id="radiology_ai.preprocessing.transforms.TensorPNGFloatBW"><code class="flex name class">
+<span>class <span class="ident">TensorPNGFloatBW</span></span>
+<span>(</span><span>x, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inherits from <code>TensorImage</code> and converts the PNG file into a <code><a title="radiology_ai.preprocessing.transforms.TensorPNGFloatBW" href="#radiology_ai.preprocessing.transforms.TensorPNGFloatBW">TensorPNGFloatBW</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L19-L21" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class TensorPNGFloatBW(TensorImage):
+    &#34;Inherits from `TensorImage` and converts the PNG file into a `TensorPNGFloatBW`&#34;
+    _show_args, _open_args = {&#34;cmap&#34;: &#34;bone&#34;}, {&#34;mode&#34;: &#34;L&#34;}</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.torch_core.TensorImage</li>
+<li>fastai.torch_core.TensorImageBase</li>
+<li>fastai.torch_core.TensorBase</li>
+<li>torch.Tensor</li>
+<li>torch._C._TensorBase</li>
+</ul>
 </dd>
 <dt id="radiology_ai.preprocessing.transforms.XRayPreprocess"><code class="flex name class">
 <span>class <span class="ident">XRayPreprocess</span></span>
@@ -1743,12 +2393,21 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/preprocessing\transforms.py#L463-L513" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/preprocessing\transforms.py#L654-L713" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class XRayPreprocess(Transform):
     &#34;&#34;&#34; Preprocess the X-ray image using histogram clipping and global contrast normalization. &#34;&#34;&#34;
 
-    def __init__(self, PIL_cls, cut_min=5., cut_max=99., only_non_zero=True, scale=True, np_input=False, np_output=False):
+    def __init__(
+        self,
+        PIL_cls,
+        cut_min=5.0,
+        cut_max=99.0,
+        only_non_zero=True,
+        scale=True,
+        np_input=False,
+        np_output=False,
+    ):
         self.cut_min = cut_min
         self.cut_max = cut_max
         self.only_non_zero = only_non_zero
@@ -1759,22 +2418,22 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
         self.np_input = np_input
         self.np_output = np_output
 
-    def encodes(self, x:(PILImage,np.ndarray)):
+    def encodes(self, x: (PILImage, np.ndarray)):
 
         if self.np_input:
             img = x
         else:
             img = ToTensor()(x).numpy()
-        
+
         if len(img.shape) &gt; 2:
-          img = np.squeeze(img, 0)
+            img = np.squeeze(img, 0)
 
         if self.only_non_zero:
             percentile_img = img[img != 0]
 
         lim1, lim2 = np.percentile(
             percentile_img if self.only_non_zero and len(percentile_img) &gt; 0 else img,
-            [self.cut_min, self.cut_max]
+            [self.cut_min, self.cut_max],
         )
 
         img[img &lt; lim1] = lim1
@@ -1789,9 +2448,9 @@ Based on code from <a href="https://github.com/MIPT-Oulu/KneeLocalizer">https://
             img *= 255
 
         if self.np_output:
-            return img.astype(&#39;uint8&#39;)
+            return img.astype(&#34;uint8&#34;)
         else:
-            value = self.PIL_cls.create(img.astype(&#39;uint8&#39;))
+            value = self.PIL_cls.create(img.astype(&#34;uint8&#34;))
             # value = Image.fromarray(
             #     img.astype(&#39;uint8&#39;)
             # )
@@ -1843,10 +2502,14 @@ data-gaCategoryParameter="radiology_ai.preprocessing.transforms">
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.adapt_uint8_value_to_current" href="#radiology_ai.preprocessing.transforms.adapt_uint8_value_to_current">adapt_uint8_value_to_current</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.add_in_dict_list" href="#radiology_ai.preprocessing.transforms.add_in_dict_list">add_in_dict_list</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.check_a_in_b" href="#radiology_ai.preprocessing.transforms.check_a_in_b">check_a_in_b</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.check_intersection" href="#radiology_ai.preprocessing.transforms.check_intersection">check_intersection</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.convert_adapted_type" href="#radiology_ai.preprocessing.transforms.convert_adapted_type">convert_adapted_type</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.intersection" href="#radiology_ai.preprocessing.transforms.intersection">intersection</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.transform_to_float" href="#radiology_ai.preprocessing.transforms.transform_to_float">transform_to_float</a></code></li>
+<li><code><a title="radiology_ai.preprocessing.transforms.transform_to_uint8" href="#radiology_ai.preprocessing.transforms.transform_to_uint8">transform_to_uint8</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.union" href="#radiology_ai.preprocessing.transforms.union">union</a></code></li>
 </ul>
 </li>
@@ -1886,6 +2549,24 @@ data-gaCategoryParameter="radiology_ai.preprocessing.transforms">
 <li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.setups" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.setups">setups</a></code></li>
 <li><code><a title="radiology_ai.preprocessing.transforms.KneeLocalizer.smooth_line" href="#radiology_ai.preprocessing.transforms.KneeLocalizer.smooth_line">smooth_line</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.PILPNGFloat" href="#radiology_ai.preprocessing.transforms.PILPNGFloat">PILPNGFloat</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.PILPNGFloat.create" href="#radiology_ai.preprocessing.transforms.PILPNGFloat.create">create</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.PILPNGFloatBW" href="#radiology_ai.preprocessing.transforms.PILPNGFloatBW">PILPNGFloatBW</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.preprocessing.transforms.PILPNGFloatBW.create" href="#radiology_ai.preprocessing.transforms.PILPNGFloatBW.create">create</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.TensorPNGFloat" href="#radiology_ai.preprocessing.transforms.TensorPNGFloat">TensorPNGFloat</a></code></h4>
+</li>
+<li>
+<h4><code><a title="radiology_ai.preprocessing.transforms.TensorPNGFloatBW" href="#radiology_ai.preprocessing.transforms.TensorPNGFloatBW">TensorPNGFloatBW</a></code></h4>
 </li>
 <li>
 <h4><code><a title="radiology_ai.preprocessing.transforms.XRayPreprocess" href="#radiology_ai.preprocessing.transforms.XRayPreprocess">XRayPreprocess</a></code></h4>

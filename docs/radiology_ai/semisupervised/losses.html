@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\losses.py#L0-L98" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L0-L151" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Loss classes required for Semi-Supervised Learning &#34;&#34;&#34;
 
@@ -46,10 +46,13 @@ import numpy as np
 
 from semisupervised.utils import de_interleave
 
+from fastai.basics import BaseLoss
+from fastai.callback.core import Callback
+
 
 class SuppressedConsistencyLoss(object):
-    &#34;&#34;&#34; Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al. 
-        Intuition that we should suppress the consistency regularization of minor classes in class-imbalanced Semi-Supervised Learning
+    &#34;&#34;&#34;Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al.
+    Intuition that we should suppress the consistency regularization of minor classes in class-imbalanced Semi-Supervised Learning
     &#34;&#34;&#34;
 
     def __init__(self, frequencies, beta=0.5):
@@ -64,10 +67,22 @@ class SuppressedConsistencyLoss(object):
     def __call__(self, targets):
         return self.emb(targets)
 
+
 class SemiLoss(object):
     &#34;&#34;&#34; Define structure and process that it is required for a Semi-supervised loss &#34;&#34;&#34;
 
-    def __init__(self, bs, lambda_u, n_out, Lx_criterion, Lu_criterion, use_SCL=True, frequencies=None, beta=0.5, axis=-1):
+    def __init__(
+        self,
+        bs,
+        lambda_u,
+        n_out,
+        Lx_criterion,
+        Lu_criterion,
+        use_SCL=True,
+        frequencies=None,
+        beta=0.5,
+        axis=-1,
+    ):
         self.axis = axis
         self.bs = bs
         self.lambda_u = lambda_u
@@ -78,12 +93,14 @@ class SemiLoss(object):
 
         if use_SCL:
             if frequencies is None:
-                raise ValueError(&#39;In order to use SCL frequencies of targets should be provided&#39;)
+                raise ValueError(
+                    &#34;In order to use SCL frequencies of targets should be provided&#34;
+                )
             self.SCL = SuppressedConsistencyLoss(frequencies=frequencies, beta=beta)
         else:
             self.SCL = None
 
-    def __call__(self, logits, targets, reduction=&#39;mean&#39;):#, batch_size, epoch):
+    def __call__(self, logits, targets, reduction=&#34;mean&#34;):  # , batch_size, epoch):
 
         isTraining = len(logits) &gt; self.bs
 
@@ -92,7 +109,9 @@ class SemiLoss(object):
             logits = de_interleave(logits, self.bs)
 
         # Clip values of logits
-        logits = torch.clamp(logits, min=np.finfo(np.float16).min + 1, max=np.finfo(np.float16).max - 1)
+        logits = torch.clamp(
+            logits, min=np.finfo(np.float16).min + 1, max=np.finfo(np.float16).max - 1
+        )
 
         # Transform label if it has been flatten
         # if len(targets.size()) == 1:
@@ -102,27 +121,27 @@ class SemiLoss(object):
         Lx = self.Lx_criterion(logits, targets, reduction=reduction)
         Lu = self.Lu_criterion(logits, targets, reduction=reduction)
         # w = self.w_scheduling(self.epoch)
-        
+
         if torch.cuda.is_available:
             Lx = Lx.cuda()
             Lu = Lu.cuda()
 
         if isTraining and self.SCL is not None:
             with torch.no_grad():
-                SCL_coefs = self.SCL(torch.argmax(logits[self.bs:], dim=-1)) 
+                SCL_coefs = self.SCL(torch.argmax(logits[self.bs :], dim=-1))
             Lu = SCL_coefs * Lu
 
         # Calculation of total loss
-        if reduction == &#39;mean&#39;:
+        if reduction == &#34;mean&#34;:
             loss = Lx + (self.lambda_u * Lu).mean()
-            # self.losses = {&#39;loss&#39;: loss.mean(), &#39;Lx&#39;: Lx.mean(), &#39;Lu&#39;: Lu.mean(), &#39;w&#39;: w}
-        elif reduction==&#39;sum&#39;:
+            # self.losses = {&#39;loss&#39;: loss.mean(), &#39;Lx&#39;: Lx.mean(), &#39;Lu&#39;: Lu.mean(), &#39;w&#39;: self.lambda_u}
+        elif reduction == &#34;sum&#34;:
             loss = Lx + (self.lambda_u * Lu).sum()
-            # self.losses = {&#39;loss&#39;: loss.sum(), &#39;Lx&#39;: Lx.sum(), &#39;Lu&#39;: Lu.sum(), &#39;w&#39;: w}
+            # self.losses = {&#39;loss&#39;: loss.sum(), &#39;Lx&#39;: Lx.sum(), &#39;Lu&#39;: Lu.sum(), &#39;w&#39;: self.lambda_u}
         else:
             loss = Lx + self.lambda_u * Lu
-            # self.losses = {&#39;loss&#39;: loss, &#39;Lx&#39;: Lx, &#39;Lu&#39;: Lu, &#39;w&#39;: w}
- 
+            # self.losses = {&#39;loss&#39;: loss, &#39;Lx&#39;: Lx, &#39;Lu&#39;: Lu, &#39;w&#39;: self.lambda_u}
+
         return loss
 
     # @abstractmethod
@@ -135,7 +154,41 @@ class SemiLoss(object):
 
     # @abstractmethod
     # def w_scheduling(self, epoch):
-    #     pass</code></pre>
+    #     pass
+
+
+class SemiLossBase(BaseLoss):
+    def __init__(self, beta=0.98, max_len_losses=500, **kwargs):
+        super().__init__(**kwargs)
+        self.smooth_losses = {}
+        self.losses = {}
+        self.beta = beta
+        self.max_len_losses = max_len_losses
+
+    def log_loss(self, name, val):
+        if name in self.smooth_losses:
+            self.smooth_losses[name] = (
+                1 - self.beta
+            ) * val + self.beta * self.smooth_losses[name]
+            self.losses[name].append(val)
+
+            if len(self.losses[name]) &gt; self.max_len_losses:
+                del self.losses[name][0]
+        else:
+            self.smooth_losses[name] = val
+            self.losses[name] = [val]
+
+    def Lx(self):
+        return self.smooth_losses[&#34;Lx&#34;] if &#34;Lx&#34; in self.smooth_losses else None
+
+    def Lu(self):
+        return self.smooth_losses[&#34;Lu&#34;] if &#34;Lu&#34; in self.smooth_losses else None
+
+    # def total_loss(self):
+    #     return self.smooth_losses[&#39;loss&#39;] if &#39;loss&#39; in self.smooth_losses else None
+
+    def w(self):
+        return self.smooth_losses[&#34;w&#34;] if &#34;w&#34; in self.smooth_losses else None</code></pre>
 </details>
 </section>
 <section>
@@ -156,12 +209,23 @@ class SemiLoss(object):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\losses.py#L28-L87" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L32-L106" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SemiLoss(object):
     &#34;&#34;&#34; Define structure and process that it is required for a Semi-supervised loss &#34;&#34;&#34;
 
-    def __init__(self, bs, lambda_u, n_out, Lx_criterion, Lu_criterion, use_SCL=True, frequencies=None, beta=0.5, axis=-1):
+    def __init__(
+        self,
+        bs,
+        lambda_u,
+        n_out,
+        Lx_criterion,
+        Lu_criterion,
+        use_SCL=True,
+        frequencies=None,
+        beta=0.5,
+        axis=-1,
+    ):
         self.axis = axis
         self.bs = bs
         self.lambda_u = lambda_u
@@ -172,12 +236,14 @@ class SemiLoss(object):
 
         if use_SCL:
             if frequencies is None:
-                raise ValueError(&#39;In order to use SCL frequencies of targets should be provided&#39;)
+                raise ValueError(
+                    &#34;In order to use SCL frequencies of targets should be provided&#34;
+                )
             self.SCL = SuppressedConsistencyLoss(frequencies=frequencies, beta=beta)
         else:
             self.SCL = None
 
-    def __call__(self, logits, targets, reduction=&#39;mean&#39;):#, batch_size, epoch):
+    def __call__(self, logits, targets, reduction=&#34;mean&#34;):  # , batch_size, epoch):
 
         isTraining = len(logits) &gt; self.bs
 
@@ -186,7 +252,9 @@ class SemiLoss(object):
             logits = de_interleave(logits, self.bs)
 
         # Clip values of logits
-        logits = torch.clamp(logits, min=np.finfo(np.float16).min + 1, max=np.finfo(np.float16).max - 1)
+        logits = torch.clamp(
+            logits, min=np.finfo(np.float16).min + 1, max=np.finfo(np.float16).max - 1
+        )
 
         # Transform label if it has been flatten
         # if len(targets.size()) == 1:
@@ -196,29 +264,147 @@ class SemiLoss(object):
         Lx = self.Lx_criterion(logits, targets, reduction=reduction)
         Lu = self.Lu_criterion(logits, targets, reduction=reduction)
         # w = self.w_scheduling(self.epoch)
-        
+
         if torch.cuda.is_available:
             Lx = Lx.cuda()
             Lu = Lu.cuda()
 
         if isTraining and self.SCL is not None:
             with torch.no_grad():
-                SCL_coefs = self.SCL(torch.argmax(logits[self.bs:], dim=-1)) 
+                SCL_coefs = self.SCL(torch.argmax(logits[self.bs :], dim=-1))
             Lu = SCL_coefs * Lu
 
         # Calculation of total loss
-        if reduction == &#39;mean&#39;:
+        if reduction == &#34;mean&#34;:
             loss = Lx + (self.lambda_u * Lu).mean()
-            # self.losses = {&#39;loss&#39;: loss.mean(), &#39;Lx&#39;: Lx.mean(), &#39;Lu&#39;: Lu.mean(), &#39;w&#39;: w}
-        elif reduction==&#39;sum&#39;:
+            # self.losses = {&#39;loss&#39;: loss.mean(), &#39;Lx&#39;: Lx.mean(), &#39;Lu&#39;: Lu.mean(), &#39;w&#39;: self.lambda_u}
+        elif reduction == &#34;sum&#34;:
             loss = Lx + (self.lambda_u * Lu).sum()
-            # self.losses = {&#39;loss&#39;: loss.sum(), &#39;Lx&#39;: Lx.sum(), &#39;Lu&#39;: Lu.sum(), &#39;w&#39;: w}
+            # self.losses = {&#39;loss&#39;: loss.sum(), &#39;Lx&#39;: Lx.sum(), &#39;Lu&#39;: Lu.sum(), &#39;w&#39;: self.lambda_u}
         else:
             loss = Lx + self.lambda_u * Lu
-            # self.losses = {&#39;loss&#39;: loss, &#39;Lx&#39;: Lx, &#39;Lu&#39;: Lu, &#39;w&#39;: w}
- 
+            # self.losses = {&#39;loss&#39;: loss, &#39;Lx&#39;: Lx, &#39;Lu&#39;: Lu, &#39;w&#39;: self.lambda_u}
+
         return loss</code></pre>
 </details>
+</dd>
+<dt id="radiology_ai.semisupervised.losses.SemiLossBase"><code class="flex name class">
+<span>class <span class="ident">SemiLossBase</span></span>
+<span>(</span><span>beta=0.98, max_len_losses=500, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Same as <code>loss_cls</code>, but flattens input and target.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L121-L152" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">class SemiLossBase(BaseLoss):
+    def __init__(self, beta=0.98, max_len_losses=500, **kwargs):
+        super().__init__(**kwargs)
+        self.smooth_losses = {}
+        self.losses = {}
+        self.beta = beta
+        self.max_len_losses = max_len_losses
+
+    def log_loss(self, name, val):
+        if name in self.smooth_losses:
+            self.smooth_losses[name] = (
+                1 - self.beta
+            ) * val + self.beta * self.smooth_losses[name]
+            self.losses[name].append(val)
+
+            if len(self.losses[name]) &gt; self.max_len_losses:
+                del self.losses[name][0]
+        else:
+            self.smooth_losses[name] = val
+            self.losses[name] = [val]
+
+    def Lx(self):
+        return self.smooth_losses[&#34;Lx&#34;] if &#34;Lx&#34; in self.smooth_losses else None
+
+    def Lu(self):
+        return self.smooth_losses[&#34;Lu&#34;] if &#34;Lu&#34; in self.smooth_losses else None
+
+    # def total_loss(self):
+    #     return self.smooth_losses[&#39;loss&#39;] if &#39;loss&#39; in self.smooth_losses else None
+
+    def w(self):
+        return self.smooth_losses[&#34;w&#34;] if &#34;w&#34; in self.smooth_losses else None</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>fastai.losses.BaseLoss</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="radiology_ai.semisupervised.losses.SemiLossBase.Lu"><code class="name flex">
+<span>def <span class="ident">Lu</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L145-L146" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def Lu(self):
+    return self.smooth_losses[&#34;Lu&#34;] if &#34;Lu&#34; in self.smooth_losses else None</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.semisupervised.losses.SemiLossBase.Lx"><code class="name flex">
+<span>def <span class="ident">Lx</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L142-L143" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def Lx(self):
+    return self.smooth_losses[&#34;Lx&#34;] if &#34;Lx&#34; in self.smooth_losses else None</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.semisupervised.losses.SemiLossBase.log_loss"><code class="name flex">
+<span>def <span class="ident">log_loss</span></span>(<span>self, name, val)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L129-L140" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def log_loss(self, name, val):
+    if name in self.smooth_losses:
+        self.smooth_losses[name] = (
+            1 - self.beta
+        ) * val + self.beta * self.smooth_losses[name]
+        self.losses[name].append(val)
+
+        if len(self.losses[name]) &gt; self.max_len_losses:
+            del self.losses[name][0]
+    else:
+        self.smooth_losses[name] = val
+        self.losses[name] = [val]</code></pre>
+</details>
+</dd>
+<dt id="radiology_ai.semisupervised.losses.SemiLossBase.w"><code class="name flex">
+<span>def <span class="ident">w</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L151-L152" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def w(self):
+    return self.smooth_losses[&#34;w&#34;] if &#34;w&#34; in self.smooth_losses else None</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="radiology_ai.semisupervised.losses.SuppressedConsistencyLoss"><code class="flex name class">
 <span>class <span class="ident">SuppressedConsistencyLoss</span></span>
@@ -230,11 +416,11 @@ Intuition that we should suppress the consistency regularization of minor classe
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\losses.py#L11-L26" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\losses.py#L14-L29" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class SuppressedConsistencyLoss(object):
-    &#34;&#34;&#34; Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al. 
-        Intuition that we should suppress the consistency regularization of minor classes in class-imbalanced Semi-Supervised Learning
+    &#34;&#34;&#34;Use Supressed Consistency Loss from [Class-Imbalanced Semi-Supervised Learning](https://arxiv.org/pdf/2002.06815.pdf) by Hyun et al.
+    Intuition that we should suppress the consistency regularization of minor classes in class-imbalanced Semi-Supervised Learning
     &#34;&#34;&#34;
 
     def __init__(self, frequencies, beta=0.5):
@@ -272,6 +458,15 @@ data-gaCategoryParameter="radiology_ai.semisupervised.losses">
 <ul>
 <li>
 <h4><code><a title="radiology_ai.semisupervised.losses.SemiLoss" href="#radiology_ai.semisupervised.losses.SemiLoss">SemiLoss</a></code></h4>
+</li>
+<li>
+<h4><code><a title="radiology_ai.semisupervised.losses.SemiLossBase" href="#radiology_ai.semisupervised.losses.SemiLossBase">SemiLossBase</a></code></h4>
+<ul class="">
+<li><code><a title="radiology_ai.semisupervised.losses.SemiLossBase.Lu" href="#radiology_ai.semisupervised.losses.SemiLossBase.Lu">Lu</a></code></li>
+<li><code><a title="radiology_ai.semisupervised.losses.SemiLossBase.Lx" href="#radiology_ai.semisupervised.losses.SemiLossBase.Lx">Lx</a></code></li>
+<li><code><a title="radiology_ai.semisupervised.losses.SemiLossBase.log_loss" href="#radiology_ai.semisupervised.losses.SemiLossBase.log_loss">log_loss</a></code></li>
+<li><code><a title="radiology_ai.semisupervised.losses.SemiLossBase.w" href="#radiology_ai.semisupervised.losses.SemiLossBase.w">w</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="radiology_ai.semisupervised.losses.SuppressedConsistencyLoss" href="#radiology_ai.semisupervised.losses.SuppressedConsistencyLoss">SuppressedConsistencyLoss</a></code></h4>

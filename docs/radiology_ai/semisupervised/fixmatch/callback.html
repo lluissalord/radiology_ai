@@ -35,7 +35,7 @@ body.gsc-overflow-hidden #sidebar {overflow: visible;}
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\callback.py#L0-L48" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\callback.py#L0-L60" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Callback class for FixMatch algorith &#34;&#34;&#34;
 
@@ -44,6 +44,7 @@ import torch
 from fastai.callback.core import Callback
 
 from semisupervised.utils import interleave
+
 
 class FixMatchCallback(Callback):
     &#34;&#34;&#34; FixMatch required preprocess before each batch &#34;&#34;&#34;
@@ -56,12 +57,17 @@ class FixMatchCallback(Callback):
     def before_batch(self):
 
         # Only process if is trainig
-        if not self.training: return
-        
+        if not self.training:
+            return
+
         # Extract a batch of unlabel images and repeat twice the transformation (different results due to randomness)
         raw_inputs_u = self.unlabel_dl.one_batch()[0]
-        inputs_u_weak = self.weak_transform_dl.after_batch(raw_inputs_u.detach())
-        inputs_u_strong = self.strong_transform_dl.after_batch(raw_inputs_u.detach())
+        inputs_u_weak = self.weak_transform_dl.after_batch(
+            raw_inputs_u.clone().detach()
+        )
+        inputs_u_strong = self.strong_transform_dl.after_batch(
+            raw_inputs_u.clone().detach()
+        )
 
         # Make suree the input has the right structure
         input_x = self.learn.xb
@@ -72,7 +78,7 @@ class FixMatchCallback(Callback):
         target_x = self.learn.yb
         if type(target_x) is tuple:
             target_x = target_x[0]
-        
+
         # Set targets to 0 for unlabel data
         targets_u_weak = torch.zeros(inputs_u_weak.size()[:1] + target_x.size()[1:])
         targets_u_strong = torch.zeros(inputs_u_strong.size()[:1] + target_x.size()[1:])
@@ -81,10 +87,16 @@ class FixMatchCallback(Callback):
             targets_u_strong = targets_u_strong.cuda()
 
         # Set together label and unlabel data
-        self.learn.xb = torch.cat([input_x, inputs_u_weak, inputs_u_strong], dim=0).unsqueeze(0)
-        self.learn.yb = torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0).unsqueeze(0).long()
+        self.learn.xb = torch.cat(
+            [input_x, inputs_u_weak, inputs_u_strong], dim=0
+        ).unsqueeze(0)
+        self.learn.yb = (
+            torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0)
+            .unsqueeze(0)
+            .long()
+        )
 
-        # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
+        # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation
         self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)</code></pre>
 </details>
 </section>
@@ -106,7 +118,7 @@ class FixMatchCallback(Callback):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\callback.py#L9-L49" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\callback.py#L10-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class FixMatchCallback(Callback):
     &#34;&#34;&#34; FixMatch required preprocess before each batch &#34;&#34;&#34;
@@ -119,12 +131,17 @@ class FixMatchCallback(Callback):
     def before_batch(self):
 
         # Only process if is trainig
-        if not self.training: return
-        
+        if not self.training:
+            return
+
         # Extract a batch of unlabel images and repeat twice the transformation (different results due to randomness)
         raw_inputs_u = self.unlabel_dl.one_batch()[0]
-        inputs_u_weak = self.weak_transform_dl.after_batch(raw_inputs_u.detach())
-        inputs_u_strong = self.strong_transform_dl.after_batch(raw_inputs_u.detach())
+        inputs_u_weak = self.weak_transform_dl.after_batch(
+            raw_inputs_u.clone().detach()
+        )
+        inputs_u_strong = self.strong_transform_dl.after_batch(
+            raw_inputs_u.clone().detach()
+        )
 
         # Make suree the input has the right structure
         input_x = self.learn.xb
@@ -135,7 +152,7 @@ class FixMatchCallback(Callback):
         target_x = self.learn.yb
         if type(target_x) is tuple:
             target_x = target_x[0]
-        
+
         # Set targets to 0 for unlabel data
         targets_u_weak = torch.zeros(inputs_u_weak.size()[:1] + target_x.size()[1:])
         targets_u_strong = torch.zeros(inputs_u_strong.size()[:1] + target_x.size()[1:])
@@ -144,16 +161,23 @@ class FixMatchCallback(Callback):
             targets_u_strong = targets_u_strong.cuda()
 
         # Set together label and unlabel data
-        self.learn.xb = torch.cat([input_x, inputs_u_weak, inputs_u_strong], dim=0).unsqueeze(0)
-        self.learn.yb = torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0).unsqueeze(0).long()
+        self.learn.xb = torch.cat(
+            [input_x, inputs_u_weak, inputs_u_strong], dim=0
+        ).unsqueeze(0)
+        self.learn.yb = (
+            torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0)
+            .unsqueeze(0)
+            .long()
+        )
 
-        # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
+        # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation
         self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>fastai.callback.core.Callback</li>
-<li>fastcore.foundation.GetAttr</li>
+<li>fastcore.basics.Stateful</li>
+<li>fastcore.basics.GetAttr</li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -165,17 +189,22 @@ class FixMatchCallback(Callback):
 <details class="source">
 <summary>
 <span>Expand source code</span>
-<a href="https://github.com/lluissalord/radiology_ai/blob/bb0fe1f1d941fa032d4ae8a2b9aba85f08cccfc2/semisupervised\fixmatch\callback.py#L17-L49" class="git-link">Browse git</a>
+<a href="https://github.com/lluissalord/radiology_ai/blob/954877ea22203b4d69aaebf53cb0f86bffd25a13/semisupervised\fixmatch\callback.py#L18-L61" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def before_batch(self):
 
     # Only process if is trainig
-    if not self.training: return
-    
+    if not self.training:
+        return
+
     # Extract a batch of unlabel images and repeat twice the transformation (different results due to randomness)
     raw_inputs_u = self.unlabel_dl.one_batch()[0]
-    inputs_u_weak = self.weak_transform_dl.after_batch(raw_inputs_u.detach())
-    inputs_u_strong = self.strong_transform_dl.after_batch(raw_inputs_u.detach())
+    inputs_u_weak = self.weak_transform_dl.after_batch(
+        raw_inputs_u.clone().detach()
+    )
+    inputs_u_strong = self.strong_transform_dl.after_batch(
+        raw_inputs_u.clone().detach()
+    )
 
     # Make suree the input has the right structure
     input_x = self.learn.xb
@@ -186,7 +215,7 @@ class FixMatchCallback(Callback):
     target_x = self.learn.yb
     if type(target_x) is tuple:
         target_x = target_x[0]
-    
+
     # Set targets to 0 for unlabel data
     targets_u_weak = torch.zeros(inputs_u_weak.size()[:1] + target_x.size()[1:])
     targets_u_strong = torch.zeros(inputs_u_strong.size()[:1] + target_x.size()[1:])
@@ -195,10 +224,16 @@ class FixMatchCallback(Callback):
         targets_u_strong = targets_u_strong.cuda()
 
     # Set together label and unlabel data
-    self.learn.xb = torch.cat([input_x, inputs_u_weak, inputs_u_strong], dim=0).unsqueeze(0)
-    self.learn.yb = torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0).unsqueeze(0).long()
+    self.learn.xb = torch.cat(
+        [input_x, inputs_u_weak, inputs_u_strong], dim=0
+    ).unsqueeze(0)
+    self.learn.yb = (
+        torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0)
+        .unsqueeze(0)
+        .long()
+    )
 
-    # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation 
+    # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation
     self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)</code></pre>
 </details>
 </dd>
