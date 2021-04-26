@@ -29,7 +29,7 @@ def move_file(
     copy=True,
     return_filepath=True,
 ):
-    """ Move or copy file to the destination folder with folder name """
+    """Move or copy file to the destination folder with folder name"""
 
     # Define extension
     _, src_extension = os.path.splitext(src_filepath)
@@ -63,7 +63,7 @@ def move_file(
 
 
 def move_relation(relation_filepath, copy=True, to_raw=True):
-    """ Move or copy files to/from raw destination from/to final destination based on relation file """
+    """Move or copy files to/from raw destination from/to final destination based on relation file"""
 
     # Open relation file where the move/copy will be based on
     relation_df = open_name_relation_file(relation_filepath, sep=",")
@@ -105,7 +105,7 @@ def move_relation(relation_filepath, copy=True, to_raw=True):
 def move_distribute_blocks(
     parent_folder, new_folders, blocks, relation_filepath, template_extension="xlsx"
 ):
-    """ Move and distribute equal number of blocks of files to a list of new folders (person names) """
+    """Move and distribute equal number of blocks of files to a list of new folders (person names)"""
 
     distribution = np.random.permutation(
         np.tile(
@@ -128,7 +128,7 @@ def move_distribute_blocks(
 def move_blocks(
     parent_folder, new_folder, blocks, relation_filepath, template_extension="xlsx"
 ):
-    """ Move blocks of files to the new folder (person name) """
+    """Move blocks of files to the new folder (person name)"""
 
     # Create new folder if it does not exist
     new_folder_path = os.path.join(parent_folder, new_folder)
@@ -182,7 +182,7 @@ def organize_folders(
     check_DICOM_dict=None,
     debug=False,
 ):
-    """ Organize folders and files to set all the desired DICOM files into the correct folder """
+    """Organize folders and files to set all the desired DICOM files into the correct folder"""
 
     # In case not reseting the folders, then the current relation is required
     if not reset:
@@ -311,7 +311,7 @@ def organize_folders(
 def shuffle_group_folders(
     folders, groups, subgroup_length=None, start_num_subgrups=None
 ):
-    """ Generate dictionaries of the shuffled groups and subgroups related to folders """
+    """Generate dictionaries of the shuffled groups and subgroups related to folders"""
     if subgroup_length is not None:
         num_subgroups = len(folders) // subgroup_length + 1
         start_num_subgrups = start_num_subgrups if start_num_subgrups is not None else 0
@@ -339,7 +339,7 @@ def shuffle_group_folders(
 def get_final_dst(
     dst_folder, filepaths, groups, subgroup_length, start_num_subgrups=None
 ):
-    """ Relates source filepaths with destination paths depending on shuffle groups and subgroup length """
+    """Relates source filepaths with destination paths depending on shuffle groups and subgroup length"""
 
     folders_dst = {}
     if groups is not None and subgroup_length is not None:

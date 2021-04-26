@@ -8,7 +8,7 @@ from semisupervised.utils import interleave
 
 
 class FixMatchCallback(Callback):
-    """ FixMatch required preprocess before each batch """
+    """FixMatch required preprocess before each batch"""
 
     def __init__(self, unlabel_dl, weak_transform_dl, strong_transform_dl):
         self.unlabel_dl = unlabel_dl

@@ -10,7 +10,7 @@ from semisupervised.losses import SemiLoss, SemiLossBase
 
 
 class FixMatchLoss(SemiLossBase):
-    """ Loss for FixMatch process """
+    """Loss for FixMatch process"""
 
     def __init__(
         self,
@@ -54,7 +54,7 @@ class FixMatchLoss(SemiLossBase):
         self.log_loss("w", self.lambda_u)
 
     def Lx_criterion(self, logits, targets, reduction="mean"):
-        """ Supervised loss criterion """
+        """Supervised loss criterion"""
 
         logits_x = logits[: self.bs]
         targets_x = targets[: self.bs]
@@ -80,7 +80,7 @@ class FixMatchLoss(SemiLossBase):
         return Lx
 
     def Lu_criterion(self, logits, targets, reduction="mean"):
-        """ Unsupervised loss criterion """
+        """Unsupervised loss criterion"""
 
         # Return zero if no logits are provided (when not training)
         if len(logits[self.bs :]):
@@ -112,7 +112,7 @@ class FixMatchLoss(SemiLossBase):
 
     # def w_scheduling(self, epoch):
     def w_scheduling(self):
-        """ Scheduling of w paramater (unsupervised loss multiplier) """
+        """Scheduling of w paramater (unsupervised loss multiplier)"""
 
         # self.log_loss('w', self.lambda_u)
 

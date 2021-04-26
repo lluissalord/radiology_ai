@@ -99,7 +99,7 @@ def seed_everything(use_seed=0):
 
 
 def robust_split_data(df, test_size, target_col, seed=None):
-    """ Split stratified data, in case of failing due to minor class too low, move it to test """
+    """Split stratified data, in case of failing due to minor class too low, move it to test"""
 
     filter_mask = pd.Series(
         [
@@ -145,7 +145,7 @@ def robust_split_data(df, test_size, target_col, seed=None):
 def imbalance_robust_split_data(
     df, positive_df, test_size, positive_test_size, target_col, seed=None
 ):
-    """ Split between train and test according with the proportion of specified positives """
+    """Split between train and test according with the proportion of specified positives"""
 
     # First split positive examples
     pos_train_df, pos_test_df = robust_split_data(

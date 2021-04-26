@@ -16,7 +16,7 @@ from train.utils import TestColSplitter
 
 
 class AllLabelsInBatchDL(TfmdDL):
-    """ DataLoader which allows to have a minimum of samples of all the labels in each batch """
+    """DataLoader which allows to have a minimum of samples of all the labels in each batch"""
 
     def __init__(self, dataset=None, min_samples=1, **kwargs):
         super().__init__(dataset=dataset, **kwargs)

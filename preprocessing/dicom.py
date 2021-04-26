@@ -18,7 +18,7 @@ from preprocessing.misc import *
 
 
 class PILDicom_scaled(PILDicom):
-    """ Generalization of PILDicom class making sure it is properly scaled taking into account DICOM metadata """
+    """Generalization of PILDicom class making sure it is properly scaled taking into account DICOM metadata"""
 
     @classmethod
     def create(cls, fn: (Path, str, bytes), mode=None) -> None:
@@ -35,7 +35,7 @@ class PILDicom_scaled(PILDicom):
 
 
 class HistScaled_Dicom(Transform):
-    """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
+    """Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly"""
 
     def __init__(self, bins=None):
         super().__init__()
@@ -49,7 +49,7 @@ class HistScaled_Dicom(Transform):
 
 
 class DCMPreprocessDataset(Dataset):
-    """ Dataset class for DCM preprocessing """
+    """Dataset class for DCM preprocessing"""
 
     def __init__(self, fnames, resize=None, padding_to_square=True, bins=None):
         self.fnames = fnames
@@ -61,7 +61,7 @@ class DCMPreprocessDataset(Dataset):
         return len(self.fnames)
 
     def __getitem__(self, idx):
-        """ Get sample after reading from DCM file, scale it and applying the transformations """
+        """Get sample after reading from DCM file, scale it and applying the transformations"""
 
         dcm = self.get_dcm(idx)
 
@@ -105,7 +105,7 @@ class DCMPreprocessDataset(Dataset):
         return sample
 
     def get_fname(self, idx):
-        """ Get the filenames """
+        """Get the filenames"""
 
         if torch.is_tensor(idx):
             idx = idx.tolist()
@@ -113,7 +113,7 @@ class DCMPreprocessDataset(Dataset):
         return self.fnames[idx].name
 
     def get_dcm(self, idx):
-        """ Get the DCM file """
+        """Get the DCM file"""
 
         if torch.is_tensor(idx):
             idx = idx.tolist()
@@ -131,7 +131,7 @@ class DCMPreprocessDataset(Dataset):
         )
 
     def init_bins(self, n_samples=None):
-        """ Initialize bins to equally distribute the histogram of the dataset """
+        """Initialize bins to equally distribute the histogram of the dataset"""
 
         self.bins = init_bins(self.fnames, n_samples)
         return self.bins
@@ -144,7 +144,7 @@ class DCMPreprocessDataset(Dataset):
         keep=False,
         clean_folder=False,
     ):
-        """ Saves all preprocessed files converting them into image files """
+        """Saves all preprocessed files converting them into image files"""
 
         # Do not make sense overwrite=True with keep=True
         if overwrite and keep:

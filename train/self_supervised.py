@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 
 class SelfSupervisedDataset(Dataset):
-    """ Dataset to be used on Self Supervised Learning with Python Lightining """
+    """Dataset to be used on Self Supervised Learning with Python Lightining"""
 
     def __init__(
         self,

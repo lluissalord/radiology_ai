@@ -5,7 +5,7 @@ from organize.utils import check_generic_path
 
 
 def open_name_relation_file(filepath, sep=","):
-    """ Extract DataFrame from file containing the relation between original and new files """
+    """Extract DataFrame from file containing the relation between original and new files"""
 
     # Check if file exists
     if not os.path.exists(filepath):
@@ -19,14 +19,14 @@ def open_name_relation_file(filepath, sep=","):
 
 
 def save_name_relation_file(relation_df, filepath, sep=","):
-    """ Save file containing the relation between original and new files """
+    """Save file containing the relation between original and new files"""
     relation_df[relation_df["Original_Filename"].notnull()].to_csv(
         filepath, sep=sep, index=True
     )
 
 
 def get_last_id(relation_df, prefix="IMG_"):
-    """ Get the ID of the last filename from current relation of files """
+    """Get the ID of the last filename from current relation of files"""
 
     # Extract the maximum ID currently set
     new_id = relation_df["Filename"].str.split(prefix).str[1].astype(int).max()
@@ -39,7 +39,7 @@ def get_last_id(relation_df, prefix="IMG_"):
 
 
 def add_new_relation(relation_df, src_path, src_filename, new_filename):
-    """ Add a new relation on the relation DataFrame """
+    """Add a new relation on the relation DataFrame"""
 
     # Check it does not exist a conflictive addition
     # if src_path in relation_df.index and 'Original_Filename' in relation_df.columns and not np.isnan(relation_df.loc[src_path, 'Original_Filename']):
@@ -60,7 +60,7 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename):
 
 
 def update_block_relation(relation_df, parent_folder, block, new_folder, sep="/"):
-    """ Replace the old folder names by the new folder only to the paths where the block appears """
+    """Replace the old folder names by the new folder only to the paths where the block appears"""
 
     relation_df.loc[relation_df["Path"].str.endswith(block), "Path"] = relation_df.loc[
         relation_df["Path"].str.endswith(block), "Path"
@@ -75,7 +75,7 @@ def update_block_relation(relation_df, parent_folder, block, new_folder, sep="/"
 
 
 def check_relation(relation_df, check_path=True, check_raw=True):
-    """ Check that the relation on the relation DataFrame is preserved """
+    """Check that the relation on the relation DataFrame is preserved"""
 
     # Check current path
     if check_path:

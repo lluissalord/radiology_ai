@@ -9,7 +9,7 @@ from semisupervised.utils import interleave, de_interleave, categorical_to_one_h
 
 
 class MixMatchCallback(Callback):
-    """ MixMatch required preprocess before each batch """
+    """MixMatch required preprocess before each batch"""
 
     run_before = MixUp
 

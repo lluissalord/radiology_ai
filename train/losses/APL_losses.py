@@ -374,7 +374,7 @@ class NLNL(FastaiLoss):
 
 
 class FocalLoss(nn.CrossEntropyLoss):
-    """ Focal loss for classification tasks on imbalanced datasets """
+    """Focal loss for classification tasks on imbalanced datasets"""
 
     def __init__(self, gamma, weight=None, ignore_index=-100, reduction="mean"):
         super().__init__(weight=weight, ignore_index=ignore_index, reduction="none")

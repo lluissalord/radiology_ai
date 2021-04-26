@@ -16,7 +16,7 @@ def generate_template(
     csv_sep=";",
     able_overwrite=False,
 ):
-    """ Generates template files for each group of DICOM files using the filename as ID """
+    """Generates template files for each group of DICOM files using the filename as ID"""
 
     # Define extension
     if excel:
@@ -158,7 +158,7 @@ def generate_template(
 def modify_template(
     dst_folder, modify_func, groups, subgroup_length, excel=True, csv_sep=";"
 ):
-    """ Modify all the templates on dst_folder applying `modify_func` on each DataFrame """
+    """Modify all the templates on dst_folder applying `modify_func` on each DataFrame"""
 
     # Define extension
     if excel:
@@ -214,7 +214,7 @@ def modify_template(
 
 
 def sort_template_file(df, filename_prefix):
-    """ Sort DataFrame based on template filename """
+    """Sort DataFrame based on template filename"""
 
     try:
         # Extract ID from the filename and sort by it as numerical sorting
@@ -229,7 +229,7 @@ def sort_template_file(df, filename_prefix):
 
 
 def check_data_in_template(template_file, sep=None):
-    """ Check if there is data different than null in each template """
+    """Check if there is data different than null in each template"""
 
     dtype = {"ID": "string", "Target": "string"}
     df = read_template(template_file, sep=sep, dtype=dtype)
@@ -238,7 +238,7 @@ def check_data_in_template(template_file, sep=None):
 
 
 def read_template(template_file, sep=None, dtype=None):
-    """ Read template idenpendently of the extension """
+    """Read template idenpendently of the extension"""
 
     # Extract extension and define loading method depending on it
     _, extension = os.path.splitext(template_file)
@@ -264,7 +264,7 @@ def read_template(template_file, sep=None, dtype=None):
 
 
 def concat_templates(src_folder, excel=True, csv_sep=";"):
-    """ Concatenate all the template into a DataFrame """
+    """Concatenate all the template into a DataFrame"""
 
     # Define extension
     if excel:

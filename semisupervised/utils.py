@@ -6,7 +6,7 @@ import numpy as np
 
 
 def interleave(x, bs):
-    """ Interleave to mix batch data """
+    """Interleave to mix batch data"""
     s = list(x.shape)
     idx = np.argmax((np.array(s) != 1)) + 1
     ret = torch.reshape(torch.transpose(x.reshape([-1, bs] + s[idx:]), 1, 0), s)
@@ -14,7 +14,7 @@ def interleave(x, bs):
 
 
 def de_interleave(x, bs):
-    """ Deinterleave to undo mix of batch data """
+    """Deinterleave to undo mix of batch data"""
     s = list(x.shape)
     idx = np.argmax((np.array(s) != 1)) + 1
     ret = torch.reshape(torch.transpose(x.reshape([bs, -1] + s[idx:]), 1, 0), s)
@@ -22,7 +22,7 @@ def de_interleave(x, bs):
 
 
 def categorical_to_one_hot(x, n_out):
-    """ Transform categorical tensor to one hot encoding """
+    """Transform categorical tensor to one hot encoding"""
     zeros = torch.zeros(len(x), n_out)
     if torch.cuda.is_available():
         zeros = zeros.cuda()

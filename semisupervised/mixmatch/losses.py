@@ -9,7 +9,7 @@ from semisupervised.utils import categorical_to_one_hot
 
 
 class MixMatchLoss(SemiLossBase):
-    """ Loss for MixMatch process """
+    """Loss for MixMatch process"""
 
     y_int = False
 
@@ -58,7 +58,7 @@ class MixMatchLoss(SemiLossBase):
         self.log_loss("w", self.lambda_u)
 
     def Lx_criterion(self, logits, targets, reduction="mean"):
-        """ Supervised loss criterion """
+        """Supervised loss criterion"""
 
         logits_x = logits[: self.bs]
         targets_x = targets[: self.bs]
@@ -81,7 +81,7 @@ class MixMatchLoss(SemiLossBase):
         return Lx
 
     def Lu_criterion(self, logits, targets, reduction="mean"):
-        """ Unsupervised loss criterion """
+        """Unsupervised loss criterion"""
 
         logits_u = logits[self.bs :]
         targets_u = targets[self.bs :]
@@ -105,7 +105,7 @@ class MixMatchLoss(SemiLossBase):
             self.log_loss("Lu", Lu.clone().detach().mean())
 
     def w_scheduling(self, epoch):
-        """ Scheduling of w paramater (unsupervised loss multiplier) """
+        """Scheduling of w paramater (unsupervised loss multiplier)"""
 
         # self.log_loss('w', self.lambda_u * linear_rampup(epoch))
 

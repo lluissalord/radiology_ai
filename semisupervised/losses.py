@@ -30,7 +30,7 @@ class SuppressedConsistencyLoss(object):
 
 
 class SemiLoss(object):
-    """ Define structure and process that it is required for a Semi-supervised loss """
+    """Define structure and process that it is required for a Semi-supervised loss"""
 
     def __init__(
         self,

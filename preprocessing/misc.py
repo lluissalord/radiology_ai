@@ -11,7 +11,7 @@ from pydicom import dcmread
 
 
 def dcm_scale(dcm):
-    """ Transform from raw pixel data to scaled one and inversing (if the case) """
+    """Transform from raw pixel data to scaled one and inversing (if the case)"""
 
     if dcm.PhotometricInterpretation == "MONOCHROME1":
         return (dcm.scaled_px.max() - dcm.scaled_px) / (2 ** dcm.BitsStored - 1)
@@ -20,14 +20,14 @@ def dcm_scale(dcm):
 
 
 def dcmread_scale(fn):
-    """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
+    """Transform from path of raw pixel data to scaled one and inversing (if the case)"""
 
     dcm = dcmread(fn)
     return dcm_scale(dcm)
 
 
 def init_bins(fnames, n_samples=None, isDCM=True):
-    """ Initialize bins to equally distribute the histogram of the dataset """
+    """Initialize bins to equally distribute the histogram of the dataset"""
 
     # Select randomly n_samples
     if n_samples is not None:

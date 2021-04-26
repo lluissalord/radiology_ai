@@ -58,7 +58,7 @@ class PILPNGFloat(PILImage):
 
 # TODO: Adapt to uint16
 class HistScaled(Transform):
-    """ Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly """
+    """Transformation of Histogram Scaling compatible with DataLoaders, allowing Histogram Scaling on the fly"""
 
     def __init__(self, bins=None):
         super().__init__()
@@ -72,7 +72,7 @@ class HistScaled(Transform):
 
 
 class CLAHE_Transform(Transform):
-    """ Implement CLAHE transformation for Adaptative Histogram Equalization """
+    """Implement CLAHE transformation for Adaptative Histogram Equalization"""
 
     def __init__(
         self,
@@ -167,7 +167,7 @@ def add_in_dict_list(d, key, value):
 
 
 def adapt_uint8_value_to_current(value, source):
-    """ Get value adapted from uint8 format (0 - 255) to the current range """
+    """Get value adapted from uint8 format (0 - 255) to the current range"""
 
     signed = (source < 0).any()
 
@@ -652,7 +652,7 @@ class KneeLocalizer(Transform):
 
 # TODO: Adapt to uint16
 class XRayPreprocess(Transform):
-    """ Preprocess the X-ray image using histogram clipping and global contrast normalization. """
+    """Preprocess the X-ray image using histogram clipping and global contrast normalization."""
 
     def __init__(
         self,

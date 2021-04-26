@@ -11,7 +11,7 @@ import pydicom
 
 
 def check_metadata_label(raw_path, metadata_labels, label="ap", exact_match=True):
-    """ Check if the path matches with the desired label on metadata_labels """
+    """Check if the path matches with the desired label on metadata_labels"""
 
     if "Final_pred" in metadata_labels.columns:
         pred_col = "Final_pred"
@@ -40,7 +40,7 @@ def filter_fnames(
         "Modality": ["CR", "DR", "DX"],
     },
 ):
-    """ Filter all the filenames which are fulfill the metadata conditions passed on `check_DICOM_dict` """
+    """Filter all the filenames which are fulfill the metadata conditions passed on `check_DICOM_dict`"""
 
     # Load metadata
     metadata_df = pd.read_csv(metadata_raw_path)
@@ -78,7 +78,7 @@ def filter_fnames(
 
 
 def default_check_DICOM_dict():
-    """ Get default values for check DICOM dictionary """
+    """Get default values for check DICOM dictionary"""
 
     check_DICOM_dict = {
         "SeriesDescription": ["RODILLA AP", "RODILLAS AP", "X106aL Tibia AP"],
@@ -89,7 +89,7 @@ def default_check_DICOM_dict():
 
 
 def df_check_DICOM(df, check_DICOM_dict):
-    """ Filter DataFrame on the rows that match the filter specified on `check_DICOM_dict` """
+    """Filter DataFrame on the rows that match the filter specified on `check_DICOM_dict`"""
     match = True
     for key, value in check_DICOM_dict.items():
         # Lambda function checking if DICOM file fulfills the condition
@@ -102,7 +102,7 @@ def df_check_DICOM(df, check_DICOM_dict):
 
 
 def sample_df_check_DICOM(df, check_DICOM_dict, max_samples_per_case=5):
-    """ Get a random sample of the filtered DataFrame determined by `check_DICOM_dict` appearing all the cases there """
+    """Get a random sample of the filtered DataFrame determined by `check_DICOM_dict` appearing all the cases there"""
 
     df_match = df_check_DICOM(df, check_DICOM_dict)
 
@@ -112,7 +112,7 @@ def sample_df_check_DICOM(df, check_DICOM_dict, max_samples_per_case=5):
 
 
 def get_each_case_samples(df, all_keys, max_samples_per_case=5):
-    """ Extract all the different cases on `all_keys` and creating a DataFrame with the number set for all the cases """
+    """Extract all the different cases on `all_keys` and creating a DataFrame with the number set for all the cases"""
     cases_df = df[all_keys].drop_duplicates()
 
     concat_list = []
@@ -127,7 +127,7 @@ def get_each_case_samples(df, all_keys, max_samples_per_case=5):
 
 
 def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
-    """ Check the DICOM file if it is has the feature required """
+    """Check the DICOM file if it is has the feature required"""
 
     if check_DICOM_dict is None:
         check_DICOM_dict = default_check_DICOM_dict()
@@ -150,7 +150,7 @@ def check_DICOM(dcm, check_DICOM_dict=None, debug=False):
 
 
 def rename_patient(dicom_files):
-    """ Modify metadata regarding Patient's Name and Patient's ID to set them as the filename """
+    """Modify metadata regarding Patient's Name and Patient's ID to set them as the filename"""
 
     for filepath in tqdm(dicom_files, desc="Files: "):
         dcm = pydicom.dcmread(filepath)
