@@ -12,11 +12,12 @@ from pydicom import dcmread
 
 def dcm_scale(dcm):
     """ Transform from raw pixel data to scaled one and inversing (if the case) """
-    
-    if dcm.PhotometricInterpretation == 'MONOCHROME1':
-        return (dcm.scaled_px.max() - dcm.scaled_px) / (2**dcm.BitsStored - 1)
+
+    if dcm.PhotometricInterpretation == "MONOCHROME1":
+        return (dcm.scaled_px.max() - dcm.scaled_px) / (2 ** dcm.BitsStored - 1)
     else:
-        return dcm.scaled_px / (2**dcm.BitsStored - 1)
+        return dcm.scaled_px / (2 ** dcm.BitsStored - 1)
+
 
 def dcmread_scale(fn):
     """ Transform from path of raw pixel data to scaled one and inversing (if the case) """
@@ -35,7 +36,7 @@ def init_bins(fnames, n_samples=None, isDCM=True):
         fnames_sample = fnames_sample[:n_samples]
     else:
         fnames_sample = fnames
-    
+
     if isDCM:
         # Extract the current smallest size
         try:
@@ -43,10 +44,11 @@ def init_bins(fnames, n_samples=None, isDCM=True):
             dcms = fnames_sample.map(dcmread)
 
             # Get the current smallest size
-            resize = min(dcms.attrgot('scaled_px').map(lambda x: x.size()))
+            resize = min(dcms.attrgot("scaled_px").map(lambda x: x.size()))
         except AttributeError:
             import pydicom
             from numpy import inf
+
             dcms = []
             resize = []
 
@@ -69,7 +71,7 @@ def init_bins(fnames, n_samples=None, isDCM=True):
         for fn in fnames_sample:
             image = Image.open(fn)
             samples.append(TF.to_tensor(image))
-    
+
     # Calculate the frequency bins from these samples
     samples = torch.stack(tuple(samples))
     bins = samples.freqhist_bins()

@@ -2,6 +2,8 @@
 sources/
 result/
 runs/
+mlruns/
+optuna_studies/
 lightning_logs/
 models/
 
