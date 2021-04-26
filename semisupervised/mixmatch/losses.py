@@ -104,6 +104,8 @@ class MixMatchLoss(SemiLossBase):
         if isTraining:
             self.log_loss("Lu", Lu.clone().detach().mean())
 
+        return Lu
+
     def w_scheduling(self, epoch):
         """Scheduling of w paramater (unsupervised loss multiplier)"""
 
