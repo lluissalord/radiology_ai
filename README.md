@@ -62,7 +62,7 @@ Create environment:
 `conda activate radiology_ai`
 
 Install environment:  
-`conda install -n radiology_ai --override-channels -c main -c conda-forge -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm=2.8.4 kornia=0.3.0 scikit-image scikit-learn pandas ipykernel ipywidgets tensorboard openpyxl --yes -q`
+`conda install -n radiology_ai --override-channels -c main -c conda-forge -c fastai -c pytorch pytorch=1.6.0 fastai fastcore=1.0.9 pydicom gdcm=2.8.4 kornia=0.3.0 scikit-image scikit-learn pandas ipykernel ipywidgets tensorboard openpyxl black --yes -q`
 
 Install EfficientNet for Pytorch and Pytorch Ligthning Bolts:  
 `pip install efficientnet_pytorch opencv-python`
