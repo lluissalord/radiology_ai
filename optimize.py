@@ -101,6 +101,9 @@ def optimize(trial, experiment_id, seed=42, data_seed=None):
             except AttributeError:
                 metric_name = metric.__name__
 
+            if metric_name in ["Lx", "Lu", "w"]:
+                continue
+
             if isinstance(metric, AvgMetric):
                 metric = metric.func
 
