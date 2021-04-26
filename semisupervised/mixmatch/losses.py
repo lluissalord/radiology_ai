@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from semisupervised.losses import SemiLoss, SemiLossBase
-from utils.misc import categorical_to_one_hot
+from semisupervised.utils import categorical_to_one_hot
 
 
 class MixMatchLoss(SemiLossBase):

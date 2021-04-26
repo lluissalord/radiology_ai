@@ -1,3 +1,4 @@
+from fastai.data.all import IntToFloatTensor
 from fastai.vision.learner import *
 from fastai.vision.augment import *
 from fastai.vision.core import PILImageBW, PILImage

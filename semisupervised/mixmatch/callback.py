@@ -5,8 +5,7 @@ import torch
 from fastai.callback.core import Callback
 from fastai.callback.mixup import MixUp
 
-from semisupervised.utils import interleave, de_interleave
-from utils.misc import categorical_to_one_hot
+from semisupervised.utils import interleave, de_interleave, categorical_to_one_hot
 
 
 class MixMatchCallback(Callback):

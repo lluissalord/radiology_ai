@@ -1,5 +1,18 @@
 # %%
-from fastai.basics import *
+import numpy as np
+
+from fastai.basics import (
+    RocAuc,
+    RocAucBinary,
+    error_rate,
+    BalancedAccuracy,
+    F1Score,
+    FBeta,
+    Precision,
+    Recall,
+    ValueMetric,
+    Learner,
+)
 from fastai.callback.all import *
 from fastai.callback.tensorboard import TensorBoardCallback
 
