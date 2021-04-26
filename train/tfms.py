@@ -125,5 +125,20 @@ def get_batch_tfms(run_params):
             # Normalize()
         ]
         unlabel_tfms.append(strong_transform)
+    elif run_params["SSL"] == run_params["SSL_MIX_MATCH"]:
+
+        unlabel_transform = [
+            IntToFloatTensor(div=2 ** 16 - 1),
+            RandomResizedCropGPU(
+                run_params["RANDOM_RESIZE_CROP"],
+                min_scale=run_params["RANDOM_MIN_SCALE"],
+            ),
+            Flip(),
+            Rotate(180),
+            Brightness(),
+            Contrast(),
+            # Normalize()
+        ]
+        unlabel_tfms.append(unlabel_transform)
 
     return label_tfms, unlabel_tfms
