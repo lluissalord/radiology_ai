@@ -55,8 +55,8 @@ class FixMatchCallback(Callback):
         ).unsqueeze(0)
         self.learn.yb = (
             torch.cat([target_x, targets_u_weak, targets_u_strong], dim=0)
-            .unsqueeze(0)
-            .long()
+            # .unsqueeze(0)
+            .long(),
         )
 
         # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation

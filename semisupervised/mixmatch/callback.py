@@ -63,9 +63,9 @@ class MixMatchCallback(Callback):
         self.learn.xb = torch.cat(
             [input_x, inputs_u, inputs_u2], dim=0
         )  # .unsqueeze(0)
-        self.learn.yb = torch.cat(
-            [targets_x, targets_u, targets_u], dim=0
-        )  # .unsqueeze(0)
+        self.learn.yb = (
+            torch.cat([targets_x, targets_u, targets_u], dim=0),  # .unsqueeze(0)
+        )
 
         # Interleave labeled and unlabed samples between batches to get correct batchnorm calculation
         self.learn.xb = interleave(self.learn.xb, self.learn.dls[0].bs)
