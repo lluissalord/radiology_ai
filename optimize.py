@@ -129,7 +129,9 @@ if __name__ == "__main__":
     # for seed in [42,3]:
     study_name = "adam-hyper-balanced" + f"_seed={seed}"
     study_file = study_name + ".pkl"
-    study_filepath = os.path.join("optuna_studies", study_file)
+    study_filepath = os.path.join(
+        run_params["PATH_PREFIX"], "optuna_studies", study_file
+    )
 
     run_optimize = True
 
