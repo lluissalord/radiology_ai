@@ -9,14 +9,18 @@ def default_param_setup(run_params):
         run_params["DATA_FOLDER"] = "Dataset/"
         run_params["RAW_PATH"] = ""
         run_params["TMP_PREFIX"] = "/tmp/"
-        run_params["RAW_PREPROCESS_FOLDER"] = run_params["TMP_PREFIX"] + "raw_preprocess"
+        run_params["RAW_PREPROCESS_FOLDER"] = (
+            run_params["TMP_PREFIX"] + "raw_preprocess"
+        )
 
     else:
         run_params["PATH_DRIVER"] = ""
         run_params["DATA_FOLDER"] = "sources/"
         run_params["RAW_PATH"] = "E:/Google Drive/"
         run_params["TMP_PREFIX"] = "sources/tmp/"
-        run_params["RAW_PREPROCESS_FOLDER"] = run_params["PATH_PREFIX"] + "raw_preprocess"
+        run_params["RAW_PREPROCESS_FOLDER"] = (
+            run_params["PATH_PREFIX"] + "raw_preprocess"
+        )
 
     filename_prefix = "IMG_"
 
@@ -32,7 +36,9 @@ def default_param_setup(run_params):
     run_params["ORGANIZE_FOLDER"] = run_params["PATH_PREFIX"] + "pending_classification"
 
     run_params["PREPROCESS_FOLDER"] = run_params["PATH_PREFIX"] + "preprocess"
-    run_params["DRIVE_RAW_PREPROCESS_FOLDER"] = run_params["PATH_PREFIX"] + "raw_preprocess"
+    run_params["DRIVE_RAW_PREPROCESS_FOLDER"] = (
+        run_params["PATH_PREFIX"] + "raw_preprocess"
+    )
 
     run_params["DOUBT_FOLDER"] = run_params["TMP_PREFIX"] + "doubt"
     run_params["TRAIN_FOLDER"] = run_params["TMP_PREFIX"] + "train"
