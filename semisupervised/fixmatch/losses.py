@@ -51,7 +51,7 @@ class FixMatchLoss(SemiLossBase):
         self.weight = weight
         self.reduction = reduction
 
-        self.log_loss("w", self.lambda_u)
+        # self.log_loss("w", self.lambda_u)
 
     def Lx_criterion(self, logits, targets, reduction="mean"):
         """Supervised loss criterion"""
@@ -107,6 +107,7 @@ class FixMatchLoss(SemiLossBase):
         # Only log loss if is on training
         if isTraining:
             self.log_loss("Lu", Lu.clone().detach().mean())
+            self.log_loss("w", self.lambda_u * mask.clone().detach().mean())
 
         return Lu
 
