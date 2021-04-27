@@ -44,6 +44,52 @@ def default_param_setup(run_params):
     return run_params
 
 
+def SSL_params(run_params):
+    cb_params, loss_params = {}, {}
+    if run_params["SSL"]:
+        if run_params["SSL"] == run_params["SSL_FIX_MATCH"]:
+            run_params["BATCH_SIZE"] = 8
+            run_params["MOMENTUM"] = 0.9
+            run_params["OPT_WD"] = 0.0005
+            run_params["LAMBDA_U"] = 1
+            run_params["MU"] = 5
+            run_params["LABEL_THRESHOLD"] = 0.95
+
+            cb_params = {}
+
+            loss_params = {
+                "bs": run_params["BATCH_SIZE"],
+                "mu": run_params["MU"],
+                "lambda_u": run_params["LAMBDA_U"],
+                "label_threshold": run_params["LABEL_THRESHOLD"],
+            }
+        elif run_params["SSL"] == run_params["SSL_MIX_MATCH"]:
+            run_params["BATCH_SIZE"] = 16
+            run_params["LAMBDA_U"] = 75
+            run_params["T"] = 0.5
+            run_params["ALPHA"] = 0.75
+
+            cb_params = {"T": run_params["T"]}
+
+            loss_params = {
+                "bs": run_params["BATCH_SIZE"],
+                "lambda_u": run_params["LAMBDA_U"],
+            }
+
+        loss_params["use_SCL"] = False
+        loss_params["beta"] = 0.5
+
+        # Huge impact as with 0.999 it last a lot to converge when low number of batches
+        # TODO: It could be adapted to the number of batches per epoch
+        # TODO: Besides EMAModel generates some conflicts and evaluation is not performed as it should
+        run_params["EMA_DECAY"] = 0.99
+
+    else:
+        run_params["BATCH_SIZE"] = 64
+
+    return run_params, cb_params, loss_params
+
+
 def default_params(in_colab):
     run_params, cb_params, loss_params = {}, {}, {}
 
@@ -127,47 +173,7 @@ def default_params(in_colab):
 
     run_params["SSL"] = run_params["SSL_FIX_MATCH"]
     run_params["SSL"] = None
-
-    if run_params["SSL"]:
-        if run_params["SSL"] == run_params["SSL_FIX_MATCH"]:
-            run_params["BATCH_SIZE"] = 8
-            run_params["MOMENTUM"] = 0.9
-            run_params["OPT_WD"] = 0.0005
-            run_params["LAMBDA_U"] = 1
-            run_params["MU"] = 5
-            run_params["LABEL_THRESHOLD"] = 0.95
-
-            cb_params = {}
-
-            loss_params = {
-                "bs": run_params["BATCH_SIZE"],
-                "mu": run_params["MU"],
-                "lambda_u": run_params["LAMBDA_U"],
-                "label_threshold": run_params["LABEL_THRESHOLD"],
-            }
-        elif run_params["SSL"] == run_params["SSL_MIX_MATCH"]:
-            run_params["BATCH_SIZE"] = 16
-            run_params["LAMBDA_U"] = 75
-            run_params["T"] = 0.5
-            run_params["ALPHA"] = 0.75
-
-            cb_params = {"T": run_params["T"]}
-
-            loss_params = {
-                "bs": run_params["BATCH_SIZE"],
-                "lambda_u": run_params["LAMBDA_U"],
-            }
-
-        loss_params["use_SCL"] = False
-        loss_params["beta"] = 0.5
-
-        # Huge impact as with 0.999 it last a lot to converge when low number of batches
-        # TODO: It could be adapted to the number of batches per epoch
-        # TODO: Besides EMAModel generates some conflicts and evaluation is not performed as it should
-        run_params["EMA_DECAY"] = 0.99
-
-    else:
-        run_params["BATCH_SIZE"] = 64
+    run_params, cb_params, loss_params = SSL_params(run_params)
 
     # Model
 
