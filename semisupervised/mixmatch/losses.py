@@ -106,6 +106,7 @@ class MixMatchLoss(SemiLossBase):
 
         return Lu
 
+    # TODO: To be include appropiately on SemiLoss
     def w_scheduling(self, epoch):
         """Scheduling of w paramater (unsupervised loss multiplier)"""
 
