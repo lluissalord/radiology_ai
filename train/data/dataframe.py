@@ -66,14 +66,22 @@ def split_by_labelled_data(df, run_params):
         run_params["PATH_PREFIX"], "metadata_labels.csv"
     )
     metadata_labels = pd.read_csv(metadata_labels_path)
-    metadata_labels = metadata_labels.set_index("Path")
+    metadata_labels["Original_Filename"] = metadata_labels["Path"].apply(
+        lambda path: Path(path).stem
+    )
+    metadata_labels = metadata_labels.set_index("Original_Filename")
 
     # Merge all the data we have with the labelling in order to split correctly according to OOS classifier
     unlabel_all_df = metadata_labels.merge(
-        df.set_index("Raw_preprocess"), how="left", left_index=True, right_index=True
+        df.set_index("Original_Filename"), how="left", left_index=True, right_index=True
     )
     unlabel_all_df = unlabel_all_df[unlabel_all_df.Target.isnull()]
-    unlabel_all_df["Raw_preprocess"] = unlabel_all_df.index.values
+    unlabel_all_df["Original_Filename"] = unlabel_all_df.index.values
+    unlabel_all_df["Raw_preprocess"] = unlabel_all_df["Original_Filename"].apply(
+        lambda filename: os.path.join(
+            run_params["RAW_PREPROCESS_FOLDER"], filename + ".png"
+        )
+    )
 
     # Define which column to use as the prediction
     if "Final_pred" in unlabel_all_df.columns:
