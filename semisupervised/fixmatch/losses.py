@@ -82,8 +82,10 @@ class FixMatchLoss(SemiLossBase):
     def Lu_criterion(self, logits, targets, reduction="mean"):
         """Unsupervised loss criterion"""
 
+        isTraining = len(logits) > self.bs
+
         # Return zero if no logits are provided (when not training)
-        if len(logits[self.bs :]):
+        if isTraining:
 
             # Split between logits of weak and strong transformation, according to batch size and mu
             logits_u_w, logits_u_s = torch.split(logits[self.bs :], self.bs * self.mu)
@@ -99,15 +101,11 @@ class FixMatchLoss(SemiLossBase):
             )
 
             Lu = Lu_criterion_func(logits_u_s, lbs_u_guess) * mask
-        else:
-            Lu = torch.zeros(1)
 
-        isTraining = len(logits) > self.bs
-
-        # Only log loss if is on training
-        if isTraining:
             self.log_loss("Lu", Lu.clone().detach().mean())
             self.log_loss("w", self.lambda_u * mask.clone().detach().mean())
+        else:
+            Lu = torch.zeros(1)
 
         return Lu
 

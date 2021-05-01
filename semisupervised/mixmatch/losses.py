@@ -83,26 +83,24 @@ class MixMatchLoss(SemiLossBase):
     def Lu_criterion(self, logits, targets, reduction="mean"):
         """Unsupervised loss criterion"""
 
-        logits_u = logits[self.bs :]
-        targets_u = targets[self.bs :]
+        isTraining = len(logits) > self.bs
 
-        if len(targets_u.size()) == 1:
-            targets_u = categorical_to_one_hot(targets_u, self.n_out)
+        if isTraining:
+            logits_u = logits[self.bs :]
+            targets_u = targets[self.bs :]
 
-        # Return zero if no logits are provided (when not training)
-        if len(logits_u):
+            if len(targets_u.size()) == 1:
+                targets_u = categorical_to_one_hot(targets_u, self.n_out)
+
             probs_u = torch.softmax(logits_u, dim=1)
 
             # return torch.mean((probs_u - targets_u)**2, dim=1)
             Lu = (probs_u - targets_u) ** 2
-        else:
-            Lu = torch.zeros(1)
 
-        isTraining = len(logits) > self.bs
-
-        # Only log loss if is on training
-        if isTraining:
             self.log_loss("Lu", Lu.clone().detach().mean())
+        else:
+            # Return zero if no logits are provided (when not training)
+            Lu = torch.zeros(1)
 
         return Lu
 
