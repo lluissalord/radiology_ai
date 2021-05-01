@@ -1,4 +1,5 @@
 import fastai.optimizer as opt
+from functools import partial
 
 
 def get_optimizer(run_params):
