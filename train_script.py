@@ -72,7 +72,7 @@ def train(run_params, cb_params={}, loss_params={}, debug=True):
     label_dl = get_label_dl(run_params, dls_params, label_ds_params, label_df)
 
     unlabel_dls = [None]
-    if run_params["SSL"]:
+    if run_params["SSL"] and run_params["LAMBDA_U"] != 0:
         if debug:
             print(f"==> Preparing unlabel dataloaders")
         unlabel_dls = get_unlabel_dls(
@@ -101,7 +101,7 @@ def train(run_params, cb_params={}, loss_params={}, debug=True):
     # ]
     if not run_params["SSL"]:
         cbs.insert(0, MixUp())
-    else:
+    elif run_params["LAMBDA_U"] != 0:
         ssl_cb = SSLCallback(*unlabel_dls, **cb_params)
         cbs.append(ssl_cb)
 
@@ -164,7 +164,7 @@ def train(run_params, cb_params={}, loss_params={}, debug=True):
         Recall(average=average),
     ]
 
-    if run_params["SSL"]:
+    if run_params["SSL"] and run_params["LAMBDA_U"] != 0:
         # metrics.insert(0, ValueMetric(loss_func.total_loss))
         metrics.insert(0, ValueMetric(loss_func.Lu))
         metrics.insert(0, ValueMetric(loss_func.w))

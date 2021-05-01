@@ -139,11 +139,11 @@ def default_params(in_colab):
     run_params["ALL_LABELS_IN_BATCH"] = True
     run_params["MIN_SAMPLES_PER_LABEL"] = 1
 
-    run_params["TRAIN_FREEZE_EPOCHS"] = 3
-    run_params["TRAIN_EPOCHS"] = 15
+    run_params["TRAIN_FREEZE_EPOCHS"] = 1
+    run_params["TRAIN_EPOCHS"] = 50
     run_params["REPEAT_ONE_CYCLE"] = 1
 
-    run_params["OPTIMIZER"] = "Adam"  # AdaBelief, Adam
+    run_params["OPTIMIZER"] = "AdaBelief"  # AdaBelief, Adam
     if run_params["OPTIMIZER"] == "AdaBelief":
         run_params["OPT_LR"] = 0.005
         run_params["OPT_WD"] = 0.25

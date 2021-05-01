@@ -113,7 +113,10 @@ def define_dls_params(run_params):
     unlabel_dls_params = None
     if run_params["SSL"]:
         unlabel_dls_params = dls_params.copy()
-        if run_params["SSL"] == run_params["SSL_FIX_MATCH"]:
+        if (
+            run_params["SSL"] == run_params["SSL_FIX_MATCH"]
+            and run_params["LAMBDA_U"] != 0
+        ):
             unlabel_dls_params["bs"] = run_params["BATCH_SIZE"] * run_params["MU"]
 
     return dls_params, unlabel_dls_params
