@@ -216,8 +216,8 @@ def split_by_labelled_data(df, run_params):
     return label_df, unlabel_df, unlabel_not_ap_df
 
 
-def split_train_dev_valid_test_data(label_df, run_params):
-    # Split between train, valid and test according with the proportion of specified positives
+def split_datasets(label_df, run_params):
+    """Split between train, valid and test according with the proportion of specified positives"""
     if run_params["TEST_SIZE"] != 0:
         if run_params["POSITIVES_ON_TRAIN"]:
             positive_test_size = (1 - run_params["POSITIVES_ON_TRAIN"]) * (
@@ -270,41 +270,124 @@ def split_train_dev_valid_test_data(label_df, run_params):
     else:
         val_df = pd.DataFrame([], columns=label_df.columns)
 
-    if run_params["POSITIVES_ON_TRAIN"]:
-        if run_params["TEST_SIZE"] != 0:
-            # Test set should mantain balance equal to the original data
-            test_df = rebalance_equal_to_target_df(
-                test_df, label_df, target_col="Target", seed=run_params["DATA_SEED"]
-            )
-
-        if run_params["VALID_SIZE"] != 0:
-            # Dev set is use to track overfitting so it better to be proportional to Training set
-            dev_df = rebalance_equal_to_target_df(
-                val_df, train_df, target_col="Target", seed=run_params["DATA_SEED"]
-            )
-
-            # Validation set is used to represent the real proportion
-            val_df = rebalance_equal_to_target_df(
-                val_df, label_df, target_col="Target", seed=run_params["DATA_SEED"]
-            )
-        else:
-            dev_df = pd.DataFrame([], columns=label_df.columns)
-    else:
-        dev_df = pd.DataFrame([], columns=label_df.columns)
-
     train_df["Dataset"] = "train"
-    dev_df["Dataset"] = "dev"
     val_df["Dataset"] = "valid"
     test_df["Dataset"] = "test"
 
     label_df = pd.concat(
         [
             train_df,
+            val_df,
+            test_df,
+        ]
+    ).reset_index(drop=True)
+
+    return label_df
+
+
+def rebalance_datasets(label_df, run_params):
+    """Modify positive-negative proportion on each dataset to meet specification of positives.
+    Test with same proportion as the initial dataset, Dev same as train and Valid as initial dataset."""
+
+    if run_params["POSITIVES_ON_TRAIN"]:
+        if run_params["TEST_SIZE"] != 0:
+            # Test set should mantain balance equal to the original data
+            test_df = rebalance_equal_to_target_df(
+                label_df[label_df["Dataset"] == "test"],
+                label_df,
+                target_col="Target",
+                seed=run_params["DATA_SEED"],
+            )
+        else:
+            test_df = pd.DataFrame([], columns=label_df.columns)
+
+        if run_params["VALID_SIZE"] != 0:
+            # Dev set is use to track overfitting so it better to be proportional to Training set
+            dev_df = rebalance_equal_to_target_df(
+                label_df[label_df["Dataset"] == "valid"],
+                label_df[label_df["Dataset"] == "train"],
+                target_col="Target",
+                seed=run_params["DATA_SEED"],
+            )
+
+            # Validation set is used to represent the real proportion
+            val_df = rebalance_equal_to_target_df(
+                label_df[label_df["Dataset"] == "valid"],
+                label_df,
+                target_col="Target",
+                seed=run_params["DATA_SEED"],
+            )
+        else:
+            dev_df = pd.DataFrame([], columns=label_df.columns)
+            val_df = pd.DataFrame([], columns=label_df.columns)
+    else:
+        dev_df = pd.DataFrame([], columns=label_df.columns)
+        val_df = pd.DataFrame([], columns=label_df.columns)
+        test_df = pd.DataFrame([], columns=label_df.columns)
+
+    dev_df["Dataset"] = "dev"
+    val_df["Dataset"] = "valid"
+    test_df["Dataset"] = "test"
+
+    label_df = pd.concat(
+        [
+            label_df[label_df["Dataset"] == "train"],
             dev_df,
             val_df,
             test_df,
         ]
     ).reset_index(drop=True)
+
+    return label_df
+
+
+def split_KFolds(label_df, run_params):
+    """Generate K-Folds defined on `Fold` column, depending on `K_FOLDS` param.
+    `Dataset`column is specified depending on `K` param.
+    Current implementation is equivalent to K-Folds but using robust split."""
+
+    modified_run_params = run_params.copy()
+
+    valid_size = 1 / run_params["K_FOLDS"]
+    folds = []
+    for k in range(run_params["K_FOLDS"] - 1):
+        modified_run_params["VALID_SIZE"] = valid_size / (1 - k / run_params["K_FOLDS"])
+        modified_run_params["POSITIVES_ON_TRAIN"] = (
+            1 - modified_run_params["VALID_SIZE"] - modified_run_params["TEST_SIZE"]
+        )
+        if not k:
+            tmp_label_df = split_datasets(label_df, modified_run_params)
+            test_df = tmp_label_df[tmp_label_df["Dataset"] == "test"].copy()
+            if len(test_df.index):
+                test_df["Fold"] = -1
+                folds.append(test_df.copy())
+            modified_run_params["TEST_SIZE"] = 0
+        else:
+            tmp_label_df = split_datasets(train_df, modified_run_params)
+
+        train_df = tmp_label_df[tmp_label_df["Dataset"] == "train"].copy()
+        val_df = tmp_label_df[tmp_label_df["Dataset"] == "valid"].copy()
+        val_df["Dataset"] = "valid" if k == modified_run_params["K"] else "train"
+        val_df["Fold"] = k
+        folds.append(val_df.copy())
+
+    train_df["Dataset"] = "valid" if k + 1 == modified_run_params["K"] else "train"
+    train_df["Fold"] = k + 1
+    folds.append(train_df.copy())
+
+    label_df = pd.concat(folds).reset_index(drop=True)
+
+    return label_df
+
+
+def split_train_dev_valid_test_data(label_df, run_params):
+
+    if run_params["K_FOLDS"] and run_params["K"] is not None:
+        label_df = split_KFolds(label_df, run_params)
+    else:
+        label_df = split_datasets(label_df, run_params)
+
+    label_df = rebalance_datasets(label_df, run_params)
 
     return label_df
 

@@ -116,10 +116,20 @@ def train(run_params, cb_params={}, loss_params={}, debug=True):
 
     cbs.append(
         SaveModelCallback(
-            monitor="valid_fbeta_score",
-            comp=np.greater,
-            min_delta=0.01,
+            # monitor="valid_fbeta_score",
+            # comp=np.greater,
+            # min_delta=0.01,
             reset_on_fit=False,
+        )
+    )
+    cbs.append(
+        EarlyStoppingCallback(
+            # monitor="valid_fbeta_score",
+            # comp=np.greater,
+            min_delta=0,
+            reset_on_fit=True,
+            patience=10,
+            # min_lr=run_params["OPT_LR"] * 1E-4
         )
     )
 
@@ -185,28 +195,35 @@ def train(run_params, cb_params={}, loss_params={}, debug=True):
 
     learn.to_fp16()
 
+    if learn.opt is None:
+        learn.create_opt()
+    learn.opt.set_hyper(
+        "lr", learn.lr if run_params["OPT_LR"] is None else run_params["OPT_LR"]
+    )
+    learn.freeze()
+    learn.fit(run_params["TRAIN_FREEZE_EPOCHS"], lr=slice(run_params["OPT_LR"]))
+
+    learn.unfreeze()
+    learn.fit_flat_cos(
+        run_params["TRAIN_EPOCHS"],
+        lr=slice(run_params["OPT_LR"] / 5 / 100, run_params["OPT_LR"] / 5),
+    )
+
     # Review use of EarlyStopping with fine_tune
     # learn.fit(1)
     # Not able to use MLFlow autolog with repeat cycles
-    i = 0
-    while i < run_params["REPEAT_ONE_CYCLE"]:
-        learn.fine_tune(
-            run_params["TRAIN_EPOCHS"],
-            run_params["OPT_LR"],
-            freeze_epochs=run_params["TRAIN_FREEZE_EPOCHS"] if not i else 0,
-        )
-        plt.plot(
-            np.array(learn.recorder.values)[
-                :, learn.recorder.metric_names.index("valid_fbeta_score") - 1
-            ]
-        )
-        plt.ylabel("valid_fbeta_score")
-        plt.show()
-        i += 1
+    # i = 0
+    # while i < run_params["REPEAT_ONE_CYCLE"]:
+    #     learn.fine_tune(
+    #         run_params["TRAIN_EPOCHS"],
+    #         run_params["OPT_LR"],
+    #         freeze_epochs=run_params["TRAIN_FREEZE_EPOCHS"] if not i else 0,
+    #     )
+    #     i += 1
 
-        # This should be done on ParamSched way
-        # run_params['OPT_LR'] /= 10
-        # run_params['TRAIN_EPOCHS'] /= 2
+    # This should be done on ParamSched way
+    # run_params['OPT_LR'] /= 10
+    # run_params['TRAIN_EPOCHS'] /= 2
 
     learn.to_fp32()
 
@@ -219,13 +236,18 @@ if __name__ == "__main__":
     import pandas as pd
     import torch
     import mlflow
+    import random
+    import gc
 
-    exp_name = "usual-run"
+    from fastai.basics import AvgMetric
+    from fastai.vision import models
+
+    exp_name = "kfolds-3"
 
     run_params, cb_params, loss_params = default_params(in_colab=False)
-    run_params["TRAIN_EPOCHS"] = 30
-    run_params["SEED"] = 3
-    run_params["DATA_SEED"] = 3
+    run_params["TRAIN_EPOCHS"] = 70
+    run_params["TRAIN_FREEZE_EPOCHS"] = 1
+    run_params["DATA_SEED"] = 42
 
     experiment_id = mlflow.set_experiment(exp_name)
     mlflow.fastai.autolog()
@@ -233,35 +255,59 @@ if __name__ == "__main__":
     os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
-    # Start mlflow run
-    with mlflow.start_run(experiment_id=experiment_id):
+    run_params["MODEL"] = models.resnet152
+    run_params["BATCH_SIZE"] = 32
 
-        mlflow.log_params(run_params)
+    run_params["K_FOLDS"] = 3
 
-        learn = train(run_params, cb_params, loss_params, debug=False)
+    if not run_params["K_FOLDS"]:
+        run_params["K_FOLDS"] = 1
 
-        results = pd.DataFrame([])
-        for dls_idx in range(len(learn.dls.loaders)):
-            # dls_idx = 2
-            preds, targs, losses = learn.get_preds(dls_idx, with_loss=True)
-            max_preds, outs = torch.max(preds, axis=1)
+    results = pd.DataFrame([])
+    for k in range(run_params["K_FOLDS"]):
+        run_params["SEED"] = run_params["DATA_SEED"] * (k + 1)
+        run_params["K"] = k
 
-            results.loc["loss", dls_idx] = losses.mean().numpy()
-            for metric in learn.metrics:
-                try:
-                    metric_name = metric.name
-                except AttributeError:
-                    metric_name = metric.__name__
+        # Start mlflow run
+        with mlflow.start_run(
+            experiment_id=experiment_id, run_name=f'{run_params["K"]}_fold'
+        ):
 
-                if isinstance(metric, AvgMetric):
-                    metric = metric.func
-                    metric_value = metric(preds, targs).numpy()
-                else:
+            mlflow.log_params(run_params)
+
+            learn = train(run_params, cb_params, loss_params, debug=False)
+
+            for dls_idx in range(len(learn.dls.loaders)):
+                # dls_idx = 2
+                # preds, targs, losses = learn.get_preds(dls_idx, with_loss=True)
+                preds, targs = learn.tta(dls_idx)
+                max_preds, outs = torch.max(preds, axis=1)
+
+                res_col = f"dls{dls_idx}_k{k}"
+                # results.loc["loss", res_col] = losses.mean().numpy()
+                for metric in learn.metrics:
                     try:
-                        metric_value = metric(preds, targs)
-                    except AssertionError:
-                        metric_value = metric(outs, targs)
+                        metric_name = metric.name
+                    except AttributeError:
+                        metric_name = metric.__name__
 
-                results.loc[metric_name, dls_idx] = metric_value
-        display(results)
+                    if isinstance(metric, AvgMetric):
+                        metric = metric.func
+                        metric_value = metric(preds, targs).numpy()
+                    else:
+                        try:
+                            metric_value = metric(preds, targs)
+                        except AssertionError:
+                            try:
+                                metric_value = metric(preds[:, 1], targs)
+                            except ValueError:
+                                metric_value = metric(outs, targs)
+
+                    results.loc[metric_name, res_col] = metric_value
+                del metric_value, outs, max_preds, targs, preds
+            print(results)
+
+            del learn
+            gc.collect()
+            torch.cuda.empty_cache()
 # %%

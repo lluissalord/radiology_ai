@@ -109,9 +109,11 @@ def default_params(in_colab):
     # Data Split
 
     run_params["TEST_SIZE"] = 0
-    run_params["VALID_SIZE"] = 0.3
+    run_params["VALID_SIZE"] = 0.2
+    run_params["K_FOLDS"] = 3
+    run_params["K"] = 0
 
-    run_params["POSITIVES_ON_TRAIN"] = 0.3
+    run_params["POSITIVES_ON_TRAIN"] = 0.5
     # run_params['POSITIVES_ON_TRAIN'] = None
 
     # Transformations
