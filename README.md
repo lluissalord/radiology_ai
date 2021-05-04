@@ -42,6 +42,10 @@ See below some examples these image processing:
 
 For more information regarding the implemented preprocesses please see [Preprocessing README](https://github.com/lluissalord/radiology_ai/tree/master/preprocessing) or the related API documentation [here](https://lluissalord.github.io/radiology_ai/radiology_ai/preprocessing/index.html)
 
+Below can be seen some initial results on the current state (May 2021) on supervised learning:
+
+!["Classification of fracture GradCAM example 1"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/classify_knee_fracture.png)
+!["Classification of fracture GradCAM example 2"](https://raw.githubusercontent.com/lluissalord/radiology_ai/master/docs/images/classify_knee_fracture_2.png)
 ---
 
 ## Installation
