@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 from glob import glob
+from pathlib import Path
+import re
 
 from tqdm.auto import tqdm
 
@@ -272,35 +274,105 @@ def concat_templates(src_folder, excel=True, csv_sep=";"):
     else:
         extension = ".csv"
 
-    label_paths = (
+    template_paths = (
         glob(os.path.join(src_folder, "*" + extension))
         + glob(os.path.join(src_folder, "*/*" + extension))
         + glob(os.path.join(src_folder, "*/*/*" + extension))
     )
 
-    dtype = {"ID": "string", "Target": "string"}
+    dtype = {"ID": "string", "Target": "string", "Incorrect_image": "string", "Not_enough_quality": "string"}
 
     df = pd.DataFrame()
-    for label_path in tqdm(label_paths, desc="Label files: "):
+    for template_path in tqdm(template_paths, desc="Template files: "):
         # Check if there is any file which is out-dated
-        _, label_filename = os.path.split(label_path)
-        if label_filename.startswith("old_"):
+        _, template_filename = os.path.split(template_path)
+        if template_filename.startswith("old_"):
             raise ValueError(
-                f"The following file is out-dated, please move the data in this file to the corresponding file and remove the out-dated file.\n\n{label_path}"
+                f"The following file is out-dated, please move the data in this file to the corresponding file and remove the out-dated file.\n\n{template_path}"
             )
+
+        if excel:
+            current_df = pd.read_excel(template_path, dtype=dtype, engine="openpyxl")
+        else:
+            current_df = pd.read_csv(template_path, sep=csv_sep, dtype=dtype)
+    
+        current_df["Reviewers"] = get_reviewer(template_filename)
+        current_df["Blocks"] = get_block(template_filename)
 
         df = pd.concat(
             [
                 df,
-                pd.read_excel(label_path, dtype=dtype, engine="openpyxl")
-                if excel
-                else pd.read_csv(label_path, sep=csv_sep, dtype=dtype),
+                current_df,
             ]
         )
 
     df = df.reset_index(drop=True)
 
-    # TODO: Think about how to handle various Targets
-    # Workaround for cases where an ID it is uploaded more than once, then take max of duplicate (prefer fracture than non-fracture)
-    df = df[df.Target.notnull()].groupby("ID").agg("max").reset_index()
+    df = normalize_difficulty_values(df)
+
+    df = transform_to_ID_level(df)
+
     return df
+
+
+def get_reviewer(template_filename):
+    no_digits = re.search('\D+', template_filename).group(0)
+    return no_digits.strip('_')
+
+
+def get_block(template_filename):
+    block = re.search('\d+', template_filename).group(0)
+    return block
+
+
+def normalize_difficulty_values(df):
+    df["Difficulty"] = df["Difficulty"].str.lower().map(
+        {
+            'baja': '0-baja',
+            'bajo': '0-baja',
+            'media': '1-media',
+            'medio': '1-media',
+            'alta': '2-alta',
+            'alto': '2-alta',
+            'dudosa': '3-dudosa',
+            'dudoso': '3-dudosa',
+        }
+    )
+
+    return df
+
+
+def transform_to_ID_level(df):
+    df = df[df.Target.notnull()]
+    df = df.rename({'Target': 'Targets'}, axis=1)
+    df = df.groupby("ID").agg(
+        {
+            "Difficulty": "max",
+            "Incorrect_image": "max",
+            "Not_enough_quality": "max",
+            "Reviewers": lambda revs: [rev for rev in revs],
+            "Blocks": lambda blocks: [block for block in blocks],
+            "Targets": lambda targets: [target for target in targets],
+        }
+    )
+
+    df["Target"] = df["Targets"].apply(decide_final_target)
+
+    return df
+
+
+def decide_final_target(targets):
+    counter = {}
+    for target in targets:
+        if target in counter:
+            counter[target] += 1
+        else:
+            counter[target] = 1
+    
+    counter = list(sorted(counter.items(), key=lambda item: item[1], reverse=True))
+
+    # Tie case
+    if len(counter) > 1 and counter[0][1] == counter[1][1]:
+        return "Unclear fracture"
+    else:
+        return counter[0][0]
