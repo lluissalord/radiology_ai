@@ -353,6 +353,9 @@ def normalize_difficulty_values(df):
 
 def transform_to_ID_level(df):
     # df = df[df.Target.notnull()] # All data is required to take into account additional reviewers
+    for col in ["Difficulty", "Incorrect_image", "Not_enough_quality"]:
+        df.loc[df[col].isnull(), col] = ""
+
     df = df.rename({"Target": "Targets"}, axis=1)
     df = df.groupby("ID").agg(
         {
@@ -372,7 +375,11 @@ def transform_to_ID_level(df):
 
 def decide_final_target(targets):
     counter = {}
-    for target in targets:
+    targets_s = pd.Series(targets)
+    if targets_s.isnull().all():
+        return targets[0]
+
+    for target in targets_s[targets_s.notnull()]:
         if target in counter:
             counter[target] += 1
         else:
