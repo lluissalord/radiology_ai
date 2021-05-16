@@ -18,6 +18,17 @@ def open_name_relation_file(filepath, sep=","):
     return df
 
 
+def check_inconsistent_relation_file(relation_df):
+    if len(relation_df.index) == 0:
+        raise ValueError(
+            "No reset is set, but there is no relation file or it is empty"
+        )
+    if relation_df.index.duplicated("Original").any():
+        raise ValueError(
+            "There is a duplicated value on relation file, please review it and modify it"
+        )
+
+
 def save_name_relation_file(relation_df, filepath, sep=","):
     """Save file containing the relation between original and new files"""
     relation_df[relation_df["Original_Filename"].notnull()].to_csv(
@@ -38,7 +49,7 @@ def get_last_id(relation_df, prefix="IMG_"):
     return new_id
 
 
-def add_new_relation(relation_df, src_path, src_filename, new_filename):
+def add_new_relation(relation_df, src_path, src_filename, new_filename, path=None):
     """Add a new relation on the relation DataFrame"""
 
     # Check it does not exist a conflictive addition
@@ -55,6 +66,8 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename):
     else:
         relation_df.loc[src_path, "Filename"] = new_filename
         relation_df.loc[src_path, "Original_Filename"] = src_filename
+        if path:
+            relation_df.loc[src_path, "Path"] = path
 
     return relation_df
 

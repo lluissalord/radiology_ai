@@ -18,6 +18,7 @@ import pydicom
 
 from organize.dicom import *
 from organize.relation import *
+from organize.templates import *
 from organize.utils import *
 
 
@@ -187,14 +188,7 @@ def organize_folders(
     # In case not reseting the folders, then the current relation is required
     if not reset:
         relation_df = open_name_relation_file(relation_filepath, sep=",")
-        if len(relation_df.index) == 0:
-            raise ValueError(
-                "No reset is set, but there is no relation file or it is empty"
-            )
-        if relation_df.index.duplicated("Original").any():
-            raise ValueError(
-                "There is a duplicated value on relation file, please review it and modify it"
-            )
+        check_inconsistent_relation_file(relation_df)
 
     # Look at all the DICOM files in the source folder, check them and move them appropiatly
     folders = glob(os.path.join(src_folder, "*"))
@@ -203,28 +197,15 @@ def organize_folders(
         # Find all files in the folder
         filepaths = glob(os.path.join(folder, "*"))
 
-        # Open all the files as DICOM and check if they fullfil the condition to be used in the study
-        for filepath in filepaths:
-
-            # Normalize path to be equal without depending on the OS
-            filepath = os.path.normpath(filepath).replace(os.sep, "/")
-
-            # If is no resetting and the file is already on the relation, then there is no need to check
-            if not reset:
-                if filepath in relation_df.index:
-                    continue
-
-            # Check if current file is frontal (ap) image
-            if metadata_labels is not None:
-                if check_metadata_label(
-                    filepath, metadata_labels, label="ap", exact_match=label_exact_match
-                ):
-                    correct_filepaths.append(filepath)
-            else:
-                # Read and check DICOM
-                dcm = pydicom.dcmread(filepath)
-                if check_DICOM(dcm, check_DICOM_dict, debug):
-                    correct_filepaths.append(filepath)
+        correct_filepaths += check_ap_filepaths(
+            filepaths,
+            relation_df,
+            metadata_labels=metadata_labels,
+            label_exact_match=label_exact_match,
+            check_DICOM_dict=check_DICOM_dict,
+            reset=reset,
+            debug=debug,
+        )
 
     print("Preparing for organizing files...")
     # Only proceed if there is files to move or resetting folders
@@ -232,7 +213,7 @@ def organize_folders(
 
         # TODO: Make sure that it continues from the last block
         if not reset:
-            last_block = relation_df["Path"].str.split("/").str[-1].astype(int).max()
+            last_block = get_last_block_id(relation_df)
             start_num_subgrups = last_block + 1
         else:
             start_num_subgrups = 0
@@ -241,15 +222,8 @@ def organize_folders(
         folders_dst = get_final_dst(
             dst_folder, correct_filepaths, groups, subgroup_length, start_num_subgrups
         )
-        temp_relation_df = pd.DataFrame(
-            folders_dst.values(), index=folders_dst.keys(), columns=["Path"]
-        )
-        temp_relation_df["Filename"] = filename_prefix + str(-1)
-        temp_relation_df.index.rename("Original", inplace=True)
 
-        print("Groups and subgroups organized")
-        if debug:
-            print(temp_relation_df)
+        tmp_relation_df = generate_tmp_relation_df(folders_dst, filename_prefix, debug)
 
         # Define relation DataFrame depending on reset
         if reset:
@@ -257,9 +231,9 @@ def organize_folders(
             if os.path.isdir(dst_folder):
                 shutil.rmtree(dst_folder)
 
-            relation_df = temp_relation_df
+            relation_df = tmp_relation_df
         else:
-            relation_df = pd.concat([relation_df, temp_relation_df], axis=0)
+            relation_df = pd.concat([relation_df, tmp_relation_df], axis=0)
 
         # Get last ID of the current files
         current_id = get_last_id(relation_df, prefix=filename_prefix)
@@ -271,41 +245,59 @@ def organize_folders(
         if debug:
             print("Current filepaths:\n\n", correct_filepaths)
 
-        # Loop over the files that should be copied/moved
-        for filepath in tqdm(correct_filepaths, desc="Move files"):
-
-            # Get the final destination folder
-            _, src_filename = os.path.split(filepath)
-            final_dst = relation_df.loc[filepath, "Path"]
-
-            # Set filename depending on numeration
-            filename = filename_prefix + str(current_id + 1)
-            current_id += 1
-
-            # Add new relation on the DataFrame
-            relation_df = add_new_relation(
-                relation_df, filepath, src_filename, filename
-            )
-
-            # Check raw relation before moving
-            check_relation(relation_df.loc[filepath], check_path=False, check_raw=True)
-
-            # Copy/Move the file to the final destination with
-            move_file(
-                filepath,
-                filename,
-                final_dst,
-                force_extension=force_extension,
-                copy=copy,
-            )
-
-            # Check new path relation before saving
-            check_relation(relation_df.loc[filepath], check_path=True, check_raw=False)
-
-            # Save the relation file
-            save_name_relation_file(relation_df, relation_filepath, sep=",")
+        move_correct_files(
+            correct_filepaths,
+            relation_filepath,
+            current_id,
+            relation_df=relation_df,
+            filename_prefix=filename_prefix,
+            force_extension=force_extension,
+            copy=copy,
+        )
 
     return relation_df, len(correct_filepaths)
+
+
+def check_ap_filepaths(
+    filepaths,
+    relation_df,
+    metadata_labels=None,
+    label_exact_match=True,
+    check_DICOM_dict={},
+    reset=False,
+    debug=False,
+):
+    correct_filepaths = []
+
+    # Open all the files as DICOM and check if they fullfil the condition to be used in the study
+    # Or check directly on metadata labels if it has been classified as AP
+    for filepath in filepaths:
+
+        # Normalize path to be equal without depending on the OS
+        filepath = os.path.normpath(filepath).replace(os.sep, "/")
+
+        # If is no resetting and the file is already on the relation, then there is no need to check
+        if not reset:
+            if filepath in relation_df.index:
+                continue
+
+        # Check if current file is frontal (ap) image
+        if metadata_labels is not None:
+            if check_metadata_label(
+                filepath, metadata_labels, label="ap", exact_match=label_exact_match
+            ):
+                correct_filepaths.append(filepath)
+        else:
+            # Read and check DICOM
+            dcm = pydicom.dcmread(filepath)
+            if check_DICOM(dcm, check_DICOM_dict, debug):
+                correct_filepaths.append(filepath)
+
+    return correct_filepaths
+
+
+def get_last_block_id(relation_df):
+    return relation_df["Path"].str.split("/").str[-1].astype(int).max()
 
 
 def shuffle_group_folders(
@@ -373,3 +365,175 @@ def get_final_dst(
                 os.sep, "/"
             )
     return folders_dst
+
+
+def generate_tmp_relation_df(folders_dst, filename_prefix, debug=False):
+    tmp_relation_df = pd.DataFrame(
+        folders_dst.values(), index=folders_dst.keys(), columns=["Path"]
+    )
+    tmp_relation_df["Filename"] = filename_prefix + str(-1)
+    tmp_relation_df.index.rename("Original", inplace=True)
+
+    print("Groups and subgroups organized")
+    if debug:
+        print(tmp_relation_df)
+
+    return tmp_relation_df
+
+
+def move_correct_files(
+    correct_filepaths,
+    relation_filepath,
+    current_id,
+    relation_df=None,
+    filenames=None,
+    dst_filepaths=None,
+    filename_prefix="IMG_",
+    force_extension=None,
+    copy=True,
+):
+    # Loop over the files that should be copied/moved
+    for i, filepath in enumerate(tqdm(correct_filepaths, desc="Move files")):
+
+        _, src_filename = os.path.split(filepath)
+
+        # Get the final destination folder
+        if dst_filepaths is None:
+            dst_folder = relation_df.loc[filepath, "Path"]
+        else:
+            dst_folder = dst_filepaths[i]
+
+        if filenames is None:
+            # Set filename depending on numeration
+            filename = filename_prefix + str(current_id + 1)
+            current_id += 1
+        else:
+            filename = filenames[i]
+
+        # Add new relation on the DataFrame
+        relation_df = add_new_relation(
+            relation_df, filepath, src_filename, filename, path=dst_folder
+        )
+
+        # Check raw relation before moving
+        check_relation(relation_df.loc[filepath], check_path=False, check_raw=True)
+
+        # Copy/Move the file to the final destination with
+        move_file(
+            filepath,
+            filename,
+            dst_folder,
+            force_extension=force_extension,
+            copy=copy,
+        )
+
+        # Check new path relation before saving
+        check_relation(relation_df.loc[filepath], check_path=True, check_raw=False)
+
+        # Save the relation file
+        save_name_relation_file(relation_df, relation_filepath, sep=",")
+
+
+def move_files_to_add_reviews(
+    all_templates_df,
+    dst_folder,
+    relation_filepath,
+    participants=None,
+    block_length=None,
+    filename_prefix="IMG_",
+    force_extension=None,
+    debug=False,
+):
+
+    relation_df = open_name_relation_file(relation_filepath, sep=",")
+    check_inconsistent_relation_file(relation_df)
+
+    filtered_df = filter_to_add_reviews(all_templates_df)
+
+    last_block_id = get_last_block_id(relation_df)
+    relation = relate_blocks_to_ids_and_participants(
+        filtered_df, participants, block_length, last_block_id
+    )
+
+    all_src_paths, all_dst_paths, filenames = extract_src_dst_paths(
+        relation, relation_df, dst_folder
+    )
+
+    move_correct_files(
+        all_src_paths,
+        relation_filepath,
+        relation_df=relation_df,
+        filenames=filenames,
+        dst_filepaths=all_dst_paths,
+        filename_prefix=filename_prefix,
+        force_extension=force_extension,
+        copy=True,
+    )
+
+    return relation_df, len(all_src_paths)
+
+    # return relation_df, len(correct_filepaths)
+
+
+def filter_to_add_reviews(all_templates_df):
+    difficulty_match = all_templates_df["Difficulty"].isin(["2-alta", "3-dudosa"])
+    target_match = all_templates_df["Targets"].apply(check_targets_to_add_reviews)
+    incorrect_img_match = (all_templates_df["Difficulty"] == "") | (
+        all_templates_df["Difficulty"].isnull()
+    )
+
+    return all_templates_df[difficulty_match | target_match | incorrect_img_match]
+
+
+def check_targets_to_add_reviews(targets):
+    if len(targets) == 1:
+        return targets[0] != "0"
+    else:
+        return decide_final_target(targets) == "Unclear fracture"
+
+
+def relate_blocks_to_ids_and_participants(
+    templates_df, participants, block_length, last_block_id
+):
+    n_files = len(templates_df)
+    tmp_template_df = templates_df.copy()
+
+    random.shuffle(participants)
+
+    current_id = last_block_id + 1
+
+    relation = {}
+    while len(tmp_template_df.index):
+        for participant in participants:
+            ids = get_available_ids_for_participant(tmp_template_df, participant)
+
+            if len(ids) > 0:
+                random.shuffle(ids)
+                block_ids = ids[:block_length]
+                relation[current_id] = (participant, block_ids)
+                current_id += 1
+
+                tmp_template_df = tmp_template_df.drop(block_ids)
+
+    return relation
+
+
+def get_available_ids_for_participant(tmp_template_df, participant):
+    match = tmp_template_df["Reviewers"].apply(lambda revs: participant in revs)
+    return tmp_template_df.loc[match, "ID"].values()
+
+
+def extract_src_dst_paths(relation, relation_df, dst_folder):
+    all_dst_paths = []
+    all_src_paths = []
+    filenames = []
+    for block_id, (participant, file_ids) in relation.items():
+        block_dst_folder = os.path.join(dst_folder, participant, str(block_id))
+        all_dst_paths += block_dst_folder
+
+        tmp_relation_df = relation_df[relation_df["Filename"].isin(file_ids)]
+        all_src_paths += tmp_relation_df.index().values()
+
+        filenames += file_ids
+
+    return all_src_paths, all_dst_paths, filenames

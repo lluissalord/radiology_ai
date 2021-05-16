@@ -280,7 +280,12 @@ def concat_templates(src_folder, excel=True, csv_sep=";"):
         + glob(os.path.join(src_folder, "*/*/*" + extension))
     )
 
-    dtype = {"ID": "string", "Target": "string", "Incorrect_image": "string", "Not_enough_quality": "string"}
+    dtype = {
+        "ID": "string",
+        "Target": "string",
+        "Incorrect_image": "string",
+        "Not_enough_quality": "string",
+    }
 
     df = pd.DataFrame()
     for template_path in tqdm(template_paths, desc="Template files: "):
@@ -295,7 +300,7 @@ def concat_templates(src_folder, excel=True, csv_sep=";"):
             current_df = pd.read_excel(template_path, dtype=dtype, engine="openpyxl")
         else:
             current_df = pd.read_csv(template_path, sep=csv_sep, dtype=dtype)
-    
+
         current_df["Reviewers"] = get_reviewer(template_filename)
         current_df["Blocks"] = get_block(template_filename)
 
@@ -316,35 +321,39 @@ def concat_templates(src_folder, excel=True, csv_sep=";"):
 
 
 def get_reviewer(template_filename):
-    no_digits = re.search('\D+', template_filename).group(0)
-    return no_digits.strip('_')
+    no_digits = re.search("\D+", template_filename).group(0)
+    return no_digits.strip("_")
 
 
 def get_block(template_filename):
-    block = re.search('\d+', template_filename).group(0)
+    block = re.search("\d+", template_filename).group(0)
     return block
 
 
 def normalize_difficulty_values(df):
-    df["Difficulty"] = df["Difficulty"].str.lower().map(
-        {
-            'baja': '0-baja',
-            'bajo': '0-baja',
-            'media': '1-media',
-            'medio': '1-media',
-            'alta': '2-alta',
-            'alto': '2-alta',
-            'dudosa': '3-dudosa',
-            'dudoso': '3-dudosa',
-        }
+    df["Difficulty"] = (
+        df["Difficulty"]
+        .str.lower()
+        .map(
+            {
+                "baja": "0-baja",
+                "bajo": "0-baja",
+                "media": "1-media",
+                "medio": "1-media",
+                "alta": "2-alta",
+                "alto": "2-alta",
+                "dudosa": "3-dudosa",
+                "dudoso": "3-dudosa",
+            }
+        )
     )
 
     return df
 
 
 def transform_to_ID_level(df):
-    df = df[df.Target.notnull()]
-    df = df.rename({'Target': 'Targets'}, axis=1)
+    # df = df[df.Target.notnull()] # All data is required to take into account additional reviewers
+    df = df.rename({"Target": "Targets"}, axis=1)
     df = df.groupby("ID").agg(
         {
             "Difficulty": "max",
@@ -368,7 +377,7 @@ def decide_final_target(targets):
             counter[target] += 1
         else:
             counter[target] = 1
-    
+
     counter = list(sorted(counter.items(), key=lambda item: item[1], reverse=True))
 
     # Tie case
