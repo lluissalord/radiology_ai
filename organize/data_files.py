@@ -478,11 +478,12 @@ def move_files_to_add_reviews(
 def filter_to_add_reviews(all_templates_df):
     difficulty_match = all_templates_df["Difficulty"].isin(["2-alta", "3-dudosa"])
     target_match = all_templates_df["Targets"].apply(check_targets_to_add_reviews)
-    incorrect_img_match = (all_templates_df["Difficulty"] == "") | (
-        all_templates_df["Difficulty"].isnull()
-    )
+    # incorrect_img_match = (all_templates_df["Difficulty"] == "") | (
+    #     all_templates_df["Difficulty"].isnull()
+    # )
 
-    return all_templates_df[difficulty_match | target_match | incorrect_img_match]
+    # return all_templates_df[difficulty_match | target_match | incorrect_img_match]
+    return all_templates_df[difficulty_match | target_match ]
 
 
 def check_targets_to_add_reviews(targets):
