@@ -487,8 +487,12 @@ def filter_to_add_reviews(all_templates_df):
 
 
 def check_targets_to_add_reviews(targets):
+    try:
+        targets = eval(targets)
+    except Exception:
+        return False
     if len(targets) == 1:
-        return pd.Series(targets).notnull().all() and targets[0] != "0"
+        return pd.Series(targets).notnull().all() and not (targets[0] == "0" or targets[0] == 0)
     else:
         return decide_final_target(targets) == "Unclear fracture"
 
