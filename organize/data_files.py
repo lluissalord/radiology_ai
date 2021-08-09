@@ -384,7 +384,7 @@ def generate_tmp_relation_df(folders_dst, filename_prefix, debug=False):
 def move_correct_files(
     correct_filepaths,
     relation_filepath,
-    current_id,
+    current_id=None,
     relation_df=None,
     filenames=None,
     dst_filepaths=None,
@@ -404,6 +404,8 @@ def move_correct_files(
             dst_folder = dst_filepaths[i]
 
         if filenames is None:
+            if current_id is None:
+                raise ValueError('current_id or filename should be provided')
             # Set filename depending on numeration
             filename = filename_prefix + str(current_id + 1)
             current_id += 1
@@ -449,6 +451,8 @@ def move_files_to_add_reviews(
     check_inconsistent_relation_file(relation_df)
 
     filtered_df = filter_to_add_reviews(all_templates_df)
+    if filtered_df.index.name != 'ID':
+        filtered_df = filtered_df.set_index('ID')
 
     last_block_id = get_last_block_id(relation_df)
     relation = relate_blocks_to_ids_and_participants(
@@ -514,7 +518,7 @@ def relate_blocks_to_ids_and_participants(
 
             if len(ids) > 0:
                 random.shuffle(ids)
-                block_ids = ids[:block_length]
+                block_ids = list(ids[:block_length])
                 relation[current_id] = (participant, block_ids)
                 current_id += 1
 
@@ -524,8 +528,8 @@ def relate_blocks_to_ids_and_participants(
 
 
 def get_available_ids_for_participant(tmp_template_df, participant):
-    match = tmp_template_df["Reviewers"].apply(lambda revs: participant in revs)
-    return tmp_template_df.loc[match, "ID"].values()
+    match = tmp_template_df["Reviewers"].apply(lambda revs: participant not in revs)
+    return tmp_template_df.loc[match].index.values
 
 
 def extract_src_dst_paths(relation, relation_df, dst_folder):
@@ -537,7 +541,7 @@ def extract_src_dst_paths(relation, relation_df, dst_folder):
         all_dst_paths += block_dst_folder
 
         tmp_relation_df = relation_df[relation_df["Filename"].isin(file_ids)]
-        all_src_paths += tmp_relation_df.index().values()
+        all_src_paths += list(tmp_relation_df.index.values)
 
         filenames += file_ids
 

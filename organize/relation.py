@@ -49,12 +49,12 @@ def get_last_id(relation_df, prefix="IMG_"):
     return new_id
 
 
-def add_new_relation(relation_df, src_path, src_filename, new_filename, path=None):
+def add_new_relation(relation_df, src_path, src_filename, new_filename, path=None, check_conflict=False):
     """Add a new relation on the relation DataFrame"""
 
     # Check it does not exist a conflictive addition
     # if src_path in relation_df.index and 'Original_Filename' in relation_df.columns and not np.isnan(relation_df.loc[src_path, 'Original_Filename']):
-    if (
+    if check_conflict and (
         src_path in relation_df.index
         and "Original_Filename" in relation_df.columns
         and relation_df["Original_Filename"].notnull()[src_path]
