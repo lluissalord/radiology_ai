@@ -463,6 +463,9 @@ def move_files_to_add_reviews(
         relation, relation_df, dst_folder
     )
 
+    assert len(all_src_paths) == len(all_dst_paths)
+    assert len(all_src_paths) == len(filenames)
+
     move_correct_files(
         all_src_paths,
         relation_filepath,
@@ -537,11 +540,11 @@ def extract_src_dst_paths(relation, relation_df, dst_folder):
     all_src_paths = []
     filenames = []
     for block_id, (participant, file_ids) in relation.items():
-        block_dst_folder = os.path.join(dst_folder, participant, str(block_id))
-        all_dst_paths += block_dst_folder
-
         tmp_relation_df = relation_df[relation_df["Filename"].isin(file_ids)]
         all_src_paths += list(tmp_relation_df.index.values)
+
+        block_dst_folder = os.path.join(dst_folder, participant, str(block_id))
+        all_dst_paths += [block_dst_folder,]*len(tmp_relation_df.index)
 
         filenames += file_ids
 

@@ -3,6 +3,7 @@ import pandas as pd
 from glob import glob
 from pathlib import Path
 import re
+from organize.data_files import move_file
 
 from tqdm.auto import tqdm
 
@@ -148,6 +149,7 @@ def generate_template(
                 df.to_excel(
                     os.sep.join(path_split[:-1] + [template_name + extension]),
                     index=False,
+                    engine="openpyxl"
                 )
             else:
                 df.to_csv(
@@ -206,6 +208,7 @@ def modify_template(
                 df.to_excel(
                     template_file,
                     index=False,
+                    engine="openpyxl"
                 )
             else:
                 df.to_csv(
@@ -220,6 +223,7 @@ def sort_template_file(df, filename_prefix):
 
     try:
         # Extract ID from the filename and sort by it as numerical sorting
+        df = df[df["ID"].notnull()]
         df["sort"] = df["ID"].str[len(filename_prefix) :].astype(int)
         df = df.sort_values("sort")
         df = df.drop("sort", axis=1)
