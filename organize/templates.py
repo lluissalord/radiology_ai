@@ -3,7 +3,7 @@ import pandas as pd
 from glob import glob
 from pathlib import Path
 import re
-from organize.data_files import move_file
+from organize.utils import move_file
 
 from tqdm.auto import tqdm
 

@@ -22,47 +22,6 @@ from organize.templates import *
 from organize.utils import *
 
 
-def move_file(
-    src_filepath,
-    filename,
-    dst_folder,
-    force_extension=None,
-    copy=True,
-    return_filepath=True,
-):
-    """Move or copy file to the destination folder with folder name"""
-
-    # Define extension
-    _, src_extension = os.path.splitext(src_filepath)
-    dst_filename, dst_extension = os.path.splitext(filename)
-    if force_extension != False and force_extension is not None:
-        extension = force_extension
-    elif dst_extension != "" or force_extension == False:
-        extension = dst_extension
-    else:
-        extension = src_extension
-
-    # Define filename
-    filename = dst_filename + extension
-
-    # Define the destination path
-    dst_filepath = os.path.join(dst_folder, filename)
-
-    # Create the destination folder if not exists
-    if not os.path.exists(dst_folder):
-        os.makedirs(dst_folder)
-
-    if copy:
-        # Copy file with folder name
-        shutil.copyfile(src_filepath, dst_filepath)
-    else:
-        # Move file with folder name
-        shutil.move(src_filepath, dst_filepath)
-
-    if return_filepath:
-        return dst_filepath
-
-
 def move_relation(relation_filepath, copy=True, to_raw=True):
     """Move or copy files to/from raw destination from/to final destination based on relation file"""
 
