@@ -459,10 +459,10 @@ def check_targets_to_add_reviews(targets):
         targets = eval(targets)
     except Exception:
         return False
-    if len(targets) == 1:
-        return pd.Series(targets).notnull().all() and not (targets[0] == "0" or targets[0] == 0)
-    else:
-        return decide_final_target(targets) == "Unclear fracture"
+    # if len(targets) == 1:
+    #     return pd.Series(targets).notnull().all() and not (targets[0] == "0" or targets[0] == 0)
+    # else:
+    return decide_final_target(targets) == "Unclear fracture"
 
 
 def relate_blocks_to_ids_and_participants(
