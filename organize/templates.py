@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 from glob import glob
 from pathlib import Path
 import re
@@ -361,6 +362,7 @@ def transform_to_ID_level(df):
         df.loc[df[col].isnull(), col] = ""
 
     df = df.rename({"Target": "Targets"}, axis=1)
+    df['Targets'] = df['Targets'].apply(normalize_target_value)
     df = df.groupby("ID").agg(
         {
             "Difficulty": "max",
@@ -375,6 +377,13 @@ def transform_to_ID_level(df):
     df["Target"] = df["Targets"].apply(decide_final_target)
 
     return df
+
+
+def normalize_target_value(target):
+    try:
+        return int(target)
+    except TypeError:
+        return np.nan
 
 
 def decide_final_target(targets):
