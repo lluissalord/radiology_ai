@@ -414,6 +414,7 @@ def move_files_to_add_reviews(
         filtered_df = filtered_df.set_index('ID')
 
     last_block_id = get_last_block_id(relation_df)
+    print(f"Last block id was {last_block_id}")
     relation = relate_blocks_to_ids_and_participants(
         filtered_df, participants, block_length, last_block_id
     )
@@ -449,7 +450,8 @@ def filter_to_add_reviews(all_templates_df):
     # )
 
     # return all_templates_df[difficulty_match | target_match | incorrect_img_match]
-    return all_templates_df[difficulty_match | target_match ]
+    # return all_templates_df[difficulty_match | target_match ]
+    return all_templates_df[target_match]
 
 
 def check_targets_to_add_reviews(targets):
