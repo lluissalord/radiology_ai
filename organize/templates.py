@@ -381,7 +381,7 @@ def transform_to_ID_level(df):
 
 def normalize_target_value(target):
     try:
-        return int(target)
+        return int(float(target))
     except TypeError:
         return np.nan
 
