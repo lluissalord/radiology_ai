@@ -388,11 +388,13 @@ def normalize_target_value(target):
 
 def decide_final_target(targets):
     counter = {}
+    binary_counter = {True: 0, False: 0}
     targets_s = pd.Series(targets)
     if targets_s.isnull().all():
         return targets[0]
 
     for target in targets_s[targets_s.notnull()]:
+        binary_counter[target != 0] += 1
         if target in counter:
             counter[target] += 1
         else:
@@ -402,6 +404,9 @@ def decide_final_target(targets):
 
     # Tie case
     if len(counter) > 1 and counter[0][1] == counter[1][1]:
-        return "Unclear fracture"
+        if binary_counter[True] > binary_counter[False]:
+            return "Fracture (unclear type)"
+        else:
+            return "Unknown"
     else:
         return counter[0][0]
