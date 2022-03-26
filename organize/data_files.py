@@ -1,5 +1,6 @@
 """ Functions required for organizing files for proper annotation """
 
+import re
 from glob import glob
 import os
 import shutil
@@ -462,7 +463,8 @@ def check_targets_to_add_reviews(targets):
     # if len(targets) == 1:
     #     return pd.Series(targets).notnull().all() and not (targets[0] == "0" or targets[0] == 0)
     # else:
-    return decide_final_target(targets) == "Unclear fracture"
+    is_valid_target = bool(re.match("^\d((\.|,)\d)?$", decide_final_target(targets).strip()))
+    return not is_valid_target
 
 
 def relate_blocks_to_ids_and_participants(

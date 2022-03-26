@@ -209,7 +209,8 @@ def split_by_labelled_data(df, run_params):
     )
 
     # Split between label_df (labelled data), `unlabel_df` (containing only AP) and `unlabel_not_ap_df` (with the rest of unlabel data)
-    label_df = df[df["Target"].notnull()].reset_index(drop=True)
+    labeled_mask = (df["Target"].notnull()) & (~df["Target"].str.contains("Unknown"))
+    label_df = df[labeled_mask].reset_index(drop=True)
     unlabel_df = unlabel_all_df[ap_match].reset_index(drop=True)
     unlabel_not_ap_df = unlabel_all_df[~ap_match].reset_index(drop=True)
 
@@ -432,5 +433,7 @@ def generate_dfs(run_params, debug=True):
         # train_df['Target'] = (train_df['Target'] != '0').astype(int).astype('string')
         # val_df['Target'] = (val_df['Target'] != '0').astype(int).astype('string')
         # test_df['Target'] = (test_df['Target'] != '0').astype(int).astype('string')
+    else:
+        label_df = label_df[~label_df["Target"].isalpha()]
 
     return label_df, unlabel_df, final_df
