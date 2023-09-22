@@ -321,7 +321,7 @@ class KneeLocalizer(Transform):
             area = w * h / total_area
             if area > biggest_area:
                 biggest_area = area
-                roi = np.array([x, y, w, h], dtype=np.int)
+                roi = np.array([x, y, w, h], dtype=int)
                 if self.debug:
                     cv2.rectangle(mask_black, (x, y), (x + w, y + h), (0, 255, 0), 2)
         if biggest_area != 0:
@@ -375,7 +375,7 @@ class KneeLocalizer(Transform):
                 if check_mask.sum() / (total_area * 255) < 0.01:
                     found = True
                     smallest_area = area
-                    roi = np.array([x, y, w, h], dtype=np.int)
+                    roi = np.array([x, y, w, h], dtype=int)
 
                 if self.debug:
                     cv2.rectangle(mask_white, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -412,7 +412,7 @@ class KneeLocalizer(Transform):
                     if check_mask.sum() / (total_area * 255) < 0.01:
                         found = True
                         smallest_area = area
-                        roi = np.array(uni_box, dtype=np.int)
+                        roi = np.array(uni_box, dtype=int)
 
                     if self.debug:
                         x, y, w, h = tuple(uni_box)
@@ -471,7 +471,7 @@ class KneeLocalizer(Transform):
                                     min_R_C / scale,
                                     min_R_C / scale,
                                 ],
-                                dtype=np.int,
+                                dtype=int,
                             )
                             x1, y1 = roi[0], roi[1]
                             x2, y2 = roi[0] + roi[2], roi[1] + roi[3]

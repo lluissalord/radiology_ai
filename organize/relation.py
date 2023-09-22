@@ -15,6 +15,7 @@ def open_name_relation_file(filepath, sep=","):
         )
     else:
         df = pd.read_csv(filepath, sep=sep, index_col=0)
+        df.columns = [column if column != "Path" else "Dataset_Path" for column in df.columns]
 
     return df
 
@@ -50,7 +51,9 @@ def get_last_id(relation_df, prefix="IMG_"):
     return new_id
 
 
-def add_new_relation(relation_df, src_path, src_filename, new_filename, path=None, check_conflict=False):
+def add_new_relation(
+    relation_df, src_path, src_filename, new_filename, path=None, check_conflict=False
+):
     """Add a new relation on the relation DataFrame"""
 
     # Check it does not exist a conflictive addition
@@ -68,7 +71,7 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename, path=Non
         relation_df.loc[src_path, "Filename"] = new_filename
         relation_df.loc[src_path, "Original_Filename"] = src_filename
         if path:
-            relation_df.loc[src_path, "Path"] = path
+            relation_df.loc[src_path, "Dataset_Path"] = path
 
     return relation_df
 
@@ -76,8 +79,8 @@ def add_new_relation(relation_df, src_path, src_filename, new_filename, path=Non
 def update_block_relation(relation_df, parent_folder, block, new_folder, sep="/"):
     """Replace the old folder names by the new folder only to the paths where the block appears"""
 
-    relation_df.loc[relation_df["Path"].str.endswith(block), "Path"] = relation_df.loc[
-        relation_df["Path"].str.endswith(block), "Path"
+    relation_df.loc[relation_df[""].str.endswith(block), ""] = relation_df.loc[
+        relation_df[""].str.endswith(block), ""
     ].str.replace(
         f"((?<={os.path.split(parent_folder)[-1]}{sep})(.*)(?={sep}{block}$))",
         new_folder,
@@ -95,9 +98,9 @@ def check_relation(relation_df, check_path=True, check_raw=True):
     if check_path:
         print("Checking relation file are in the correct path...")
         if type(relation_df) is pd.DataFrame:
-            check = relation_df["Path"].apply(check_generic_path)
+            check = relation_df[""].apply(check_generic_path)
         else:
-            check = pd.Series(check_generic_path(relation_df["Path"]))
+            check = pd.Series(check_generic_path(relation_df[""]))
 
         # Raise error if not true for all the cases
         if not check.all():

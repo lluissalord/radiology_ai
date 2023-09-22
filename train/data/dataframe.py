@@ -1,65 +1,112 @@
+from copy import deepcopy
+from typing import Tuple
 import pandas as pd
 import os
 from pathlib import Path
 
 from sklearn.model_selection import train_test_split
-
-from organize.templates import concat_templates
+from sklearn.utils import shuffle
 
 from train.utils import *
+from organize.relation import open_name_relation_file
+
+
+def load_and_merge_all_data(run_params: dict) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    all_df = pd.read_excel(
+        os.path.join(run_params["PATH_PREFIX"], "all.xlsx"),
+        dtype={"ID": "string", "Target": "string"},
+        engine="openpyxl",
+    )
+    all_df = all_df.set_index("ID")
+    labeled_mask = (all_df["Target"].notnull()) & (
+        ~all_df["Target"].str.contains("Unknown")
+    )
+    label_df = all_df[labeled_mask]
+
+    # Load DataFrame of relation between Original Filename and ID (IMG_XXX)
+    relation_df = open_name_relation_file(
+        os.path.join(run_params["PATH_PREFIX"], "relation.csv")
+    )
+    relation_df["Original_Filename"] = relation_df["Original_Filename"].apply(
+        lambda path: Path(path).name
+    )
+    relation_df = relation_df.set_index("Filename")
+
+    # Read all the metadata
+    metadata_save_path = os.path.join(run_params["PATH_PREFIX"], "metadata_raw.csv")
+    metadata_df = pd.read_csv(metadata_save_path)
+    metadata_df["Original_Filename"] = metadata_df.fname.apply(
+        lambda path: Path(path).name
+    )
+    metadata_df = metadata_df.set_index("Original_Filename")
+
+    # Load DataFrame containing labels of OOS classifier ('ap', 'other')
+    metadata_labels_path = os.path.join(
+        run_params["PATH_PREFIX"], "metadata_labels.csv"
+    )
+    metadata_labels = pd.read_csv(metadata_labels_path)
+    metadata_labels["Original_Filename"] = metadata_labels["Path"].apply(
+        lambda path: Path(path).stem
+    )
+    metadata_labels = metadata_labels.set_index("Original_Filename")
+    metadata_df = metadata_df.merge(metadata_labels, left_index=True, right_index=True)
+
+    # Merge data to be able to load directly from preprocessed PNG file
+    label_df = label_df.merge(relation_df, left_index=True, right_index=True)
+
+    label_df = label_df.merge(
+        metadata_df, left_on="Original_Filename", right_index=True, how="left"
+    )
+
+    label_df.index.name = "ID"
+    if "ID" in label_df.columns:
+        label_df = label_df.drop("ID", axis=1)
+    label_df = label_df.reset_index(drop=False)
+
+    unlabel_df = metadata_df[~metadata_df.index.isin(label_df["Original_Filename"])]
+
+    # Define which column to use as the prediction
+    if "Final_pred" in unlabel_df.columns:
+        pred_col = "Final_pred"
+    else:
+        pred_col = "Pred"
+
+    # Conditions for AP radiographies on unlabel data
+    unlabel_df = unlabel_df[(unlabel_df[pred_col] == "ap")]
+    unlabel_df = unlabel_df.reset_index(drop=False)
+
+    return label_df, unlabel_df
 
 
 def add_png_path(df, run_params):
-    # Load DataFrame of relation between Original Filename and ID (IMG_XXX)
-    relation_df = pd.read_csv(os.path.join(run_params["PATH_PREFIX"], "relation.csv"))
-    relation_df = relation_df.set_index("Filename")
-
-    # Merge data to be able to load directly from preprocessed PNG file
-    final_df = df.set_index("ID").merge(relation_df, left_index=True, right_index=True)
-    final_df["ID"] = final_df.index.values
-    final_df = final_df.reset_index(drop=True)
-    final_df["Raw_preprocess"] = final_df["Original_Filename"].apply(
+    df["Raw_preprocess"] = df["Original_Filename"].apply(
         lambda filename: os.path.join(
             run_params["RAW_PREPROCESS_FOLDER"], filename + ".png"
         )
     )
+    return df
 
-    return final_df
 
-
-def filter_centers_data(df, run_params):
-    # Read all the sources
-    metadata_save_path = os.path.join(run_params["PATH_PREFIX"], "metadata_raw.csv")
-    metadata_df = pd.read_csv(metadata_save_path)
-
+def filter_centers_mask(label_df):
     # Filter metadata to only sent images fulfiling condition
-    filter_metadata_df = metadata_df[
+    return (
         (
-            metadata_df.InstitutionName.str.lower().str.contains("coslada").astype(bool)
-            | metadata_df.InstitutionName.str.lower().str.contains("cugat").astype(bool)
+            (
+                label_df.InstitutionName.str.lower()
+                .str.contains("coslada")
+                .astype(bool)
+                | label_df.InstitutionName.str.lower()
+                .str.contains("cugat")
+                .astype(bool)
+            )
+            & (label_df.InstitutionName.notnull())
         )
-        & (metadata_df.InstitutionName.notnull())
         | (
-            metadata_df.AccessionNumber.astype("str").str.startswith("885")
-            # | metadata_df.AccessionNumber.astype('str').str.startswith('4104')
+            label_df.AccessionNumber.astype("str").str.startswith("885")
+            # | label_df.AccessionNumber.astype('str').str.startswith('4104')
         )
-    ]
-
-    # Create DataFrame only with the Filename
-    filter_df = pd.DataFrame(
-        index=filter_metadata_df.fname.apply(lambda x: Path(x).name)
+        | (label_df["Target"] != "0")
     )
-    filter_df["check_condition"] = True
-
-    # Filter data to only the ones from desired centers
-    final_df = df.merge(
-        filter_df, left_on="Original_Filename", right_index=True, how="left"
-    )
-    final_df = final_df[
-        (final_df["check_condition"] == True) | (final_df["Target"] != "0")
-    ]
-
-    return final_df
 
 
 def robust_split_data(df, test_size, target_col, seed=None):
@@ -99,9 +146,8 @@ def robust_split_data(df, test_size, target_col, seed=None):
                 done = True
 
     # Add minor classes which have not been initially included due to the error on train_test_split
-    test_df = pd.concat([test_df, df[~filter_mask]], axis=0).sample(
-        frac=1, random_state=seed
-    )
+
+    test_df = shuffle(pd.concat([test_df, df[~filter_mask]], axis=0), random_state=seed)
 
     return train_df, test_df
 
@@ -125,7 +171,7 @@ def imbalance_robust_split_data(
         indicator=True,
         suffixes=("", "_"),
     )
-    negative_df = negative_df[negative_df["_merge"] == "left_only"][list(df.columns)]
+    negative_df = negative_df.loc[negative_df["_merge"] == "left_only", df.columns]
 
     # Split negative examples
     neg_test_size = (len(df) * test_size - len(pos_test_df)) / (
@@ -136,9 +182,13 @@ def imbalance_robust_split_data(
     )
 
     # Join positive with negative examples and shuffle them
-    train_df = pd.concat([pos_train_df, neg_train_df]).sample(frac=1, random_state=seed)
+    train_df = shuffle(pd.concat([pos_train_df, neg_train_df]), random_state=seed)
 
-    test_df = pd.concat([pos_test_df, neg_test_df]).sample(frac=1, random_state=seed)
+    test_df = shuffle(pd.concat([pos_test_df, neg_test_df]), random_state=seed)
+
+    assert len(pos_train_df) + len(neg_train_df) == len(train_df)
+    assert len(pos_test_df) + len(neg_test_df) == len(test_df)
+    assert len(train_df) + len(test_df) == len(df)
 
     return train_df, test_df
 
@@ -156,65 +206,35 @@ def rebalance_equal_to_target_df(df, target_df, target_col="Target", seed=42):
     dataset_ratio = get_ratio(df, target_col=target_col)
     target_dataset_ratio = get_ratio(target_df, target_col=target_col)
 
-    negative_oversampling_ratio = dataset_ratio / target_dataset_ratio
+    non_target_oversampling_ratio = dataset_ratio / target_dataset_ratio
 
-    rebalanced_df = (
-        pd.concat(
-            [
-                df[df[target_col] == "0"].sample(
-                    frac=negative_oversampling_ratio, replace=True, random_state=seed
-                ),
-                df[df[target_col] != "0"],
-            ]
-        )
-        .reset_index(drop=True)
-        .sample(frac=1, random_state=seed)
-    )
+    if non_target_oversampling_ratio > 1:
+        rebalanced_df = shuffle(
+            pd.concat(
+                [
+                    df[df[target_col] == "0"],
+                    df[df[target_col] == "0"].sample(
+                        frac=non_target_oversampling_ratio - 1, random_state=seed
+                    ),
+                    df[df[target_col] != "0"],
+                ]
+            ),
+            random_state=seed,
+        ).reset_index(drop=True)
+    else:
+        rebalanced_df = shuffle(
+            pd.concat(
+                [
+                    df[df[target_col] == "0"].sample(
+                        frac=non_target_oversampling_ratio, random_state=seed
+                    ),
+                    df[df[target_col] != "0"],
+                ]
+            ),
+            random_state=seed,
+        ).reset_index(drop=True)
 
     return rebalanced_df
-
-
-def split_by_labelled_data(df, run_params):
-    # Load DataFrame containing labels of OOS classifier ('ap', 'other')
-    metadata_labels_path = os.path.join(
-        run_params["PATH_PREFIX"], "metadata_labels.csv"
-    )
-    metadata_labels = pd.read_csv(metadata_labels_path)
-    metadata_labels["Original_Filename"] = metadata_labels["Path"].apply(
-        lambda path: Path(path).stem
-    )
-    metadata_labels = metadata_labels.set_index("Original_Filename")
-
-    # Merge all the data we have with the labelling in order to split correctly according to OOS classifier
-    unlabel_all_df = metadata_labels.merge(
-        df.set_index("Original_Filename"), how="left", left_index=True, right_index=True
-    )
-    unlabel_all_df = unlabel_all_df[unlabel_all_df.Target.isnull()]
-    unlabel_all_df["Original_Filename"] = unlabel_all_df.index.values
-    unlabel_all_df["Raw_preprocess"] = unlabel_all_df["Original_Filename"].apply(
-        lambda filename: os.path.join(
-            run_params["RAW_PREPROCESS_FOLDER"], filename + ".png"
-        )
-    )
-
-    # Define which column to use as the prediction
-    if "Final_pred" in unlabel_all_df.columns:
-        pred_col = "Final_pred"
-    else:
-        pred_col = "Pred"
-
-    # Conditions for AP radiographies on unlabel data
-    ap_match = (unlabel_all_df[pred_col] == "ap") & (
-        unlabel_all_df.Incorrect_image.isnull()
-    )
-
-    # Split between label_df (labelled data), `unlabel_df` (containing only AP) and `unlabel_not_ap_df` (with the rest of unlabel data)
-    labeled_mask = (df["Target"].notnull()) & (~df["Target"].str.contains("Unknown"))
-    label_df = df[labeled_mask].reset_index(drop=True)
-    unlabel_df = unlabel_all_df[ap_match].reset_index(drop=True)
-    unlabel_not_ap_df = unlabel_all_df[~ap_match].reset_index(drop=True)
-
-    return label_df, unlabel_df, unlabel_not_ap_df
 
 
 def split_datasets(label_df, run_params):
@@ -288,7 +308,8 @@ def split_datasets(label_df, run_params):
 
 def rebalance_datasets(label_df, run_params):
     """Modify positive-negative proportion on each dataset to meet specification of positives.
-    Test with same proportion as the initial dataset, Dev same as train and Valid as initial dataset."""
+    Test with same proportion as the initial dataset, Dev same as train and Valid as initial dataset.
+    """
 
     if run_params["POSITIVES_ON_TRAIN"]:
         if run_params["TEST_SIZE"] != 0:
@@ -382,7 +403,6 @@ def split_KFolds(label_df, run_params):
 
 
 def split_train_dev_valid_test_data(label_df, run_params):
-
     if run_params["K_FOLDS"] and run_params["K"] is not None:
         label_df = split_KFolds(label_df, run_params)
     else:
@@ -393,33 +413,47 @@ def split_train_dev_valid_test_data(label_df, run_params):
     return label_df
 
 
-def generate_dfs(run_params, debug=True):
+def generate_dfs(run_params, filter_centers: bool = False, debug: bool = True):
     # TODO: Add case of IN_COLAB to generate DataFrame
-    df = pd.read_excel(
-        os.path.join(run_params["PATH_PREFIX"], "all.xlsx"),
-        dtype={"ID": "string", "Target": "string"},
-        engine="openpyxl",
-    )
+    label_df, unlabel_df = load_and_merge_all_data(run_params)
+
+    if run_params["BINARY_CLASSIFICATION"]:
+        label_df["Target"] = (label_df["Target"] != "0").astype(int).astype("string")
+    else:
+        label_df = label_df[~label_df["Target"].str.isalpha()]
+        unlabel_df = pd.concat(
+            [
+                unlabel_df,
+                label_df.loc[label_df["Target"].str.isalpha(), unlabel_df.columns],
+            ],
+            axis=0,
+        )
 
     # Add PNG path to be load directly from preprocessed image
-    final_df = add_png_path(df, run_params)
+    label_df = add_png_path(label_df, run_params)
+    unlabel_df = add_png_path(unlabel_df, run_params)
 
     # Filter data to only the ones from desired centers
-    final_df = filter_centers_data(final_df, run_params)
-
-    # Split data between labelled, unlabelled and no-AP unlabelled data
-    label_df, unlabel_df, unlabel_not_ap_df = split_by_labelled_data(
-        final_df, run_params
-    )
-
-    if debug:
-        print(f"Currently {len(label_df.index)} data have been labelled")
-        print(f"Remaining {len(unlabel_df.index)} data to be labelled")
-        print(f"Discarded {len(unlabel_not_ap_df.index)} data")
+    if filter_centers:
+        filtered_label_mask = filter_centers_mask(label_df)
+        print(f"Data from centers: {filtered_label_mask.sum()}")
+        print(
+            f"Filtered data moved to unlabel_df: {len(label_df.loc[~filtered_label_mask, unlabel_df.columns])}"
+        )
+        unlabel_df = pd.concat(
+            [
+                unlabel_df,
+                deepcopy(label_df.loc[~filtered_label_mask, unlabel_df.columns]),
+            ],
+            axis=0,
+        )
+        label_df = label_df[filtered_label_mask]
 
     label_df = split_train_dev_valid_test_data(label_df, run_params)
 
     if debug:
+        print(f"Currently {len(label_df.index)} data have been labelled")
+        print(f"Remaining {len(unlabel_df.index)} data to be labelled")
         print("\nSplit of labelled data is:")
         display(label_df["Dataset"].value_counts())
 
@@ -428,12 +462,4 @@ def generate_dfs(run_params, debug=True):
         "Dataset", key=lambda x: x.map(sort_dataset)
     ).reset_index(drop=True)
 
-    if run_params["BINARY_CLASSIFICATION"]:
-        label_df["Target"] = (label_df["Target"] != "0").astype(int).astype("string")
-        # train_df['Target'] = (train_df['Target'] != '0').astype(int).astype('string')
-        # val_df['Target'] = (val_df['Target'] != '0').astype(int).astype('string')
-        # test_df['Target'] = (test_df['Target'] != '0').astype(int).astype('string')
-    else:
-        label_df = label_df[~label_df["Target"].isalpha()]
-
-    return label_df, unlabel_df, final_df
+    return label_df, unlabel_df

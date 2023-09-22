@@ -5,7 +5,6 @@ from glob import glob
 import os
 import shutil
 import random
-from pathlib import Path
 from collections.abc import Iterable
 
 from tqdm.auto import tqdm
@@ -36,7 +35,7 @@ def move_relation(relation_filepath, copy=True, to_raw=True):
         # Loop over all the files to move/copy them to the raw destination
         relation_df.progress_apply(
             lambda x: move_file(
-                src_filepath=os.path.join(x.Path, x.Filename + ".dcm"),
+                src_filepath=os.path.join(x.Dataset_Path, x.Filename + ".dcm"),
                 filename=x.Original_Filename,
                 dst_folder=os.path.split(x.name)[0],
                 force_extension=False,
@@ -51,7 +50,7 @@ def move_relation(relation_filepath, copy=True, to_raw=True):
             lambda x: move_file(
                 src_filepath=x.name,
                 filename=x.Filename,
-                dst_folder=x.Path,
+                dst_folder=x.Dataset_Path,
                 force_extension=".dcm",
                 copy=copy,
                 return_filepath=False,
@@ -170,7 +169,6 @@ def organize_folders(
     print("Preparing for organizing files...")
     # Only proceed if there is files to move or resetting folders
     if len(correct_filepaths) > 0 or reset:
-
         # TODO: Make sure that it continues from the last block
         if not reset:
             last_block = get_last_block_id(relation_df)
@@ -232,7 +230,6 @@ def check_ap_filepaths(
     # Open all the files as DICOM and check if they fullfil the condition to be used in the study
     # Or check directly on metadata labels if it has been classified as AP
     for filepath in filepaths:
-
         # Normalize path to be equal without depending on the OS
         filepath = os.path.normpath(filepath).replace(os.sep, "/")
 
@@ -257,7 +254,7 @@ def check_ap_filepaths(
 
 
 def get_last_block_id(relation_df):
-    return relation_df["Path"].str.split("/").str[-1].astype(int).max()
+    return relation_df["Dataset_Path"].str.split("/").str[-1].astype(int).max()
 
 
 def shuffle_group_folders(
@@ -329,7 +326,7 @@ def get_final_dst(
 
 def generate_tmp_relation_df(folders_dst, filename_prefix, debug=False):
     tmp_relation_df = pd.DataFrame(
-        folders_dst.values(), index=folders_dst.keys(), columns=["Path"]
+        folders_dst.values(), index=folders_dst.keys(), columns=["Dataset_Path"]
     )
     tmp_relation_df["Filename"] = filename_prefix + str(-1)
     tmp_relation_df.index.rename("Original", inplace=True)
@@ -354,18 +351,17 @@ def move_correct_files(
 ):
     # Loop over the files that should be copied/moved
     for i, filepath in enumerate(tqdm(correct_filepaths, desc="Move files")):
-
         _, src_filename = os.path.split(filepath)
 
         # Get the final destination folder
         if dst_filepaths is None:
-            dst_folder = relation_df.loc[filepath, "Path"]
+            dst_folder = relation_df.loc[filepath, "Dataset_Path"]
         else:
             dst_folder = dst_filepaths[i]
 
         if filenames is None:
             if current_id is None:
-                raise ValueError('current_id or filename should be provided')
+                raise ValueError("current_id or filename should be provided")
             # Set filename depending on numeration
             filename = filename_prefix + str(current_id + 1)
             current_id += 1
@@ -406,13 +402,12 @@ def move_files_to_add_reviews(
     force_extension=None,
     debug=False,
 ):
-
     relation_df = open_name_relation_file(relation_filepath, sep=",")
     check_inconsistent_relation_file(relation_df)
 
     filtered_df = filter_to_add_reviews(all_templates_df)
-    if filtered_df.index.name != 'ID':
-        filtered_df = filtered_df.set_index('ID')
+    if filtered_df.index.name != "ID":
+        filtered_df = filtered_df.set_index("ID")
 
     last_block_id = get_last_block_id(relation_df)
     print(f"Last block id was {last_block_id}")
@@ -463,7 +458,9 @@ def check_targets_to_add_reviews(targets):
     # if len(targets) == 1:
     #     return pd.Series(targets).notnull().all() and not (targets[0] == "0" or targets[0] == 0)
     # else:
-    is_valid_target = bool(re.match("^\d((\.|,)\d)?$", decide_final_target(targets).strip()))
+    is_valid_target = bool(
+        re.match("^\d((\.|,)\d)?$", decide_final_target(targets).strip())
+    )
     return not is_valid_target
 
 
@@ -507,7 +504,9 @@ def extract_src_dst_paths(relation, relation_df, dst_folder):
         all_src_paths += list(tmp_relation_df.index.values)
 
         block_dst_folder = os.path.join(dst_folder, participant, str(block_id))
-        all_dst_paths += [block_dst_folder,]*len(tmp_relation_df.index)
+        all_dst_paths += [
+            block_dst_folder,
+        ] * len(tmp_relation_df.index)
 
         filenames += file_ids
 
